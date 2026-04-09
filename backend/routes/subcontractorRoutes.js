@@ -76,9 +76,15 @@ router.post("/add", (req, res) => {
 // ✅ GET ALL
 // ===============================
 router.get("/all", (req, res) => {
-  db.query("SELECT * FROM subcontractors ORDER BY id DESC", (err, result) => {
-    if (err) return res.status(500).send(err);
-    res.json(result);
+  db.query("SELECT * FROM subcontractors", (err, results) => {
+    if (err) {
+      console.error("❌ QUERY ERROR:", err);
+      return res.status(500).json({
+        error: err.message,
+        code: err.code
+      });
+    }
+    res.json(results);
   });
 });
 
