@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard</title>
+<!-- ================= STYLE ================= -->
+ <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+<!-- ================= FORM ================= -->
+<div class="container">
+
+<h2>💰 SC Payment Certificate Record</h2>
+
+<div class="form-grid">
+
+<select id="work_type_form">
+<option value="">Select Work Type</option>
+<option>Concrete</option>
+<option>Blockwork</option>
+<option>Plaster</option>
+<option>Paint</option>
+<option>Tiles</option>
+<option>Insulation</option>
+<option>Electrical</option>
+<option>Mechanical</option>
+</select>
+
+<select id="subcontractor_form">
+<option value="">Select Subcontractor</option>
+</select>
+
+<input id="certificate_no" placeholder="Certificate No" readonly>
+<input id="project_form" value="Sadayem" readonly>
+
+<input id="contract_number" placeholder="Contract No" readonly>
+<input id="advance_remaining" placeholder="Remaining Advance" readonly>
+
+<input id="retention_percent_display" placeholder="Retention %" readonly>
+<input id="advance_deduction" placeholder="Advance Deduction" readonly>
+
+<input id="work" placeholder="Work Value">
+<input id="withdrawn" placeholder="Work Withdrawn">
+
+<input id="deduction" placeholder="Deduction">
+<input id="refund" placeholder="Refund">
+
+<input id="vat" placeholder="VAT" readonly>
+<input id="retention" placeholder="Retention" readonly>
+
+<input id="net" placeholder="Net" readonly>
+
+</div>
+
+<button id="saveBtn">Save Payment</button>
+
+<p id="msg"></p>
+
+</div>
+
+<!-- ================= RECORD ================= -->
+<div class="container">
+
+<h3>📊 Payment Records</h3>
+<button id="exportBtn">Generate Report</button>
+
+</div>
+
+<!-- ================= BULK DELETE ================= -->
+<div class="container">
+
+<h3>🗑️ Bulk Delete Certificates</h3>
+
+<div class="form-grid">
+
+<select id="bulk_sub"></select>
+<select id="bulk_work"></select>
+
+<input id="bulk_project" value="Sadayem" readonly>
+<input id="from_cert" placeholder="From Cert No">
+
+<input id="to_cert" placeholder="To Cert No">
+
+</div>
+
+<button onclick="bulkDelete()">Delete Range</button>
+</div>
+
+<!-- ================= TABLE ================= -->
+ <div class="table-container">
+<table>
+
+<thead>
+
+<!-- FILTER ROW -->
+<tr>
+<th><select id="f_scid" onchange="applyFilter()"><option value="">All</option></select></th>
+<th><select id="f_project" onchange="applyFilter()"><option value="">All</option></select></th>
+<th><select id="f_contract" onchange="applyFilter()"><option value="">All</option></select></th>
+<th><select id="f_company" onchange="applyFilter()"><option value="">All</option></select></th>
+<th><select id="f_sub" onchange="applyFilter()"><option value="">All</option></select></th>
+<th><select id="f_work" onchange="applyFilter()"><option value="">All</option></select></th>
+<th><select id="f_cert" onchange="applyFilter()"><option value="">All</option></select></th>
+
+<th><select id="f_workval" onchange="applyFilter()"><option value="">All</option></select></th>
+<th><select id="f_withdrawn" onchange="applyFilter()"><option value="">All</option></select></th>
+<th><select id="f_deduction" onchange="applyFilter()"><option value="">All</option></select></th>
+<th><select id="f_refund" onchange="applyFilter()"><option value="">All</option></select></th>
+<th><select id="f_after" onchange="applyFilter()"><option value="">All</option></select></th>
+<th><select id="f_vat" onchange="applyFilter()"><option value="">All</option></select></th>
+<th><select id="f_retention" onchange="applyFilter()"><option value="">All</option></select></th>
+<th><select id="f_advance" onchange="applyFilter()"><option value="">All</option></select></th>
+<th><select id="f_net" onchange="applyFilter()"><option value="">All</option></select></th>
+<th><select id="f_date" onchange="applyFilter()"><option value="">All</option></select></th>
+<th></th>
+</tr>
+
+<!-- HEADER -->
+<tr>
+<th>SC ID</th>
+<th>Project</th>
+<th>Contract</th>
+<th>Company</th>
+<th>Subcontractor</th>
+<th>Work Type</th>
+<th>Cert No</th>
+<th>Work</th>
+<th>Withdrawn</th>
+<th>Deduction</th>
+<th>Refund</th>
+<th>After(-)</th>
+<th>VAT</th>
+<th>Retention</th>
+<th>Advance</th>
+<th>Net</th>
+<th>Date</th>
+<th>Actions</th>
+</tr>
+
+</thead>
+
+<tbody id="table"></tbody>
+
+<tfoot>
+<tr>
+<td colspan="6">TOTAL</td>
+<td id="t_cer">0</td>
+<td id="t_work">0</td>
+<td id="t_withdrawn">0</td>
+<td id="t_deduction">0</td>
+<td id="t_refund">0</td>
+<td id="t_after">0</td>
+<td id="t_vat">0</td>
+<td id="t_retention">0</td>
+<td id="t_advance">0</td>
+<td id="t_net">0</td>
+<td>-</td>
+<td></td>
+</tr>
+</tfoot>
+
+</table>
+</div>
+
+</div>
+
+<!-- ================= JS ================= -->
+
+</body>
+</html>

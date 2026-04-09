@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SPMS System</title>
+
+<style>
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI';
+    display: flex;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 220px;
+    background: #1f4e79;
+    color: white;
+    height: 100vh;
+    padding: 20px;
+}
+
+.sidebar h2 {
+    margin-bottom: 20px;
+}
+
+.menu-item {
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.menu-item:hover {
+    background: #163b5c;
+}
+
+/* MAIN CONTENT */
+.content {
+    flex: 1;
+    padding: 20px;
+    background: #f5f7fa;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="logo">SPMS</div>
+
+    <a href="#" onclick="loadPage('dashboard.html')" title="Dashboard">📊</a>
+    <a href="#" onclick="loadPage('subcontractor.html')" title="Subcontractors">👷</a>
+    <a href="#" onclick="loadPage('payment.html')" title="Payments">💰</a>
+</div>
+
+<!-- MAIN PANEL -->
+<div class="content" id="mainContent">
+    Loading...
+</div>
+<script src="./js/app.js"></script>
+
+</body>
+</html>

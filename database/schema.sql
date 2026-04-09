@@ -1,0 +1,5 @@
+ALTER TABLE payment_certificates 
+ADD COLUMN work_withdrawn DECIMAL(12,2) DEFAULT 0,
+ADD COLUMN deduction DECIMAL(12,2) DEFAULT 0,
+ADD COLUMN refund DECIMAL(12,2) DEFAULT 0,
+ADD COLUMN after_deduction DECIMAL(12,2);

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Subcontractor System</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<h2>📋 Subcontractor (SC) Record </h2>
+
+<!-- FORM -->
+ <select id="project">
+  <option value="">Select Project</option>
+  <option>Sadayem</option>
+  <option>Makkah</option>
+  <option>Madinah</option>
+</select>
+<select id="work_type">
+<option value="">Select Work Type</option>
+<option>Concrete</option>
+<option>Blockwork</option>
+<option>Plaster</option>
+<option>Paint</option>
+<option>Tiles</option>
+<option>Insulation</option>
+<option>Electrical</option>
+<option>Mechanical</option>
+</select>
+
+<select id="retention_percent">
+    <option value="10">Retention 10%</option>
+    <option value="5">Retention 5%</option>
+    <option value="0">Retention 0%</option>
+</select>
+
+<select id="vat_percent">
+    <option value="15">VAT 15%</option>
+    <option value="0">VAT 0%</option>
+</select>
+
+<label style="display:flex; align-items:center; gap:10px; margin:10px 0;">
+    <input type="checkbox" id="has_advance" style="width:auto;">
+    <span style="font-weight:500;">Has Advance Payment</span>
+</label>
+<input id="advance_amount" placeholder="Advance Amount" style="display:none;">
+<input id="contract_no" placeholder="Contract No">
+<input id="company" placeholder="Company Name">
+<input id="cr" placeholder="CR">
+<input id="vat_number" placeholder="VAT Number">
+<input id="subcontractor_name" placeholder="Subcontractor Name">
+<input id="phone" placeholder="Phone">
+<input type="email" id="email" placeholder="Email">
+<small id="email_error" style="color:red; display:none;">Invalid email</small>
+
+<br><br>
+
+<button id="mainBtn" onclick="save()">Add</button>
+
+<p id="msg"></p>
+<hr>
+<h3>🔎 Filters</h3>
+<table border="1">
+<thead>
+    <tr>
+<th>
+<select id="f_project" onchange="filterTable()">
+<option value="">All</option>
+<option>Sadayem</option>
+<option>Makkah</option>
+<option>Madinah</option>
+</select>
+</th>
+<th>
+<select onchange="filterTable()" id="f_work">
+<option value="">All</option>
+<option>Concrete</option>
+<option>Blockwork</option>
+<option>Plaster</option>
+<option>Paint</option>
+<option>Tiles</option>
+<option>Insulation</option>
+<option>Electrical</option>
+<option>Mechanical</option>
+</select>
+</th>
+
+<th>
+<select id="f_name" onchange="filterTable()">
+<option value="">All</option>
+</select>
+</th>
+
+<th>
+<select id="f_contract" onchange="filterTable()">
+<option value="">All</option>
+</select>
+</th>
+
+<th>
+<select id="f_company" onchange="filterTable()">
+<option value="">All</option>
+</select>
+</th>
+
+<th>
+<select id="f_phone" onchange="filterTable()">
+<option value="">All</option>
+</select>
+</th>
+
+<th>
+<select id="f_email" onchange="filterTable()">
+<option value="">All</option>
+</select>
+</th>
+
+<th>
+<select id="f_vat" onchange="filterTable()">
+<option value="">All</option>
+</select>
+</th>
+
+<th>
+<select id="f_cr" onchange="filterTable()">
+<option value="">All</option>
+</select>
+</th>
+
+<th>
+<select id="f_iban" onchange="filterTable()">
+<option value="">All</option>
+</select>
+</th>
+<th></th>
+</tr>
+<tr>
+<th>Project</th>
+<th>Work Type</th>
+<th>Name</th>
+<th>Contract</th>
+<th>Company</th>
+<th>Phone</th>
+<th>Email</th>
+<th>VAT</th>
+<th>CR</th>
+<th>Adv. Amount</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="table"></tbody>
+</table>
+
+
+
+
+</body>
+</html>

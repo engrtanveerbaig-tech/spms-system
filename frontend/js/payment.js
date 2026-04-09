@@ -1,0 +1,899 @@
+(function () {
+
+let editId = null;
+let fullData = [];
+function formatNumber(n) {
+    return Number(n || 0).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+
+// INIT
+function initPaymentPage() {
+
+    const work = document.getElementById("work");
+    const withdrawn = document.getElementById("withdrawn");
+    const deduction = document.getElementById("deduction");
+    const refund = document.getElementById("refund");
+
+    const vat = document.getElementById("vat");
+    const retention = document.getElementById("retention");
+    const net = document.getElementById("net");
+
+    work.oninput = calculate;
+    withdrawn.oninput = calculate;
+    deduction.oninput = calculate;
+    refund.oninput = calculate;
+
+    document.getElementById("saveBtn").onclick = addPayment;
+
+    // 🔥 ADD THESE (MISSING)
+    loadPaymentsInit();           // ✅ load table
+    loadSubcontractors();         // ✅ load dropdown
+
+    document.getElementById("subcontractor_form")
+        ?.addEventListener("change", onSubcontractorChange);
+
+    document.getElementById("work_type_form")
+        ?.addEventListener("change", loadSubcontractors);
+}
+
+
+// ================= LOAD SUBS BY WORK TYPE =================
+async function loadSubcontractors() {
+
+    const work_type = document.getElementById("work_type_form").value;
+
+    const select = document.getElementById("subcontractor_form");
+
+    if (!work_type) {
+        select.innerHTML = "<option>Select Work Type First</option>";
+        return;
+    }
+
+    const res = await fetch(
+        `http://localhost:5000/api/subcontractors/by-type/${work_type}`
+    );
+
+    const data = await res.json();
+
+    select.innerHTML = "<option value=''>Select Subcontractor</option>";
+
+    data.forEach(s => {
+       select.innerHTML += `<option value="${s.id}">
+    ${s.name} (${s.project}) - ${s.company_name}
+</option>`;
+    });
+    // 🔥 AUTO SELECT FIRST + TRIGGER
+if (select.options.length > 1) {
+    select.selectedIndex = 1;
+    onSubcontractorChange();
+}
+}
+
+
+// ================= CALCULATE =================
+function calculate() {
+
+    // ================= STEP A =================
+    const after =
+        (+work.value || 0)
+        - (+withdrawn.value || 0)
+        - (+deduction.value || 0)
+        + (+refund.value || 0);
+console.log("VAT USED:", window.currentVat);
+    const retentionPercent = window.currentRetention || 10;
+
+    let advanceDeduction = 0;
+    let vatAmount = 0;
+    let retentionAmount = 0;
+    let netAmount = 0;
+
+    // ================= ADVANCE LOGIC =================
+    if (window.currentAdvance && window.currentAdvance > 0) {
+
+        // B = 25% of A
+        advanceDeduction = after * 0.25;
+
+        // limit to remaining advance
+        if (advanceDeduction > window.currentAdvance) {
+            advanceDeduction = window.currentAdvance;
+        }
+
+        // C = A - B
+        const afterAdvance = after - advanceDeduction;
+
+        let vatPercent = Number(window.currentVat);
+if (isNaN(vatPercent)) vatPercent = 0;
+
+// ✅ FIX: CALCULATE VAT
+vatAmount = afterAdvance * (vatPercent / 100);
+
+retentionAmount = after * (retentionPercent / 100);
+
+netAmount = afterAdvance + vatAmount - retentionAmount;
+
+    } else {
+
+        // ===== WITHOUT ADVANCE =====
+        let vatPercent = Number(window.currentVat);
+if (isNaN(vatPercent)) vatPercent = 0;
+
+// ✅ FIX
+vatAmount = after * (vatPercent / 100);
+
+retentionAmount = after * (retentionPercent / 100);
+
+netAmount = after + vatAmount - retentionAmount;
+    }
+
+    // ================= SAFETY =================
+    if (netAmount < 0) netAmount = 0;
+
+    // ================= OUTPUT =================
+    vat.value = vatAmount.toFixed(2);
+    retention.value = retentionAmount.toFixed(2);
+    net.value = netAmount.toFixed(2);
+
+    // ================= ADVANCE FIELD =================
+    const advField = document.getElementById("advance_deduction");
+    if (advField) {
+        advField.value = advanceDeduction.toFixed(2);
+    }
+}
+
+// ================= ADD / UPDATE =================
+async function addPayment() {
+
+    let advanceDeduction = 0; // ✅ MUST BE FIRST
+
+    const after =
+        (+work.value || 0)
+        - (+withdrawn.value || 0)
+        - (+deduction.value || 0)
+        + (+refund.value || 0);
+
+    // ✅ CALCULATE ADVANCE
+    if (window.originalAdvance && window.originalAdvance > 0) {
+
+        advanceDeduction = after * 0.25;
+
+        if (advanceDeduction > window.currentAdvance) {
+            advanceDeduction = window.currentAdvance;
+        }
+    }
+
+    const data = {
+        subcontractor_id: +document.getElementById("subcontractor_form").value || 0,
+        work_type: document.getElementById("work_type_form").value,
+        project_name: selectedProject,
+        contract_number: document.getElementById("contract_number").value,
+        work_value: +work.value || 0,
+        work_withdrawn: +withdrawn.value || 0,
+        deduction: +deduction.value || 0,
+        refund: +refund.value || 0,
+
+        // ✅ NOW SAFE
+        advance_deduction: advanceDeduction
+    };
+
+    let url = "http://localhost:5000/api/payments/add";
+
+    const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+
+    msg.innerText = await res.text();
+
+    document.querySelectorAll("input").forEach(i => i.value = "");
+
+// 🔥 reload subcontractor data again
+loadSubcontractors();
+
+    loadPaymentsInit();
+}
+
+// ================= LOAD =================
+async function loadPaymentsInit() {
+    const res = await fetch("http://localhost:5000/api/payments/all");
+    originalData = await res.json();
+
+    populateFilters(originalData); // ✅ ADD
+    renderTable(originalData);
+
+    loadBulkOptions();
+}
+function loadBulkOptions() {
+
+    const subs = [...new Set(originalData.map(p => p.subcontractor_name))];
+    const works = [...new Set(originalData.map(p => p.work_type))];
+
+    const subSelect = document.getElementById("bulk_sub");
+    const workSelect = document.getElementById("bulk_work");
+
+    if (!subSelect || !workSelect) return; // safety
+
+    subSelect.innerHTML = "<option value=''>Select Subcontractor</option>";
+    workSelect.innerHTML = "<option value=''>Select Work Type</option>";
+
+    subs.forEach(s => {
+        subSelect.innerHTML += `<option>${s}</option>`;
+    });
+
+    works.forEach(w => {
+        workSelect.innerHTML += `<option>${w}</option>`;
+    });
+}
+
+// ================= FILTER DROPDOWN =================
+function fillFilters() {
+
+    const subs = [...new Set(originalData.map(p => p.subcontractor_name))];
+    const projects = [...new Set(originalData.map(p => p.project_name))];
+
+    filter_sub.innerHTML = "<option value=''>All</option>";
+    filter_project.innerHTML = "<option value=''>All</option>";
+
+    subs.forEach(s => filter_sub.innerHTML += `<option>${s}</option>`);
+    projects.forEach(p => filter_project.innerHTML += `<option>${p}</option>`);
+}
+
+// ================= APPLY FILTER =================
+function applyFilter() {
+
+    const f = id => document.getElementById(id)?.value;
+
+    const filtered = originalData.filter(p =>
+        (!f("f_scid") || p.subcontractor_id == f("f_scid")) &&
+        (!f("f_project") || p.project_name == f("f_project")) &&
+        (!f("f_contract") || p.contract_number == f("f_contract")) &&
+        (!f("f_company") || p.company_name == f("f_company")) &&   // ✅ FIX
+        (!f("f_sub") || p.subcontractor_name == f("f_sub")) &&
+        (!f("f_work") || p.work_type == f("f_work")) &&
+        (!f("f_cert") || p.certificate_no == f("f_cert")) &&       // ✅ FIX
+
+        (!f("f_workval") || p.work_value == f("f_workval")) &&
+        (!f("f_withdrawn") || p.work_withdrawn == f("f_withdrawn")) &&
+        (!f("f_deduction") || p.deduction == f("f_deduction")) &&
+        (!f("f_refund") || p.refund == f("f_refund")) &&
+        (!f("f_after") || p.after_deduction == f("f_after")) &&
+        (!f("f_vat") || p.vat_amount == f("f_vat")) &&
+        (!f("f_retention") || p.retention_amount == f("f_retention")) &&
+        (!f("f_advance") || p.advance_deduction == f("f_advance")) && // ✅ FIX
+        (!f("f_net") || p.net_payment == f("f_net"))
+    );
+
+    renderTable(filtered);
+}
+
+function resetFilter() {
+    filter_sub.value = "";
+    filter_project.value = "";
+    renderTable(originalData);
+}
+
+function applyCurrentFilterForExport(data) {
+
+    const f = id => document.getElementById(id)?.value;
+
+    return data.filter(p =>
+        (!f("f_contract") || p.contract_number == f("f_contract")) &&
+        (!f("f_sub") || p.subcontractor_name == f("f_sub")) &&
+        (!f("f_work") || p.work_type == f("f_work")) &&
+        (!f("f_project") || p.project_name == f("f_project"))
+    );
+}
+
+// ================= RENDER =================
+function renderTable(data) {
+
+    const table = document.getElementById("table");
+    table.innerHTML = "";
+
+    let t_work=0,t_withdrawn=0,t_deduction=0,t_refund=0,
+    t_after=0,t_vat=0,t_retention=0,t_advance=0,t_net=0;
+
+    data.forEach(p => {
+
+        t_work += +p.work_value || 0;
+        t_withdrawn += +p.work_withdrawn || 0;
+        t_deduction += +p.deduction || 0;
+        t_refund += +p.refund || 0;
+        t_after += +p.after_deduction || 0;
+        t_vat += +p.vat_amount || 0;
+        t_retention += +p.retention_amount || 0;
+        t_advance += +p.advance_deduction || 0;
+        t_net += +p.net_payment || 0;
+
+        const row = document.createElement("tr");
+
+        row.innerHTML =
+        "<td>"+p.subcontractor_id+"</td>"+   // ✅ NEW COLUMN
+            "<td>"+p.project_name+"</td>"+
+            "<td>"+(p.contract_number || "")+"</td>"+
+            "<td>"+(p.company_name || "")+"</td>"+ 
+            "<td>"+p.subcontractor_name+"</td>"+
+            "<td>"+p.work_type+"</td>"+
+            "<td>"+p.certificate_no+"</td>"+
+            "<td>"+formatNumber(p.work_value)+"</td>"+
+            "<td>"+formatNumber(p.work_withdrawn)+"</td>"+
+            "<td>"+formatNumber(p.deduction)+"</td>"+
+            "<td>"+formatNumber(p.refund)+"</td>"+
+            "<td>"+formatNumber(p.after_deduction)+"</td>"+
+            "<td>"+formatNumber(p.vat_amount)+"</td>"+
+            "<td>"+formatNumber(p.retention_amount)+"</td>"+
+            "<td>"+formatNumber(p.advance_deduction || 0)+"</td>"+   // ✅ NEW
+            "<td>"+formatNumber(p.net_payment)+"</td>"+
+            "<td>"+new Date(p.created_at).toLocaleDateString()+"</td>"+
+            "<td>"+
+                "<button onclick='editPayment("+p.id+")'>Edit</button> "+
+            "</td>";
+
+        table.appendChild(row);
+        document.getElementById("t_cer").innerText = data.length;
+    });
+
+    // TOTALS
+    t_work = t_work || 0;
+
+    document.getElementById("t_work").innerText = formatNumber(t_work);
+document.getElementById("t_withdrawn").innerText = formatNumber(t_withdrawn);
+document.getElementById("t_deduction").innerText = formatNumber(t_deduction);
+document.getElementById("t_refund").innerText = formatNumber(t_refund);
+document.getElementById("t_after").innerText = formatNumber(t_after);
+document.getElementById("t_vat").innerText = formatNumber(t_vat);
+document.getElementById("t_retention").innerText = formatNumber(t_retention);
+document.getElementById("t_advance").innerText = formatNumber(t_advance);
+document.getElementById("t_net").innerText = formatNumber(t_net);
+}
+
+// ================= EDIT =================
+function editPayment(id) {
+
+    const p = originalData.find(x => x.id === id);
+
+    editId = id;
+
+    
+    document.getElementById("project_form").value = p.project_id || "";
+    document.getElementById("contract_number").value = p.contract_number;
+
+    work.value = p.work_value;
+    withdrawn.value = p.work_withdrawn;
+    deduction.value = p.deduction;
+    refund.value = p.refund;
+
+    calculate();
+}
+
+// ================= DELETE =================
+async function deletePayment(id) {
+
+    if (!confirm("Delete?")) return;
+
+    await fetch("http://localhost:5000/api/payments/delete/" + id, {
+        method: "DELETE"
+    });
+
+    loadPaymentsInit();
+}
+
+// ================= PRINT =================
+function printPayment(id) {
+
+    const p = originalData.find(x => x.id === id);
+
+    const win = window.open("", "_blank");
+
+    win.document.write("<h2>Payment Certificate</h2>");
+    win.document.write("<p><b>Work Type:</b> "+p.work_type+"</p>");
+    win.document.write("<p><b>Subcontractor:</b> "+p.subcontractor_name+"</p>");
+    win.document.write("<p><b>Project:</b> "+p.project_name+"</p>");
+    win.document.write("<p><b>Contract:</b> "+p.contract_number+"</p>");
+    win.document.write("<p><b>Net:</b> "+p.net_payment+"</p>");
+
+    win.document.close();
+    setTimeout(()=>win.print(),300);
+}
+
+// ================= EXPORT =================
+document.getElementById("exportBtn").onclick = async function () {
+
+    const res = await fetch("http://localhost:5000/api/payments/all");
+    const data = await res.json();
+
+    const filtered = applyCurrentFilterForExport(data);
+
+    // ✅ SORT (PROJECT → WORK → SUB → CERT)
+    filtered.sort((a, b) =>
+        a.project_name.localeCompare(b.project_name) ||
+        a.work_type.localeCompare(b.work_type) ||
+        a.subcontractor_name.localeCompare(b.subcontractor_name) ||
+        a.certificate_no - b.certificate_no
+    );
+
+    if (!filtered.length) {
+        alert("No data to export");
+        return;
+    }
+
+    // ✅ GROUPING (PROJECT + WORK + SUB)
+    const groups = {};
+
+    filtered.forEach(p => {
+        const key = `${p.project_name}__${p.work_type}__${p.subcontractor_id}`;
+
+        if (!groups[key]) {
+            groups[key] = [];
+        }
+
+        groups[key].push(p);
+    });
+
+    // ================= HTML START =================
+    let html = `
+    <html>
+    <head>
+    <style>
+    @page {
+    size: A4;
+    margin: 15mm;
+}
+
+body {
+    font-family: Arial;
+    padding: 10px;
+    font-size: 12px;
+}
+
+h1 {
+    text-align: center;
+    color: #1f4e79;
+    font-size: 22px;
+}
+
+h2 {
+    color: #1f4e79;
+    margin: 5px 0;
+}
+
+h3 {
+    color: #dba512;
+    margin: 5px 0;
+}
+
+h4 {
+    margin: 5px 0;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 8px;
+    page-break-inside: avoid;
+}
+
+th {
+    background: #1f4e79;
+    color: white;
+}
+
+td, th {
+
+    border: 1px solid #ccc;
+    padding: 4px;
+    text-align: center;
+    font-size: 11px;
+}
+
+.total {
+    font-weight: bold;
+    background: #f0f0f0;
+}
+
+/* ✅ PAGE BREAK */
+.page {
+    page-break-after: always;
+}
+
+/* ✅ HIDE EXTRA SPACE */
+@media print {
+
+    @page {
+        size: A4;
+        margin: 10mm;
+    }
+
+    body {
+        margin: 0;
+        padding: 10px;
+        width: 210mm;   /* 🔥 FIX WIDTH */
+        font-size: 12px;
+    }
+
+    table {
+        width: 100% !important;
+        border-collapse: collapse;
+    }
+
+    th {
+        background: #1f4e79 !important;
+        color: white !important;
+
+        /* 🔥 FORCE COLOR PRINT */
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    td, th {
+        border: 1px solid #ccc;
+        padding: 4px;
+        text-align: center;
+    }
+
+    /* 🔥 PREVENT SHRINKING */
+    html, body {
+        zoom: 100%;
+    }
+
+    /* 🔥 FORCE COLORS FOR ALL */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* 🔥 PAGE BREAK */
+    .page {
+        page-break-after: always;
+    }
+}
+        body { font-family: Arial; padding:15px; }
+        h1 { text-align:center; color:#1f4e79; font-size: 40px; }
+        h2 { color:#1f4e79; margin-top:8px; }
+        h3 { color:#dba512; margin:4px 0; font-size:20px; }
+        h4 { color:#333; margin:3px 0; }
+
+        table { border-collapse:collapse; width:100%; margin-top:10px; }
+        th { background:#1f4e79; color:white; }
+        p { margin:3px 0; }
+h3, h4 { margin:5px 0; }
+        td, th { border:1px solid #ccc;  padding:4px; text-align:center; font-size:12px; }
+
+        .total { font-weight:bold; background:#f0f0f0; }
+
+        .footer {
+            position: fixed;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 40px;
+            font-size: 12px;
+        }
+
+        .page { page-break-after: always; }
+    
+    
+    </style>
+    </head>
+    <body>
+
+    <div style="border-bottom:2px dashed #ccc; padding-bottom:10px; margin-bottom:20px;">
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h2 style="margin:0; color:#1f4e79;">Payment Certificate Report</h2>
+            <p><b>Date:</b> ${new Date().toLocaleDateString()}</p>
+        </div>
+
+       
+</div>
+    `;
+
+    // ================= LOOP GROUPS =================
+    Object.values(groups).forEach(records => {
+
+        const first = records[0];
+
+        let t = {
+    work:0, withdrawn:0, deduction:0,
+    refund:0, after:0, vat:0,
+    retention:0, advance:0, net:0
+};
+
+        records.forEach(p => {
+            t.work += +p.work_value || 0;
+            t.withdrawn += +p.work_withdrawn || 0;
+            t.deduction += +p.deduction || 0;
+            t.refund += +p.refund || 0;
+            t.after += +p.after_deduction || 0;
+            t.vat += +p.vat_amount || 0;
+            t.retention += +p.retention_amount || 0;
+            t.advance += +p.advance_deduction || 0;
+            t.net += +p.net_payment || 0;
+        });
+
+        html += `
+<div class="page">
+
+    <h3 style="color:#dba512;">Project: ${first.project_name}</h3>
+
+<div style="font-size:13px; line-height:1.6; margin-bottom:6px;">
+
+    <b>Subcontractor:</b> 
+    <span style="color:#d35400;">${first.subcontractor_name}</span>
+    &nbsp;&nbsp; | &nbsp;&nbsp;
+    <b>Work:</b> ${first.work_type}
+
+    <br>
+
+    <b>Company:</b> ${first.company_name}
+    &nbsp;&nbsp; | &nbsp;&nbsp;
+    <b>Contract:</b> ${first.contract_number}
+
+    <br>
+
+    <b>Phone:</b> ${first.phone || '-'}
+    &nbsp;&nbsp; | &nbsp;&nbsp;
+    <b>Email:</b> ${first.email || '-'}
+
+    <br>
+
+    <b>VAT:</b> ${first.vat_number || '-'}
+    &nbsp;&nbsp; | &nbsp;&nbsp;
+    <b>CR:</b> ${first.cr_number || '-'}
+
+</div>
+
+${(() => {
+    const initial = Number(first.initial_advance || 0);
+const remaining = Number(first.advance_remaining || 0);
+
+    return `
+<p style="font-size:13px; margin:4px 0;">
+    <b>Initial Adv:</b> ${initial.toFixed(2)}
+    &nbsp;&nbsp; | &nbsp;&nbsp;
+    <b>Remaining:</b> ${remaining.toFixed(2)}
+</p>
+`;
+})()}
+    <h4>Summary</h4>
+    <table>
+        <tr>
+            <th>Total Work</th>
+            <th>Withdrawn</th>
+            <th>Deduction</th>
+            <th>Refund</th>
+            <th>After</th>
+            <th>VAT</th>
+            <th>Retention</th>
+            <th>Net</th>
+
+        </tr>
+        <tr>
+            <td>${formatNumber(t.work.toFixed(2))}</td>
+            <td>${formatNumber(t.withdrawn.toFixed(2))}</td>
+            <td>${formatNumber(t.deduction.toFixed(2))}</td>
+            <td>${formatNumber(t.refund.toFixed(2))}</td>
+            <td>${formatNumber(t.after.toFixed(2))}</td>
+            <td>${formatNumber(t.vat.toFixed(2))}</td>
+            <td>${formatNumber(t.retention.toFixed(2))}</td>
+            <td>${formatNumber(t.net.toFixed(2))}</td>
+        </tr>
+    </table>
+
+    <h4>Details</h4>
+    <table>
+        <tr>
+            <th>Contract</th>
+            <th>Cert No</th>
+            <th>Project</th>
+            <th>Work</th>
+            <th>Withdrawn</th>
+            <th>Deduction</th>
+            <th>Refund</th>
+            <th>After</th>
+            <th>VAT</th>
+            <th>Retention</th>
+<th>Advance</th>
+<th>Net</th>
+<th>Date</th>
+        </tr>
+
+        ${records.map(p => `
+        <tr>
+            <td>${p.contract_number}</td>
+            <td>${p.certificate_no}</td>
+            <td>${p.project_name}</td>
+            <td>${formatNumber(p.work_value)}</td>
+            <td>${formatNumber(p.work_withdrawn)}</td>
+            <td>${formatNumber(p.deduction)}</td>
+            <td>${formatNumber(p.refund)}</td>
+            <td>${formatNumber(p.after_deduction)}</td>
+            <td>${formatNumber(p.vat_amount)}</td>
+            <td>${formatNumber(p.retention_amount)}</td>
+            <td>${formatNumber(p.advance_deduction || 0)}</td>
+            <td>${formatNumber(p.net_payment)}</td>
+            <td>${new Date(p.created_at).toLocaleDateString()}</td>
+        </tr>
+        `).join("")}
+
+        <tr class="total">
+            <td colspan="3">TOTAL</td>
+            <td>${formatNumber(t.work.toFixed(2))}</td>
+            <td>${formatNumber(t.withdrawn.toFixed(2))}</td>
+            <td>${formatNumber(t.deduction.toFixed(2))}</td>
+            <td>${formatNumber(t.refund.toFixed(2))}</td>
+            <td>${formatNumber(t.after.toFixed(2))}</td>
+            <td>${formatNumber(t.vat.toFixed(2))}</td>
+            <td>${formatNumber(t.retention.toFixed(2))}</td>
+            <td>${formatNumber(t.advance.toFixed(2))}</td>
+            <td>${formatNumber(t.net.toFixed(2))}</td>
+            <td></td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        <span>Prepared by: Eng. Tanveer Ahmad</span>
+    </div>
+
+</div>
+<br><br>
+`;
+    });
+
+    html += `</body></html>`;
+
+    const win = window.open("", "", "width=900,height=700");
+    win.document.write(html);
+    win.document.close();
+
+    
+};
+async function onSubcontractorChange() {
+
+    const id = document.getElementById("subcontractor_form").value;
+    if (!id) return;
+
+    const res = await fetch("http://localhost:5000/api/subcontractors/" + id);
+    const d = await res.json();
+
+    let retentionPercent = Number(d.retention_percent || 10);
+    window.currentVat = 0; // reset first
+window.currentVat = Number(d.vat_percent);
+
+if (isNaN(window.currentVat)) {
+    window.currentVat = 0;
+}
+if (isNaN(window.currentVat)) window.currentVat = 0;
+let advanceAmount = Number(d.advance_amount || 0);
+let advanceRemaining = Number(d.advance_remaining ?? advanceAmount ?? 0);
+
+    window.originalAdvance = advanceAmount;
+    window.currentRetention = retentionPercent;
+    window.currentAdvance = advanceRemaining;
+
+    // UI
+    document.getElementById("advance_remaining").value =
+        (advanceRemaining || 0).toFixed(2);
+
+    document.getElementById("retention_percent_display").value =
+        (retentionPercent || 0) + "%";
+
+    document.getElementById("contract_number").value =
+        d.contract_no || "";
+
+    selectedProject = d.project || "";
+    document.getElementById("project_form").value = selectedProject;
+
+    // CERTIFICATE
+    const workType = document.getElementById("work_type_form").value;
+    if (!workType) return;
+
+    const res2 = await fetch("http://localhost:5000/api/payments/all");
+    const payments = await res2.json();
+
+    const count = payments.filter(p =>
+        p.subcontractor_id == id &&
+        p.project_name == selectedProject &&
+        p.work_type == workType
+    ).length;
+
+    document.getElementById("certificate_no").value = count + 1;
+
+    // 🔥 MOST IMPORTANT
+    calculate();
+    calculateValues();
+}
+
+function populateFilters(data) {
+
+    const map = [
+    {id:"f_scid", key:"subcontractor_id"},   // ✅ NEW
+    {id:"f_project", key:"project_name"},
+    {id:"f_contract", key:"contract_number"},
+    {id:"f_company", key:"company_name"},     // ✅ ADD
+    {id:"f_sub", key:"subcontractor_name"},
+    {id:"f_work", key:"work_type"},
+    {id:"f_cert", key:"certificate_no"},      // ✅ ADD
+    {id:"f_workval", key:"work_value"},
+    {id:"f_withdrawn", key:"work_withdrawn"},
+    {id:"f_deduction", key:"deduction"},
+    {id:"f_refund", key:"refund"},
+    {id:"f_after", key:"after_deduction"},
+    {id:"f_vat", key:"vat_amount"},
+    {id:"f_retention", key:"retention_amount"},
+    {id:"f_advance", key:"advance_deduction"}, // ✅ ADD
+    {id:"f_net", key:"net_payment"},
+    {id:"f_date", key:"created_at"}
+];
+
+    map.forEach(f => {
+        const select = document.getElementById(f.id);
+
+        if (!select) return;
+
+        select.innerHTML = '<option value="">All</option>';
+
+        const values = [...new Set(data.map(x => x[f.key]).filter(v => v))];
+
+        values.forEach(v => {
+            select.innerHTML += `<option value="${v}">${v}</option>`;
+        });
+    });
+}
+
+
+async function bulkDelete() {
+
+    const subName = document.getElementById("bulk_sub").value;
+    const work = document.getElementById("bulk_work").value;
+    const from = +document.getElementById("from_cert").value;
+    const to = +document.getElementById("to_cert").value;
+
+    if (!subName || !work || !from || !to) {
+        alert("Fill all fields");
+        return;
+    }
+
+    const record = originalData.find(p =>
+        p.subcontractor_name === subName &&
+        p.work_type === work
+    );
+
+    if (!record) {
+        alert("No matching data found");
+        return;
+    }
+
+    if (!confirm(`Delete certificates ${from} → ${to}?`)) return;
+
+    const res = await fetch("http://localhost:5000/api/payments/bulk-delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            subcontractor_id: record.subcontractor_id,
+            work_type: work,
+            project_name: record.project_name,
+            from_cert: from,
+            to_cert: to
+        })
+    });
+
+    const msg = await res.text();
+    alert(msg);
+}
+window.initPaymentPage = initPaymentPage;
+
+// ================= GLOBAL FIX =================
+window.applyFilter = applyFilter;
+window.bulkDelete = bulkDelete;
+window.deletePayment = deletePayment;
+window.editPayment = editPayment;
+window.printPayment = printPayment;
+})();

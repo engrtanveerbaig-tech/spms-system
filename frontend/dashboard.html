@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SPMS Dashboard</title>
+
+<link rel="stylesheet" href="./css/style.css">
+<script src="./js/charts.min.js"></script>
+
+<style>
+
+/* ================= BASE ================= */
+body {
+    margin: 0;
+    font-family: 'Segoe UI';
+    background: #0f172a;
+    color: white;
+}
+
+.main {
+    padding: 20px;
+}
+
+
+
+.total-sar {
+    background: #1e293b;
+    padding: 15px 25px;
+    border-radius: 12px;
+}
+
+/* ================= KPI CARDS ================= */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.card {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 14px;
+}
+
+.card h3 {
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.card p {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+/* ================= ADVANCED KPI ================= */
+.cards-advanced {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 15px;
+}
+
+/* ================= FILTERS ================= */
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.filters select {
+    padding: 10px;
+    border-radius: 8px;
+    background: #1e293b;
+    color: white;
+    border: none;
+}
+
+/* ================= CHART GRID ================= */
+.chart-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.chart {
+    background: #1e293b;
+    padding: 15px;
+    border-radius: 12px;
+    height: 320px;
+}
+
+/* SECOND ROW */
+.chart-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+/* ================= TABLE ================= */
+.table-container {
+    margin-top: 25px;
+    background: #1e293b;
+    padding: 15px;
+    border-radius: 12px;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    color: #94a3b8;
+    padding: 12px;
+    text-align: left;
+}
+
+td {
+    padding: 10px;
+    border-top: 1px solid #334155;
+}
+
+button {
+    background: #3b82f6;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+}
+.header {
+    margin-bottom: 20px;
+}
+
+/* TOP LINE (Dashboard + SAR) */
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+/* TITLE */
+.header-top h2 {
+    margin: 0;
+}
+
+/* BOTTOM MESSAGE */
+.header-bottom {
+    margin-top: 8px;
+    font-size: 13px;
+}
+
+.header-bottom a {
+    color: #3b82f6;
+    text-decoration: none;
+}
+
+.header-bottom a:hover {
+    text-decoration: underline;
+}
+
+/* SAR BOX */
+.total-sar {
+    background: #1f2a44;
+    padding: 15px 20px;
+    border-radius: 10px;
+    color: white;
+    min-width: 180px;
+    text-align: center;
+}
+
+.total-sar h3 {
+    margin: 0;
+    font-size: 14px;
+    color: #cbd5e1;
+}
+
+.total-sar p {
+    font-size: 20px;
+    margin: 5px 0 0;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="main">
+
+<!-- ================= HEADER ================= -->
+<div class="header">
+
+    <!-- TOP ROW -->
+    <div class="header-top">
+        <h2>Dashboard 👋</h2>
+
+        <div class="total-sar">
+            <h3>Total Value (SAR)</h3>
+            <p id="total_sar">0</p>
+        </div>
+    </div>
+
+    <!-- BOTTOM ROW -->
+    <div class="header-bottom">
+        <a href="mailto:mrtanveer@gmail.com">
+            This Dashboard is created by Eng. Tanveer Ahmad (If you have any issue, email with screenshot)
+        </a>
+    </div>
+
+</div>
+
+<!-- ================= KPI ================= -->
+<div class="cards">
+    <div class="card">
+        <h3>Total Work</h3>
+        <p id="total_work">0</p>
+    </div>
+
+    <div class="card">
+        <h3>Total Paid</h3>
+        <p id="total_paid">0</p>
+    </div>
+
+    <div class="card">
+        <h3>Retention</h3>
+        <p id="total_retention">0</p>
+    </div>
+
+    <div class="card">
+        <h3>Advance</h3>
+        <p id="total_advance">0</p>
+    </div>
+</div>
+
+<!-- ================= ADVANCED KPI ================= -->
+<div class="cards-advanced">
+    <div class="card">
+        <h3>Total Subcontractors</h3>
+        <p id="total_subs">0</p>
+    </div>
+
+    <div class="card">
+        <h3>Avg Certificates</h3>
+        <p id="avg_cert">0</p>
+    </div>
+
+    <div class="card">
+        <h3>Avg Work Value</h3>
+        <p id="avg_work">0</p>
+    </div>
+</div>
+
+<!-- ================= FILTERS ================= -->
+<div class="filters">
+    <select id="filterCompany"></select>
+    <select id="filterType"></select>
+    <select id="filterSub"></select>
+
+    <button onclick="generatePDF()">Export PDF Report</button>
+</div>
+
+<!-- ================= CHART ROW 1 ================= -->
+<div class="chart-grid">
+    <div class="chart">
+        <canvas id="topSubsChart"></canvas>
+    </div>
+
+    <div class="chart">
+        <canvas id="typeChart"></canvas>
+    </div>
+
+    <div class="chart">
+        <canvas id="financeChart"></canvas>
+    </div>
+</div>
+
+<!-- ================= CHART ROW 2 ================= -->
+<div class="chart-grid-2">
+    <div class="chart">
+        <canvas id="retentionChart"></canvas>
+    </div>
+
+    <div class="chart">
+        <canvas id="trendChart"></canvas>
+    </div>
+
+    <div class="chart">
+        <canvas id="certChart"></canvas>
+    </div>
+</div>
+
+<!-- ================= TABLE ================= -->
+<div class="table-container">
+
+<table>
+<thead>
+<tr>
+<th>Company</th>
+<th>Subcontractor</th>
+<th>Certificates</th>
+<th>Work Type</th>
+<th>Work Value</th>
+<th>Deduction</th>
+<th>Refund</th>
+<th>Retention</th>
+<th>Net Amount</th>
+</tr>
+</thead>
+
+<tbody id="summaryTable"></tbody>
+
+</table>
+
+</div>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+
+</body>
+</html>

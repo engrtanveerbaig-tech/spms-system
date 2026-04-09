@@ -1,0 +1,271 @@
+/* ================= GLOBAL ================= */
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f5f7fa;
+    margin: 0;
+    padding: 0;
+}
+
+/* ================= ICON SIDEBAR ================= */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 70px;                  /* 🔥 ICON SIZE */
+    height: 100vh;
+    background: #1f4e79;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 0;
+    z-index: 1000;
+}
+
+/* LOGO */
+.sidebar .logo {
+    color: white;
+    font-weight: bold;
+    margin-bottom: 30px;
+}
+
+/* ICON LINKS */
+.sidebar a {
+    color: white;
+    text-decoration: none;
+    font-size: 20px;
+    margin: 12px 0;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    transition: 0.3s;
+}
+
+/* HOVER */
+.sidebar a:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+/* ACTIVE */
+.sidebar a.active {
+    background: white;
+    color: #1f4e79;
+}
+
+/* BOTTOM ICONS */
+.sidebar .bottom {
+    margin-top: auto;
+}
+
+/* ================= CONTENT ================= */
+.content {
+    margin-left: 70px;   /* 🔥 match sidebar */
+    padding: 20px;
+}
+
+/* ================= HEADER ================= */
+.header {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 999;
+    padding: 10px 0;
+}
+
+/* ================= HEADINGS ================= */
+h2, h3 {
+    color: #1f4e79;
+    margin-bottom: 10px;
+}
+
+/* ================= FORM ================= */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+input, select {
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+}
+
+input:focus, select:focus {
+    border-color: #1f4e79;
+    outline: none;
+}
+
+/* ================= BUTTONS ================= */
+button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    background: #1f4e79;
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+button:hover {
+    background: #163b5c;
+}
+
+button.delete {
+    background: #c0392b;
+}
+
+button.delete:hover {
+    background: #922b21;
+}
+
+button.edit {
+    background: #27ae60;
+}
+
+button.edit:hover {
+    background: #1e8449;
+}
+
+/* ================= SECTION BOX ================= */
+.container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* ================= TABLE ================= */
+
+.table-container {
+    max-height: calc(100vh - 250px);  /* 🔥 dynamic height */
+    overflow-y: auto;
+    border-radius: 8px;
+}
+
+/* IMPORTANT */
+table {
+    width: 100%;
+    border-collapse: separate;   /* 🔥 FIX STICKY ISSUE */
+    border-spacing: 0;
+}
+
+/* 🔥 HEADER STICKY */
+thead th {
+    position: sticky;
+    top: 0;
+    background: #1f4e79;
+    color: white;
+    z-index: 10;
+}
+
+/* 🔥 FILTER ROW (if exists) */
+thead tr:first-child th {
+    position: sticky;
+    top: 0;
+    z-index: 6;
+}
+
+/* cells */
+td, th {
+    border: 1px solid #ddd;
+    padding: 6px;
+    text-align: center;
+    font-size: 13px;
+}
+
+/* ================= BULK DELETE ================= */
+.bulk-box {
+    background: #fff3f3;
+    border: 1px solid #f5c6c6;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.bulk-box h3 {
+    color: #c0392b;
+}
+
+/* ================= MESSAGE ================= */
+#msg {
+    margin-top: 10px;
+    color: green;
+    font-weight: bold;
+}
+
+/* ================= DASHBOARD ================= */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.card {
+    background: #1f4e79;
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+
+
+/* ================= RESPONSIVE ================= */
+
+/* Tablet */
+@media (max-width: 1024px) {
+
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .charts-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+
+    .sidebar {
+        width: 60px;
+    }
+
+    .content {
+        margin-left: 60px;
+    }
+
+    .cards {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .table-container {
+        max-height: 400px;
+    }
+
+    table {
+        font-size: 12px;
+    }
+}
+thead th {
+    position: sticky;
+    top: 0;
+    background: #1f4e79;
+    color: white;
+    z-index: 10;
+}
+.d-table{
+    color: black;
+}
