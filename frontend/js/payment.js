@@ -75,10 +75,9 @@ async function loadSubcontractors() {
 </option>`;
     });
     // 🔥 AUTO SELECT FIRST + TRIGGER
-if (select.options.length > 1) {
+// ✅ ONLY AUTO SELECT IF NOTHING SELECTED
+if (!select.value && select.options.length > 1) {
     select.value = select.options[1].value;
-
-    // trigger change properly
     select.dispatchEvent(new Event("change"));
 }
 
@@ -236,10 +235,22 @@ if (hasAdvance) {
 
     document.getElementById("msg").innerText = await res.text();
 
-    document.querySelectorAll("input").forEach(i => i.value = "");
+    // ✅ SAVE FIRST
+const currentSub = document.getElementById("subcontractor_form").value;
 
-// 🔥 reload subcontractor data again
-loadSubcontractors();
+// clear inputs
+document.querySelectorAll("input").forEach(i => i.value = "");
+
+// reload
+await loadSubcontractors();
+
+// restore
+const select = document.getElementById("subcontractor_form");
+
+if (currentSub) {
+    select.value = currentSub;
+    select.dispatchEvent(new Event("change"));
+}
 
     loadPaymentsInit();
 }
