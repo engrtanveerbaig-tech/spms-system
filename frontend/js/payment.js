@@ -209,24 +209,37 @@ async function loadPaymentsInit() {
 }
 function loadBulkOptions() {
 
-    const subs = [...new Set(originalData.map(p => p.subcontractor_name))];
-    const works = [...new Set(originalData.map(p => p.work_type))];
+    const companies = [...new Set(originalData.map(p => p.company_name))];
 
+    const companySelect = document.getElementById("bulk_company");
     const subSelect = document.getElementById("bulk_sub");
-    const workSelect = document.getElementById("bulk_work");
 
-    if (!subSelect || !workSelect) return; // safety
+    if (!companySelect || !subSelect) return;
 
-    subSelect.innerHTML = "<option value=''>Select Subcontractor</option>";
-    workSelect.innerHTML = "<option value=''>Select Work Type</option>";
+    // COMPANY
+    companySelect.innerHTML = "<option value=''>Select Company</option>";
 
-    subs.forEach(s => {
-        subSelect.innerHTML += `<option>${s}</option>`;
+    companies.forEach(c => {
+        companySelect.innerHTML += `<option>${c}</option>`;
     });
 
-    works.forEach(w => {
-        workSelect.innerHTML += `<option>${w}</option>`;
-    });
+    // WHEN COMPANY CHANGE → LOAD SUBS
+    companySelect.onchange = function () {
+
+        const selectedCompany = this.value;
+
+        const subs = originalData
+            .filter(p => p.company_name === selectedCompany)
+            .map(p => p.subcontractor_name);
+
+        const uniqueSubs = [...new Set(subs)];
+
+        subSelect.innerHTML = "<option value=''>Select Subcontractor</option>";
+
+        uniqueSubs.forEach(s => {
+            subSelect.innerHTML += `<option>${s}</option>`;
+        });
+    };
 }
 
 // ================= FILTER DROPDOWN =================
@@ -290,6 +303,11 @@ function applyCurrentFilterForExport(data) {
 
 // ================= RENDER =================
 function renderTable(data) {
+
+    // ✅ ADD THIS HERE (VERY IMPORTANT)
+    data.sort((a, b) =>
+        Number(a.certificate_no) - Number(b.certificate_no)
+    );
 
     const table = document.getElementById("table");
     table.innerHTML = "";
@@ -413,7 +431,7 @@ document.getElementById("exportBtn").onclick = async function () {
         a.project_name.localeCompare(b.project_name) ||
         a.work_type.localeCompare(b.work_type) ||
         a.subcontractor_name.localeCompare(b.subcontractor_name) ||
-        a.certificate_no - b.certificate_no
+        Number(a.certificate_no) - Number(b.certificate_no)
     );
 
     if (!filtered.length) {
@@ -861,9 +879,10 @@ async function bulkDelete() {
     }
 
     const record = originalData.find(p =>
-        p.subcontractor_name === subName &&
-        p.work_type === work
-    );
+    p.subcontractor_name === subName &&
+    p.work_type === work &&
+    p.company_name === document.getElementById("bulk_company").value
+);
 
     if (!record) {
         alert("No matching data found");
