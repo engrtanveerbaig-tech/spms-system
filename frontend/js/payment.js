@@ -157,7 +157,6 @@ let retentionPercent = window.currentRetention || 10;
 
 let vatAmount = after * (vatPercent / 100);
 let retentionAmount = after * (retentionPercent / 100);
-
 let netAmount = after + vatAmount - retentionAmount;
 
 const data = {
@@ -179,6 +178,21 @@ const data = {
 
     advance_deduction: advanceDeduction
 };
+let url = `${API}/api/payments/add`;
+
+const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+});
+
+document.getElementById("msg").innerText = await res.text();
+
+document.querySelectorAll("input").forEach(i => i.value = "");
+
+loadSubcontractors();
+loadPaymentsInit();
+}
 
 // ================= LOAD =================
 async function loadPaymentsInit() {
@@ -826,13 +840,17 @@ let advanceRemaining = Number(d.advance_remaining ?? advanceAmount ?? 0);
     const res2 = await fetch(`${API}/api/payments/all`);
     const payments = await res2.json();
 
-    const count = payments.filter(p =>
+    const list = payments
+    .filter(p =>
         p.subcontractor_id == id &&
         p.project_name == selectedProject &&
         p.work_type == workType
-    ).length;
+    )
+    .map(p => Number(p.certificate_no));
 
-    document.getElementById("certificate_no").value = count + 1;
+const maxCert = list.length ? Math.max(...list) : 0;
+
+document.getElementById("certificate_no").value = maxCert + 1;
 
     // 🔥 MOST IMPORTANT
     calculate();
@@ -883,7 +901,7 @@ async function bulkDelete() {
     const from = +document.getElementById("from_cert").value;
     const to = +document.getElementById("to_cert").value;
 
-    if (!subName || !work || !from || !to) {
+    if (!company || !subName || !work || !from || !to) {
         alert("Fill all fields");
         return;
     }
