@@ -226,46 +226,45 @@ function loadBulkOptions() {
     // WHEN COMPANY CHANGE → LOAD SUBS
     companySelect.onchange = function () {
 
-        const selectedCompany = this.value;
+    const selectedCompany = this.value;
 
-        const subs = originalData
-            .filter(p => p.company_name === selectedCompany)
-            .map(p => p.subcontractor_name);
+    const subs = originalData
+        .filter(p => p.company_name === selectedCompany)
+        .map(p => p.subcontractor_name);
 
-        const uniqueSubs = [...new Set(subs)];
+    const uniqueSubs = [...new Set(subs)];
 
-        subSelect.innerHTML = "<option value=''>Select Subcontractor</option>";
+    subSelect.innerHTML = "<option value=''>Select Subcontractor</option>";
 
-        uniqueSubs.forEach(s => {
-            subSelect.innerHTML += `<option>${s}</option>`;
-
-        // ================= LOAD WORK TYPES =================
-subSelect.onchange = function () {
-
-    const selectedCompany = companySelect.value;
-    const selectedSub = subSelect.value;
-
-    const works = originalData
-        .filter(p =>
-            p.company_name === selectedCompany &&
-            p.subcontractor_name === selectedSub
-        )
-        .map(p => p.work_type);
-
-    const uniqueWorks = [...new Set(works)];
-
-    const workSelect = document.getElementById("bulk_work");
-
-    if (!workSelect) return;
-
-    workSelect.innerHTML = "<option value=''>Select Work Type</option>";
-
-    uniqueWorks.forEach(w => {
-        workSelect.innerHTML += `<option>${w}</option>`;
+    uniqueSubs.forEach(s => {
+        subSelect.innerHTML += `<option>${s}</option>`;
     });
-};
+
+    // ✅ MOVE OUTSIDE LOOP
+    subSelect.onchange = function () {
+
+        const selectedSub = subSelect.value;
+
+        const works = originalData
+            .filter(p =>
+                p.company_name === selectedCompany &&
+                p.subcontractor_name === selectedSub
+            )
+            .map(p => p.work_type);
+
+        const uniqueWorks = [...new Set(works)];
+
+        const workSelect = document.getElementById("bulk_work");
+
+        if (!workSelect) return;
+
+        workSelect.innerHTML = "<option value=''>Select Work Type</option>";
+
+        uniqueWorks.forEach(w => {
+            workSelect.innerHTML += `<option>${w}</option>`;
         });
     };
+};
 }
 
 // ================= FILTER DROPDOWN =================
