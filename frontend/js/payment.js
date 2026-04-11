@@ -71,33 +71,39 @@ if (select.options.length > 1) {
     select.selectedIndex = 1;
     onSubcontractorChange();
 }
+
 }
 
 
 // ================= CALCULATE =================
 function calculate() {
 
-    // ================= STEP A =================
     const after =
         (+work.value || 0)
         - (+withdrawn.value || 0)
         - (+deduction.value || 0)
         + (+refund.value || 0);
-console.log("VAT USED:", window.currentVat);
+
     const retentionPercent = window.currentRetention || 10;
+    let vatPercent = Number(window.currentVat);
+    if (isNaN(vatPercent)) vatPercent = 0;
 
     let advanceDeduction = 0;
     let vatAmount = 0;
     let retentionAmount = 0;
     let netAmount = 0;
 
-    // ================= ADVANCE LOGIC =================
-    if (window.currentAdvance && window.currentAdvance > 0) {
+    // ================= 🔥 ADVANCE CONDITION =================
+    const hasAdvance =
+        window.currentAdvance &&
+        window.currentAdvance > 0 &&
+        after > 0; // ✅ VERY IMPORTANT
+
+    if (hasAdvance) {
 
         // B = 25% of A
         advanceDeduction = after * 0.25;
 
-        // limit to remaining advance
         if (advanceDeduction > window.currentAdvance) {
             advanceDeduction = window.currentAdvance;
         }
@@ -105,28 +111,23 @@ console.log("VAT USED:", window.currentVat);
         // C = A - B
         const afterAdvance = after - advanceDeduction;
 
-        let vatPercent = Number(window.currentVat);
-if (isNaN(vatPercent)) vatPercent = 0;
+        // VAT on C
+        vatAmount = afterAdvance * (vatPercent / 100);
 
-// ✅ FIX: CALCULATE VAT
-vatAmount = afterAdvance * (vatPercent / 100);
+        // Retention ALWAYS on A
+        retentionAmount = after * (retentionPercent / 100);
 
-retentionAmount = after * (retentionPercent / 100);
-
-netAmount = afterAdvance + vatAmount - retentionAmount;
+        // NET
+        netAmount = afterAdvance + vatAmount - retentionAmount;
 
     } else {
 
-        // ===== WITHOUT ADVANCE =====
-        let vatPercent = Number(window.currentVat);
-if (isNaN(vatPercent)) vatPercent = 0;
+        // NO ADVANCE
+        vatAmount = after * (vatPercent / 100);
 
-// ✅ FIX
-vatAmount = after * (vatPercent / 100);
+        retentionAmount = after * (retentionPercent / 100);
 
-retentionAmount = after * (retentionPercent / 100);
-
-netAmount = after + vatAmount - retentionAmount;
+        netAmount = after + vatAmount - retentionAmount;
     }
 
     // ================= OUTPUT =================
@@ -134,7 +135,6 @@ netAmount = after + vatAmount - retentionAmount;
     retention.value = retentionAmount.toFixed(2);
     net.value = netAmount.toFixed(2);
 
-    // ================= ADVANCE FIELD =================
     const advField = document.getElementById("advance_deduction");
     if (advField) {
         advField.value = advanceDeduction.toFixed(2);
@@ -147,19 +147,57 @@ async function addPayment() {
     let advanceDeduction = 0; // ✅ MUST BE FIRST
 
     const after =
-    (+work.value || 0)
-    - (+withdrawn.value || 0)
-    - (+deduction.value || 0)
-    + (+refund.value || 0);
+        (+work.value || 0)
+        - (+withdrawn.value || 0)
+        - (+deduction.value || 0)
+        + (+refund.value || 0);
 
-let vatPercent = Number(window.currentVat) || 0;
+    // ✅ CALCULATE ADVANCE
+    if (
+    window.originalAdvance &&
+    window.originalAdvance > 0 &&
+    after > 0
+) {
+
+        advanceDeduction = after * 0.25;
+
+        if (advanceDeduction > window.currentAdvance) {
+            advanceDeduction = window.currentAdvance;
+        }
+    }
+
+    let vatPercent = Number(window.currentVat);
+if (isNaN(vatPercent)) vatPercent = 0;
+
 let retentionPercent = window.currentRetention || 10;
 
-let vatAmount = after * (vatPercent / 100);
-let retentionAmount = after * (retentionPercent / 100);
-let netAmount = after + vatAmount - retentionAmount;
+let vatAmount = 0;
+let retentionAmount = 0;
+let netAmount = 0;
 
-const data = {
+const hasAdvance =
+    window.currentAdvance &&
+    window.currentAdvance > 0 &&
+    after > 0;
+
+if (hasAdvance) {
+
+    const afterAdvance = after - advanceDeduction;
+
+    vatAmount = afterAdvance * (vatPercent / 100);
+    retentionAmount = after * (retentionPercent / 100);
+
+    netAmount = afterAdvance + vatAmount - retentionAmount;
+
+} else {
+
+    vatAmount = after * (vatPercent / 100);
+    retentionAmount = after * (retentionPercent / 100);
+
+    netAmount = after + vatAmount - retentionAmount;
+}
+
+    const data = {
     subcontractor_id: +document.getElementById("subcontractor_form").value || 0,
     work_type: document.getElementById("work_type_form").value,
     project_name: selectedProject,
@@ -170,28 +208,30 @@ const data = {
     deduction: +deduction.value || 0,
     refund: +refund.value || 0,
 
-    // ✅ ADD THESE (VERY IMPORTANT)
+    // 🔥 ADD THESE (CRITICAL)
     after_deduction: after,
     vat_amount: vatAmount,
     retention_amount: retentionAmount,
-    net_payment: netAmount,
-
-    advance_deduction: advanceDeduction
+    advance_deduction: advanceDeduction,
+    net_payment: netAmount
 };
-let url = `${API}/api/payments/add`;
 
-const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-});
+    let url = `${API}/api/payments/add`;
 
-document.getElementById("msg").innerText = await res.text();
+    const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
 
-document.querySelectorAll("input").forEach(i => i.value = "");
+    document.getElementById("msg").innerText = await res.text();
 
+    document.querySelectorAll("input").forEach(i => i.value = "");
+
+// 🔥 reload subcontractor data again
 loadSubcontractors();
-loadPaymentsInit();
+
+    loadPaymentsInit();
 }
 
 // ================= LOAD =================
@@ -840,17 +880,13 @@ let advanceRemaining = Number(d.advance_remaining ?? advanceAmount ?? 0);
     const res2 = await fetch(`${API}/api/payments/all`);
     const payments = await res2.json();
 
-    const list = payments
-    .filter(p =>
+    const count = payments.filter(p =>
         p.subcontractor_id == id &&
         p.project_name == selectedProject &&
         p.work_type == workType
-    )
-    .map(p => Number(p.certificate_no));
+    ).length;
 
-const maxCert = list.length ? Math.max(...list) : 0;
-
-document.getElementById("certificate_no").value = maxCert + 1;
+    document.getElementById("certificate_no").value = count + 1;
 
     // 🔥 MOST IMPORTANT
     calculate();
@@ -901,7 +937,7 @@ async function bulkDelete() {
     const from = +document.getElementById("from_cert").value;
     const to = +document.getElementById("to_cert").value;
 
-    if (!company || !subName || !work || !from || !to) {
+    if (!subName || !work || !from || !to) {
         alert("Fill all fields");
         return;
     }
