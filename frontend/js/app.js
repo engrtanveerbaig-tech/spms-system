@@ -65,4 +65,4 @@ async function loadPage(page) {
 }
 
 // ================= DEFAULT LOAD =================
-loadPage("dashboard.html");
+loadPage("./dashboard.html");

@@ -39,17 +39,25 @@ function getCtx(id) {
 // =====================================================
 async function loadDashboard() {
 
-    if (dashboardLoaded) return;
-    dashboardLoaded = true;
+    dashboardLoaded = false; // always allow reload
 
     try {
         const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all");
         RAW_DATA = await res.json();
+
+        // ✅ DEBUG + SAFETY
+        if (!RAW_DATA || RAW_DATA.length === 0) {
+            console.warn("No data received from API");
+        }
+
+        console.log("DATA LOADED:", RAW_DATA);
+
     } catch (err) {
         console.error("API ERROR", err);
         return;
     }
 
+    // ✅ RUN AFTER DATA LOAD
     buildAggregation();
     initFilters();
     renderAll();
