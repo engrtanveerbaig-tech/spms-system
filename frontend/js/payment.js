@@ -147,52 +147,38 @@ async function addPayment() {
     let advanceDeduction = 0; // ✅ MUST BE FIRST
 
     const after =
-        (+work.value || 0)
-        - (+withdrawn.value || 0)
-        - (+deduction.value || 0)
-        + (+refund.value || 0);
+    (+work.value || 0)
+    - (+withdrawn.value || 0)
+    - (+deduction.value || 0)
+    + (+refund.value || 0);
 
-    // ✅ CALCULATE ADVANCE
-    if (window.originalAdvance && window.originalAdvance > 0) {
+let vatPercent = Number(window.currentVat) || 0;
+let retentionPercent = window.currentRetention || 10;
 
-        advanceDeduction = after * 0.25;
+let vatAmount = after * (vatPercent / 100);
+let retentionAmount = after * (retentionPercent / 100);
 
-        if (advanceDeduction > window.currentAdvance) {
-            advanceDeduction = window.currentAdvance;
-        }
-    }
+let netAmount = after + vatAmount - retentionAmount;
 
-    const data = {
-        subcontractor_id: +document.getElementById("subcontractor_form").value || 0,
-        work_type: document.getElementById("work_type_form").value,
-        project_name: selectedProject,
-        contract_number: document.getElementById("contract_number").value,
-        work_value: +work.value || 0,
-        work_withdrawn: +withdrawn.value || 0,
-        deduction: +deduction.value || 0,
-        refund: +refund.value || 0,
+const data = {
+    subcontractor_id: +document.getElementById("subcontractor_form").value || 0,
+    work_type: document.getElementById("work_type_form").value,
+    project_name: selectedProject,
+    contract_number: document.getElementById("contract_number").value,
 
-        // ✅ NOW SAFE
-        advance_deduction: advanceDeduction
-    };
+    work_value: +work.value || 0,
+    work_withdrawn: +withdrawn.value || 0,
+    deduction: +deduction.value || 0,
+    refund: +refund.value || 0,
 
-    let url = `${API}/api/payments/add`;
+    // ✅ ADD THESE (VERY IMPORTANT)
+    after_deduction: after,
+    vat_amount: vatAmount,
+    retention_amount: retentionAmount,
+    net_payment: netAmount,
 
-    const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-    });
-
-    document.getElementById("msg").innerText = await res.text();
-
-    document.querySelectorAll("input").forEach(i => i.value = "");
-
-// 🔥 reload subcontractor data again
-loadSubcontractors();
-
-    loadPaymentsInit();
-}
+    advance_deduction: advanceDeduction
+};
 
 // ================= LOAD =================
 async function loadPaymentsInit() {
