@@ -34,7 +34,7 @@ async function loadScript(src) {
         if (old) old.remove();
 
         const s = document.createElement("script");
-        s.src = src + "?v=" + Date.now(); // prevent cache
+        s.src = src + "?v=" + Date.now();
         s.onload = resolve;
 
         document.body.appendChild(s);
@@ -46,7 +46,6 @@ async function loadPage(page) {
 
     const role = localStorage.getItem("role");
 
-    // 🔐 BLOCK VIEWER ACCESS (extra safety)
     if (role === "viewer" && !page.includes("dashboard")) {
         alert("Access Denied");
         return;
@@ -55,17 +54,14 @@ async function loadPage(page) {
     const container = document.getElementById("mainContent");
 
     try {
-        // LOAD HTML
         const res = await fetch(page);
         const html = await res.text();
         container.innerHTML = html;
 
-        // WAIT DOM
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
         console.log("Page loaded:", page);
 
-        // APPLY ROLE UI AFTER LOAD
         applyRoleUI();
 
         // ================= PAGE JS =================
@@ -76,7 +72,6 @@ async function loadPage(page) {
             await loadScript("./js/dashboard.js");
 
             if (window.loadDashboard) {
-                console.log("INIT DASHBOARD");
                 window.loadDashboard();
             }
         }
@@ -86,7 +81,6 @@ async function loadPage(page) {
             await loadScript("./js/subcontractor.js");
 
             if (window.initSubcontractorPage) {
-                console.log("INIT SUBCONTRACTOR");
                 window.initSubcontractorPage();
             }
         }
@@ -96,7 +90,6 @@ async function loadPage(page) {
             await loadScript("./js/payment.js");
 
             if (window.initPaymentPage) {
-                console.log("INIT PAYMENT");
                 window.initPaymentPage();
             }
         }
@@ -115,3 +108,109 @@ function logout() {
     localStorage.removeItem("role");
     window.location.href = "login.html";
 }
+
+// =======================================================
+// 🔍 GLOBAL SEARCH SYSTEM (FINAL)
+// =======================================================
+
+let GLOBAL_DATA = [];
+let FILTERED_DATA = [];
+
+// ================= LOAD GLOBAL DATA =================
+async function loadGlobalData() {
+    try {
+        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all");
+        GLOBAL_DATA = await res.json();
+    } catch (err) {
+        console.error("Global search load error", err);
+    }
+}
+
+// load once
+loadGlobalData();
+
+// ================= HANDLE SEARCH =================
+function handleSearchInput() {
+
+    const input = document.getElementById("globalSearch").value.toLowerCase();
+    const type = document.getElementById("searchType").value;
+    const box = document.getElementById("searchSuggestions");
+
+    if (!input || input.length < 2) {
+        box.style.display = "none";
+        return;
+    }
+
+    let results = GLOBAL_DATA.filter(item => {
+        if (type === "company") {
+            return (item.company_name || "").toLowerCase().includes(input);
+        } else {
+            return (item.subcontractor_name || "").toLowerCase().includes(input);
+        }
+    });
+
+    // remove duplicates
+    const unique = [...new Map(results.map(item => {
+        const key = type === "company" ? item.company_name : item.subcontractor_name;
+        return [key, item];
+    })).values()];
+
+    renderSuggestions(unique, type);
+}
+
+// ================= RENDER SUGGESTIONS =================
+function renderSuggestions(list, type) {
+
+    const box = document.getElementById("searchSuggestions");
+
+    if (!list.length) {
+        box.style.display = "none";
+        return;
+    }
+
+    box.innerHTML = "";
+
+    list.slice(0, 10).forEach(item => {
+
+        const value = type === "company"
+            ? item.company_name
+            : item.subcontractor_name;
+
+        const div = document.createElement("div");
+        div.innerText = value;
+
+        div.onclick = () => selectSuggestion(value, type);
+
+        box.appendChild(div);
+    });
+
+    box.style.display = "block";
+}
+
+// ================= SELECT SUGGESTION =================
+function selectSuggestion(value, type) {
+
+    document.getElementById("globalSearch").value = value;
+    document.getElementById("searchSuggestions").style.display = "none";
+
+    FILTERED_DATA = GLOBAL_DATA.filter(item => {
+        if (type === "company") {
+            return item.company_name === value;
+        } else {
+            return item.subcontractor_name === value;
+        }
+    });
+
+    // APPLY TO CURRENT PAGE
+    if (window.applyGlobalFilter) {
+        window.applyGlobalFilter(FILTERED_DATA);
+    }
+}
+
+// ================= CLOSE SUGGESTIONS =================
+document.addEventListener("click", function(e) {
+    if (!e.target.closest(".search-container")) {
+        const box = document.getElementById("searchSuggestions");
+        if (box) box.style.display = "none";
+    }
+});
