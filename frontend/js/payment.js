@@ -40,6 +40,14 @@ function initPaymentPage() {
 
     document.getElementById("work_type_form")
         ?.addEventListener("change", loadSubcontractors);
+
+    // ✅ AUTO LOAD FIRST SUBCONTRACTOR IF WORK TYPE ALREADY SELECTED
+setTimeout(() => {
+    const wt = document.getElementById("work_type_form").value;
+    if (wt) {
+        loadSubcontractors(); // will auto select first
+    }
+}, 200);
 }
 
 
@@ -68,8 +76,10 @@ async function loadSubcontractors() {
     });
     // 🔥 AUTO SELECT FIRST + TRIGGER
 if (select.options.length > 1) {
-    select.selectedIndex = 1;
-    onSubcontractorChange();
+    select.value = select.options[1].value;
+
+    // trigger change properly
+    select.dispatchEvent(new Event("change"));
 }
 
 }
