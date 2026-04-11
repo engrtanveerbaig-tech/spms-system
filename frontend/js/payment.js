@@ -129,9 +129,6 @@ retentionAmount = after * (retentionPercent / 100);
 netAmount = after + vatAmount - retentionAmount;
     }
 
-    // ================= SAFETY =================
-    if (netAmount < 0) netAmount = 0;
-
     // ================= OUTPUT =================
     vat.value = vatAmount.toFixed(2);
     retention.value = retentionAmount.toFixed(2);
@@ -370,7 +367,9 @@ function renderTable(data) {
             "<td>"+formatNumber(p.vat_amount)+"</td>"+
             "<td>"+formatNumber(p.retention_amount)+"</td>"+
             "<td>"+formatNumber(p.advance_deduction || 0)+"</td>"+   // ✅ NEW
-            "<td>"+formatNumber(p.net_payment)+"</td>"+
+            "<td style='color:" + (p.net_payment < 0 ? "red" : "black") + "'>"
++ formatNumber(p.net_payment) +
+"</td>"+
             "<td>"+new Date(p.created_at).toLocaleDateString()+"</td>"+
             "<td>"+
                 "<button onclick='editPayment("+p.id+")'>Edit</button> "+
