@@ -72,24 +72,11 @@
 
 <div class="form-grid">
 
-<select id="bulkCompany" onchange="loadSubcontractors()">
-    <option value="">Select Company</option>
-</select>
-
-<select id="bulkSubcontractor" onchange="loadWorkTypes()">
-    <option value="">Select Subcontractor</option>
-</select>
-
-<select id="bulkWork">
-    <option value="">Select Work Type</option>
-</select>
-
-<input id="bulk_project" value="Sadayem" readonly>
-<input id="from_cert" placeholder="From Cert No">
-
-<input id="to_cert" placeholder="To Cert No">
-
-</div>
+<select id="bulk_company"></select>
+<select id="bulk_sub"></select>
+<select id="bulk_work"></select>  <!-- ✅ MUST EXIST -->
+<input id="from_cert" type="number" placeholder="From Cert No">
+<input id="to_cert" type="number" placeholder="To Cert No">
 
 <button onclick="bulkDelete()">Delete Range</button>
 </div>
