@@ -597,3 +597,7 @@ async function generatePDF() {
 window.loadDashboard = loadDashboard;
 window.generateReport = generatePDF;
 })();
+setInterval(() => {
+    console.log("🔄 Auto refreshing dashboard...");
+    loadDashboard();
+}, 10000); // every 10 seconds

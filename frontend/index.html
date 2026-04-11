@@ -4,7 +4,6 @@
 <title>SPMS System</title>
 
 <style>
-
 body {
     margin: 0;
     font-family: 'Segoe UI';
@@ -20,14 +19,13 @@ body {
     padding: 20px;
 }
 
-.sidebar h2 {
-    margin-bottom: 20px;
-}
-
 .menu-item {
+    display: block;
     padding: 10px;
     cursor: pointer;
     border-radius: 5px;
+    text-decoration: none;
+    color: white;
 }
 
 .menu-item:hover {
@@ -41,6 +39,14 @@ body {
     background: #f5f7fa;
 }
 
+.logout {
+    margin-top: 20px;
+    padding: 10px;
+    background: red;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
 </style>
 </head>
 
@@ -48,18 +54,33 @@ body {
 
 <!-- SIDEBAR -->
 <div class="sidebar">
-    <div class="logo">SPMS</div>
 
-    <a href="#" onclick="loadPage('dashboard.html')" title="Dashboard">📊</a>
-    <a href="#" onclick="loadPage('subcontractor.html')" title="Subcontractors">👷</a>
-    <a href="#" onclick="loadPage('payment.html')" title="Payments">💰</a>
+    <h2>SPMS</h2>
+
+    <a id="menu-dashboard" class="menu-item" onclick="loadPage('dashboard.html')">📊 Dashboard</a>
+    <a id="menu-subcontractor" class="menu-item" onclick="loadPage('subcontractor.html')">👷 Subcontractor</a>
+    <a id="menu-payment" class="menu-item" onclick="loadPage('payment.html')">💰 Payments</a>
+
+    <button class="logout" onclick="logout()">Logout</button>
+
 </div>
 
 <!-- MAIN PANEL -->
 <div class="content" id="mainContent">
     Loading...
 </div>
+
 <script src="./js/app.js"></script>
+
+<!-- ================= ROLE CONTROL ================= -->
+<script>
+const role = localStorage.getItem("role");
+
+if (role === "viewer") {
+    document.getElementById("menu-subcontractor").style.display = "none";
+    document.getElementById("menu-payment").style.display = "none";
+}
+</script>
 
 </body>
 </html>

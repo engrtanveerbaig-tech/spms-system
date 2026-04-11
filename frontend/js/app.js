@@ -1,47 +1,58 @@
+// ================= LOGIN CHECK =================
+if (!localStorage.getItem("role")) {
+    window.location.href = "login.html";
+}
+
+// ================= LOAD SCRIPT =================
 async function loadScript(src) {
     return new Promise((resolve) => {
 
-        // remove old script if exists
         const old = document.querySelector(`script[src^="${src}"]`);
         if (old) old.remove();
 
         const s = document.createElement("script");
-        s.src = src + "?v=" + Date.now(); // prevent cache
+        s.src = src + "?v=" + Date.now();
         s.onload = resolve;
 
         document.body.appendChild(s);
     });
 }
 
+// ================= LOAD PAGE =================
 async function loadPage(page) {
+
+    const role = localStorage.getItem("role");
+
+    // 🔐 BLOCK VIEWER ACCESS
+    if (role === "viewer" && !page.includes("dashboard")) {
+        alert("Access Denied");
+        return;
+    }
 
     const container = document.getElementById("mainContent");
 
-    // ================= LOAD HTML =================
+    // LOAD HTML
     const res = await fetch(page);
     const html = await res.text();
     container.innerHTML = html;
 
-    // ================= WAIT DOM =================
+    // WAIT DOM
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
     console.log("Page loaded:", page);
 
-    // ================= LOAD PAGE JS =================
+    // ================= PAGE JS =================
 
     if (page.includes("dashboard")) {
 
-    // ✅ LOAD CHART FIRST
-    await loadScript("./js/charts.min.js");
+        await loadScript("./js/charts.min.js");
+        await loadScript("./js/dashboard.js");
 
-    // ✅ THEN DASHBOARD
-    await loadScript("./js/dashboard.js");
-
-    if (window.loadDashboard) {
-        console.log("INIT DASHBOARD");
-        window.loadDashboard();
+        if (window.loadDashboard) {
+            console.log("INIT DASHBOARD");
+            window.loadDashboard();
+        }
     }
-}
 
     if (page.includes("subcontractor")) {
 
@@ -66,3 +77,9 @@ async function loadPage(page) {
 
 // ================= DEFAULT LOAD =================
 loadPage("./dashboard.html");
+
+// ================= LOGOUT =================
+function logout() {
+    localStorage.removeItem("role");
+    window.location.href = "login.html";
+}
