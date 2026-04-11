@@ -21,7 +21,7 @@ router.post("/add", (req, res) => {
 
     // ================= GET NEXT CERT =================
     const getNext = `
-        SELECT COUNT(*) + 1 AS next_no
+        SELECT COALESCE(MAX(certificate_no), 0) + 1 AS next_no
         FROM payment_certificates
         WHERE subcontractor_id = ?
         AND project_name = ?
@@ -65,7 +65,7 @@ router.post("/add", (req, res) => {
                 let net = 0;
 
                 // ================= STEP B: ADVANCE =================
-                if (advanceRemaining > 0) {
+                if (after > 0 && advanceRemaining > 0) {
 
                     advance_deduction = after * 0.25;
                     advance_deduction = Math.min(advance_deduction, advanceRemaining);
@@ -87,7 +87,6 @@ router.post("/add", (req, res) => {
                     net = after + vat - retention;
                 }
 
-                net = Math.max(net, 0);
 
                 // ================= INSERT =================
                 const sql = `
@@ -189,7 +188,7 @@ router.put("/update/:id", (req, res) => {
     const ref = Number(refund) || 0;
 
     db.query(
-        "SELECT retention_percent, vat_percent FROM subcontractors WHERE id=?",
+        "SELECT retention_percent, vat_percent, advance_remaining FROM subcontractors WHERE id=?",
         [subcontractor_id],
         (err, subResult) => {
 
@@ -201,9 +200,30 @@ router.put("/update/:id", (req, res) => {
             if (isNaN(vatPercent)) vatPercent = 0;
 
             const after = work - withdrawn - ded + ref;
-            const vat = after * (vatPercent / 100);
-            const retention = after * (retentionPercent / 100);
-            const net = after + vat - retention;
+            let advanceRemaining = Number(subResult[0].advance_remaining) || 0;
+
+let advance_deduction = 0;
+let vat = 0;
+let retention = 0;
+let net = 0;
+
+if (after > 0 && advanceRemaining > 0) {
+
+    advance_deduction = after * 0.25;
+    const afterAdvance = after - advance_deduction;
+
+    vat = afterAdvance * (vatPercent / 100);
+    retention = after * (retentionPercent / 100);
+
+    net = afterAdvance + vat - retention;
+
+} else {
+
+    vat = after * (vatPercent / 100);
+    retention = after * (retentionPercent / 100);
+
+    net = after + vat - retention;
+}
 
             const sql = `
                 UPDATE payment_certificates SET
