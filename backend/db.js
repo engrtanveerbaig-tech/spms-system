@@ -1,7 +1,6 @@
 const mysql = require("mysql2");
 
-// Parse Railway URL
-const url = new URL(process.env.MYSQL_PUBLIC_URL);
+const url = new URL(process.env.DATABASE_URL);
 
 const db = mysql.createConnection({
   host: url.hostname,
@@ -14,12 +13,12 @@ const db = mysql.createConnection({
   }
 });
 
-db.connect((err) => {
+db.connect(err => {
   if (err) {
-    console.error("❌ DB Connection Failed:", err);
-    return;
+    console.error("❌ DB connection error:", err);
+    process.exit(1);
   }
-  console.log("✅ Connected to Railway MySQL");
+  console.log("✅ MySQL Connected");
 });
 
 module.exports = db;
