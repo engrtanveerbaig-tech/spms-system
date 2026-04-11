@@ -81,12 +81,12 @@ function buildAggregation() {
             };
         }
 
-        map[id].total_work += Number(p.work || p.work_value || 0);
-        map[id].total_net += Number(p.net || p.net_payment || 0);
-        map[id].total_retention += Number(p.retention || p.retention_amount || 0);
-        map[id].total_advance += Number(p.advance || p.advance_deduction || 0);
-        map[id].total_deduction += Number(p.deduction || p.deduction_amount || 0);
-        map[id].total_refund += Number(p.refund || p.refund_amount || 0);
+        map[id].total_work += parseFloat(p.work_value) || 0;
+map[id].total_net += parseFloat(p.net_payment) || 0;
+map[id].total_retention += parseFloat(p.retention_amount) || 0;
+map[id].total_advance += parseFloat(p.advance_deduction) || 0;
+map[id].total_deduction += parseFloat(p.deduction) || 0;
+map[id].total_refund += parseFloat(p.refund) || 0;
         map[id].cert_count++;
     });
 
