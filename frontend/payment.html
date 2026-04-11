@@ -72,9 +72,17 @@
 
 <div class="form-grid">
 
-<select id="bulk_company"></select>
-<select id="bulk_sub"></select>
-<select id="bulk_work"></select>
+<select id="bulkCompany" onchange="loadSubcontractors()">
+    <option value="">Select Company</option>
+</select>
+
+<select id="bulkSubcontractor" onchange="loadWorkTypes()">
+    <option value="">Select Subcontractor</option>
+</select>
+
+<select id="bulkWork">
+    <option value="">Select Work Type</option>
+</select>
 
 <input id="bulk_project" value="Sadayem" readonly>
 <input id="from_cert" placeholder="From Cert No">

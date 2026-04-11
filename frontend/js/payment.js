@@ -238,6 +238,32 @@ function loadBulkOptions() {
 
         uniqueSubs.forEach(s => {
             subSelect.innerHTML += `<option>${s}</option>`;
+
+        // ================= LOAD WORK TYPES =================
+subSelect.onchange = function () {
+
+    const selectedCompany = companySelect.value;
+    const selectedSub = subSelect.value;
+
+    const works = originalData
+        .filter(p =>
+            p.company_name === selectedCompany &&
+            p.subcontractor_name === selectedSub
+        )
+        .map(p => p.work_type);
+
+    const uniqueWorks = [...new Set(works)];
+
+    const workSelect = document.getElementById("bulk_work");
+
+    if (!workSelect) return;
+
+    workSelect.innerHTML = "<option value=''>Select Work Type</option>";
+
+    uniqueWorks.forEach(w => {
+        workSelect.innerHTML += `<option>${w}</option>`;
+    });
+};
         });
     };
 }
