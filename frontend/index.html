@@ -44,6 +44,8 @@ body {
     flex: 1;
     padding: 20px;
     background: #f5f7fa;
+    position: relative;
+    z-index: 1;
 }
 
 /* SEARCH BAR */
@@ -52,9 +54,8 @@ body {
     gap: 10px;
     margin-bottom: 15px;
     position: relative;
-    z-index: 10;
+    z-index: 9999; /* increase */
 }
-
 .search-container select,
 .search-container input {
     padding: 8px;
@@ -65,17 +66,18 @@ body {
 /* SUGGESTIONS */
 #searchSuggestions {
     position: absolute;
-    top: 45px;
-    left: 150px;
-    right: 0;
+    top: 100%;        /* directly below input */
+    left: 0;          /* align with container */
+    width: 100%;      /* full width of search box */
+
     background: #ffffff;
     border: 1px solid #ccc;
     max-height: 250px;
     overflow-y: auto;
     display: none;
 
-    z-index: 9999;            /* 🔥 FIX: bring to front */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15); /* nice UI */
+    z-index: 99999;   /* 🔥 VERY HIGH */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
 
@@ -126,21 +128,27 @@ body {
     <!-- 🔍 GLOBAL SEARCH -->
     <div class="search-container">
 
-        <select id="searchType">
-            <option value="company">Company</option>
-            <option value="subcontractor">Subcontractor</option>
-        </select>
+    <select id="searchType">
+        <option value="company">Company</option>
+        <option value="subcontractor">Subcontractor</option>
+    </select>
+
+    <!-- 🔥 INPUT + DROPDOWN WRAPPED -->
+    <div style="position: relative; flex:1;">
 
         <input 
             type="text" 
             id="globalSearch" 
             placeholder="Search company or subcontractor..."
             oninput="handleSearchInput()"
+            style="width:100%;"
         >
 
         <div id="searchSuggestions"></div>
 
     </div>
+
+</div>
 
     <!-- PAGE CONTENT -->
     <div id="mainContent">
