@@ -43,7 +43,7 @@ async function loadDashboard() {
     dashboardLoaded = true;
 
     try {
-        const res = await fetch("http://localhost:5000/api/payments/all");
+        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all");
         RAW_DATA = await res.json();
     } catch (err) {
         console.error("API ERROR", err);

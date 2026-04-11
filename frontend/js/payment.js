@@ -1,3 +1,5 @@
+const API = "https://spms-backend-jxzn.onrender.com";
+let originalData = [];
 (function () {
 
 let editId = null;
@@ -53,9 +55,7 @@ async function loadSubcontractors() {
         return;
     }
 
-    const res = await fetch(
-        `http://localhost:5000/api/subcontractors/by-type/${work_type}`
-    );
+    const res = await fetch(`${API}/api/subcontractors/by-type/${work_type}`);
 
     const data = await res.json();
 
@@ -179,7 +179,7 @@ async function addPayment() {
         advance_deduction: advanceDeduction
     };
 
-    let url = "http://localhost:5000/api/payments/add";
+    let url = `${API}/api/payments/add`;
 
     const res = await fetch(url, {
         method: "POST",
@@ -187,7 +187,7 @@ async function addPayment() {
         body: JSON.stringify(data)
     });
 
-    msg.innerText = await res.text();
+    document.getElementById("msg").innerText = await res.text();
 
     document.querySelectorAll("input").forEach(i => i.value = "");
 
@@ -199,7 +199,7 @@ loadSubcontractors();
 
 // ================= LOAD =================
 async function loadPaymentsInit() {
-    const res = await fetch("http://localhost:5000/api/payments/all");
+    const res = await fetch(`${API}/api/payments/all`);
     originalData = await res.json();
 
     populateFilters(originalData); // ✅ ADD
@@ -375,9 +375,9 @@ async function deletePayment(id) {
 
     if (!confirm("Delete?")) return;
 
-    await fetch("http://localhost:5000/api/payments/delete/" + id, {
-        method: "DELETE"
-    });
+    await fetch(`${API}/api/payments/delete/${id}`, {
+    method: "DELETE"
+});
 
     loadPaymentsInit();
 }
@@ -403,7 +403,7 @@ function printPayment(id) {
 // ================= EXPORT =================
 document.getElementById("exportBtn").onclick = async function () {
 
-    const res = await fetch("http://localhost:5000/api/payments/all");
+    const res = await fetch(`${API}/api/payments/all`);
     const data = await res.json();
 
     const filtered = applyCurrentFilterForExport(data);
@@ -760,7 +760,7 @@ async function onSubcontractorChange() {
     const id = document.getElementById("subcontractor_form").value;
     if (!id) return;
 
-    const res = await fetch("http://localhost:5000/api/subcontractors/" + id);
+    const res = await fetch(`${API}/api/subcontractors/${id}`);
     const d = await res.json();
 
     let retentionPercent = Number(d.retention_percent || 10);
@@ -795,7 +795,7 @@ let advanceRemaining = Number(d.advance_remaining ?? advanceAmount ?? 0);
     const workType = document.getElementById("work_type_form").value;
     if (!workType) return;
 
-    const res2 = await fetch("http://localhost:5000/api/payments/all");
+    const res2 = await fetch(`${API}/api/payments/all`);
     const payments = await res2.json();
 
     const count = payments.filter(p =>
@@ -808,7 +808,6 @@ let advanceRemaining = Number(d.advance_remaining ?? advanceAmount ?? 0);
 
     // 🔥 MOST IMPORTANT
     calculate();
-    calculateValues();
 }
 
 function populateFilters(data) {
@@ -873,17 +872,17 @@ async function bulkDelete() {
 
     if (!confirm(`Delete certificates ${from} → ${to}?`)) return;
 
-    const res = await fetch("http://localhost:5000/api/payments/bulk-delete", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            subcontractor_id: record.subcontractor_id,
-            work_type: work,
-            project_name: record.project_name,
-            from_cert: from,
-            to_cert: to
-        })
-    });
+    const res = await fetch(`${API}/api/payments/bulk-delete`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+        subcontractor_id: record.subcontractor_id,
+        work_type: work,
+        project_name: record.project_name,
+        from_cert: from,
+        to_cert: to
+    })
+});
 
     const msg = await res.text();
     alert(msg);
