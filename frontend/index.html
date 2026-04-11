@@ -46,6 +46,44 @@ body {
     background: #f5f7fa;
 }
 
+/* SEARCH BAR */
+.search-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.search-container select,
+.search-container input {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* SUGGESTIONS */
+#searchSuggestions {
+    position: absolute;
+    top: 40px;
+    left: 150px;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+    z-index: 999;
+}
+
+#searchSuggestions div {
+    padding: 8px;
+    cursor: pointer;
+}
+
+#searchSuggestions div:hover {
+    background: #f0f0f0;
+}
+
 /* LOGOUT BUTTON */
 .logout {
     margin-top: auto;
@@ -77,11 +115,48 @@ body {
 </div>
 
 <!-- MAIN PANEL -->
-<div class="content" id="mainContent">
-    Loading...
+<div class="content">
+
+    <!-- 🔍 GLOBAL SEARCH -->
+    <div class="search-container">
+
+        <select id="searchType">
+            <option value="company">Company</option>
+            <option value="subcontractor">Subcontractor</option>
+        </select>
+
+        <input 
+            type="text" 
+            id="globalSearch" 
+            placeholder="Search company or subcontractor..."
+            oninput="handleSearchInput()"
+        >
+
+        <div id="searchSuggestions"></div>
+
+    </div>
+
+    <!-- PAGE CONTENT -->
+    <div id="mainContent">
+        Loading...
+    </div>
+
 </div>
 
 <script src="./js/app.js"></script>
+
+<!-- 🔐 ROLE CONTROL -->
+<script>
+const role = localStorage.getItem("role");
+
+if (role === "viewer") {
+    const sub = document.getElementById("subMenu");
+    const pay = document.getElementById("payMenu");
+
+    if (sub) sub.style.display = "none";
+    if (pay) pay.style.display = "none";
+}
+</script>
 
 </body>
 </html>
