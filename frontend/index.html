@@ -52,6 +52,7 @@ body {
     gap: 10px;
     margin-bottom: 15px;
     position: relative;
+    z-index: 10;
 }
 
 .search-container select,
@@ -64,19 +65,24 @@ body {
 /* SUGGESTIONS */
 #searchSuggestions {
     position: absolute;
-    top: 40px;
+    top: 45px;
     left: 150px;
     right: 0;
-    background: white;
+    background: #ffffff;
     border: 1px solid #ccc;
-    max-height: 200px;
+    max-height: 250px;
     overflow-y: auto;
     display: none;
-    z-index: 999;
+
+    z-index: 9999;            /* 🔥 FIX: bring to front */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15); /* nice UI */
 }
+
+
 
 #searchSuggestions div {
     padding: 8px;
+    color: #333; 
     cursor: pointer;
 }
 
