@@ -9,6 +9,15 @@ body {
     font-family: 'Segoe UI';
     display: flex;
 }
+#searchType {
+    width: 180px;         /* fixed size */
+}
+#globalSearch {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
 
 /* SIDEBAR */
 .sidebar {
@@ -54,7 +63,10 @@ body {
     gap: 10px;
     margin-bottom: 15px;
     position: relative;
-    z-index: 9999; /* increase */
+    z-index: 9999;
+
+    width: 100%;          /* 🔥 full width */
+    align-items: center;
 }
 .search-container select,
 .search-container input {
@@ -91,7 +103,11 @@ body {
 #searchSuggestions div:hover {
     background: #f0f0f0;
 }
-
+.search-input-wrapper {
+    position: relative;
+    flex: 1;              /* take full remaining space */
+    min-width: 0;         /* 🔥 IMPORTANT (fix flex overflow issue) */
+}
 /* LOGOUT BUTTON */
 .logout {
     margin-top: auto;
@@ -133,15 +149,13 @@ body {
         <option value="subcontractor">Subcontractor</option>
     </select>
 
-    <!-- 🔥 INPUT + DROPDOWN WRAPPED -->
-    <div style="position: relative; flex:1;">
+    <div class="search-input-wrapper">
 
         <input 
             type="text" 
             id="globalSearch" 
             placeholder="Search company or subcontractor..."
             oninput="handleSearchInput()"
-            style="width:100%;"
         >
 
         <div id="searchSuggestions"></div>
