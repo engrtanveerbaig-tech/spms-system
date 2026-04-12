@@ -346,7 +346,34 @@ function handlePopupSearch() {
 
     box.style.display = "block";
 }
+window.resetDashboard = function() {
 
+    RAW_DATA = [...ORIGINAL_DATA];
+
+    FILTER_STATE = {
+        company: "",
+        type: "",
+        subcontractor: ""
+    };
+
+    buildAggregation();
+    initFilters();
+    renderAll();
+
+    // 🔥 CLEAR SEARCH
+    const input = document.getElementById("popupSearchInput");
+    if (input) input.value = "";
+
+    SELECTED_SEARCH = null;
+
+// ✅ ADD HERE
+const label = document.getElementById("activeFilter");
+if (label) label.innerText = "";
+
+    // ✅ CLOSE MODAL (IMPORTANT UX)
+    const modal = document.getElementById("searchModal");
+    if (modal) modal.style.display = "none";
+};
 // ================= SELECT =================
 function selectPopupSuggestion(company, subcontractor) {
 
@@ -403,6 +430,17 @@ function confirmSearch() {
     }
 
     console.log("Filtered Result:", filtered.length);
+
+// ✅ ADD HERE
+const label = document.getElementById("activeFilter");
+
+if (label) {
+    label.innerText =
+        CURRENT_SEARCH_TYPE === "company"
+        ? `Filtered by Company: ${SELECTED_SEARCH.company}`
+        : `Filtered by Subcontractor: ${SELECTED_SEARCH.subcontractor}`;
+}
+
 
     // 🚨 IMPORTANT FIX
     if (window.applyGlobalFilter && typeof window.applyGlobalFilter === "function") {

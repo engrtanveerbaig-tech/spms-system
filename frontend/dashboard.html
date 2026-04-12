@@ -253,12 +253,18 @@ button {
 </div>
 
 <!-- ================= FILTERS ================= -->
+<div id="activeFilter" style="margin-top:10px; color:#94a3b8;"></div>
 <div class="filters">
     <select id="filterCompany"></select>
     <select id="filterType"></select>
     <select id="filterSub"></select>
+    
 
+    <div style="display:flex; gap:10px;">
     <button onclick="generateReport()">Generate Report</button>
+    <button onclick="resetDashboard()" class="reset-btn">
+    🔄 Clear Filter
+</button>
 </div>
 
 <!-- ================= CHART ROW 1 ================= -->
