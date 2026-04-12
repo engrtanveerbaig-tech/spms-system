@@ -270,6 +270,9 @@ thead th {
     color: black;
 }
 .reset-btn {
+    height: 40px;
+    padding: 0 12px;
+    font-size: 13px;
     background: #ef4444;
     color: white;
     border: none;
@@ -283,4 +286,24 @@ thead th {
 .reset-btn:hover {
     background: #dc2626;
     transform: scale(1.05);
+}
+/* 🔥 FIX BUTTON HEIGHT ISSUE */
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;   /* ✅ prevents stretch */
+}
+
+/* OPTIONAL: make buttons consistent */
+.filter-actions button {
+    height: 40px;
+    padding: 0 15px;
+    white-space: nowrap;
+}
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    align-items: center;   /* 🔥 ADD THIS */
+    flex-wrap: wrap;       /* responsive */
 }
