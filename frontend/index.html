@@ -18,10 +18,18 @@ body {
     width: 220px;
     background: #1f4e79;
     color: white;
+
     height: 100vh;
     padding: 20px;
+
     display: flex;
     flex-direction: column;
+
+    overflow: hidden; /* ✅ prevent overflow issues */
+}
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto; /* ✅ scroll only menu, not logout */
 }
 
 .logo {
@@ -55,14 +63,17 @@ body {
 
 /* ================= LOGOUT ================= */
 .logout {
-    margin-top: auto;
-    padding: 10px;
+    margin-top: auto;   /* ✅ push to bottom */
+    padding: 12px;
     background: red;
     border: none;
     color: white;
     cursor: pointer;
-    border-radius: 5px;
-    transition: 0.2s;
+    border-radius: 6px;
+
+    width: 100%;        /* ✅ full width */
+    position: sticky;   /* ✅ always visible */
+    bottom: 0;
 }
 
 .logout:hover {
@@ -119,7 +130,7 @@ body {
     width: 100%;
     padding: 14px;
     font-size: 16px;
-    border: 1px solid #ccc;
+    border: 1px solid #000000;
     border-radius: 8px;
     outline: none;
     transition: 0.2s;
@@ -136,14 +147,14 @@ body {
     max-height: 250px;
     overflow-y: auto;
     border-radius: 8px;
-    border: 1px solid #eee;
+    border: 1px solid #000000;
 }
 
 /* ITEM */
 #popupSuggestions div {
     padding: 10px 12px;
     cursor: pointer;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid #000000;
     transition: 0.2s;
 }
 
@@ -176,6 +187,13 @@ body {
 .search-footer button:hover {
     background: #163b5c;
 }
+.sidebar-content::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar-content::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.3);
+    border-radius: 4px;
+}
 
 /* ================= ANIMATIONS ================= */
 @keyframes fadeIn {
@@ -195,16 +213,22 @@ body {
 
 <!-- SIDEBAR -->
 <div class="sidebar">
+
     <div class="logo">SPMS</div>
 
-    <div class="menu-item" onclick="loadPage('dashboard.html')">📊</div>
-    <div class="menu-item" id="subMenu" onclick="loadPage('subcontractor.html')">👷</div>
-    <div class="menu-item" id="payMenu" onclick="loadPage('payment.html')">💰</div>
+    <!-- 🔥 SCROLLABLE AREA -->
+    <div class="sidebar-content">
 
-    <!-- 🔍 SEARCH ICON -->
-    <div class="menu-item" onclick="openSearchModal()">🔍</div>
+        <div class="menu-item" onclick="loadPage('dashboard.html')">📊</div>
+        <div class="menu-item" onclick="loadPage('subcontractor.html')">👷</div>
+        <div class="menu-item" onclick="loadPage('payment.html')">💰</div>
+        <div class="menu-item" onclick="openSearchModal()">🔍</div>
 
+    </div>
+
+    <!-- 🔥 ALWAYS AT BOTTOM -->
     <button class="logout" onclick="logout()">Logout</button>
+
 </div>
 
 <!-- MAIN PANEL -->
