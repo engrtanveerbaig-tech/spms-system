@@ -210,6 +210,10 @@ td, th {
     padding: 20px;
     border-radius: 8px;
     text-align: center;
+    min-height: 120px;   /* keep all cards equal */
+    display: flex;
+    flex-direction: column;
+    justify-content: center
 }
 
 
@@ -355,18 +359,18 @@ thead th {
 }
 /* ================= DARK MODE GLOBAL ================= */
 body.dark-mode {
-    background: #0f172a !important;
+    background: #0F172A !important;
     color: #ffffff !important;
 }
 
 /* CONTENT AREA */
 body.dark-mode .content {
-    background: #0f172a !important;
+    background: #0F172A !important;
 }
 
 /* SIDEBAR */
 body.dark-mode .sidebar {
-    background: #0f172a !important;
+    background: #0F172A !important;
 }
 
 /* CARDS / BOXES */
@@ -375,12 +379,12 @@ body.dark-mode .box,
 body.dark-mode .search-box,
 body.dark-mode .filters,
 body.dark-mode .form-container {
-    background: #0f172a !important;
+    background: #0F172A !important;
     color: #fff !important;
 }
 
 body.dark-mode .header{
-    background: #0f172a;
+    background: #0F172A;
     color: #fff;
 }
 
@@ -391,12 +395,12 @@ body.dark-mode select,
 body.dark-mode textarea {
     background: #0f172a !important;
     color: #fff !important;
-    border: 1px solid #334155 !important;
+    border: 1px solid #0F172A !important;
 }
 
 /* TABLE */
 body.dark-mode table {
-    background: #0f172a !important;
+    background: #0F172A !important;
     color: #fff !important;
 }
 
@@ -411,7 +415,7 @@ body.dark-mode td {
 
 /* DROPDOWNS */
 body.dark-mode option {
-    background: #0f172a;
+    background: #0F172A;
     color: white;
 }
 
@@ -422,7 +426,7 @@ body.dark-mode button {
 
 /* FILTER BAR */
 body.dark-mode .filters select {
-    background: #0f172a !important;
+    background: #0F172A !important;
     color: #fff !important;
 }
 
@@ -431,7 +435,7 @@ body.dark-mode .search-modal {
     background: rgba(0,0,0,0.7);
 }
 body.dark-mode .container {
-    background: #0f172a !important;
+    background: #0F172A !important;
     color: white !important;
 }
 body.dark-mode h2,
@@ -439,14 +443,22 @@ body.dark-mode h3 {
     color: #e2e8f0;
 }
 body.dark-mode .filters-wrapper {
-    background: #0f172a !important;
+    background: #0F172A !important;
 }
 body.dark-mode .table-container {
-    background: #0f172a !important;
+    background: #0F172A !important;
     border-radius: 12px;
     padding: 10px;
 }
 #ai_summary {
-    line-height: 1.5;
+    font-size: 8px;          /* smaller text */
+    font-weight: 400;         /* remove bold */
+    text-align: left;         /* LEFT ALIGN */
+    line-height: 1.6;
     color: #cbd5e1;
+    white-space: normal;
+}
+#ai_summary::before {
+    content: "🤖 ";
+    margin-right: 5px;
 }

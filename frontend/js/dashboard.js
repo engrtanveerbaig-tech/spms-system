@@ -211,7 +211,7 @@ function renderKPIs(data) {
 
 function generateAISummary(data) {
 
-    if (!data.length) return "No data available";
+    if (!data.length) return "• No data available";
 
     const totalNet = sum(data, "total_net");
     const totalWork = sum(data, "total_work");
@@ -221,10 +221,11 @@ function generateAISummary(data) {
     const top = data.reduce((a,b)=> a.total_net > b.total_net ? a : b);
 
     return `
-    Total project value is ${format(totalWork)} SAR. 
-    Net payment reached ${format(totalNet)} SAR with retention ${format(totalRetention)} SAR 
-    and deductions ${format(totalDeduction)} SAR. 
-    Top subcontractor is ${top.subcontractor}.
+• Total project value: ${format(totalWork)} SAR
+• Net payment: ${format(totalNet)} SAR
+• Retention: ${format(totalRetention)} SAR
+• Deductions: ${format(totalDeduction)} SAR
+• Top subcontractor: ${top.subcontractor}
     `;
 }
 
