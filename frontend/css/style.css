@@ -302,8 +302,85 @@ thead th {
 }
 .filters {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     margin-top: 20px;
-    align-items: center;   /* 🔥 ADD THIS */
-    flex-wrap: wrap;       /* responsive */
+    align-items: center;
+    flex-wrap: wrap;
+}
+.filters select {
+    height: 42px;
+    min-width: 200px;
+    padding: 0 10px;
+    border-radius: 8px;
+    background: #1e293b;
+    color: white;
+    border: none;
+}
+/* right side buttons */
+.filter-actions {
+    margin-left: auto;   /* 🔥 push to right */
+    display: flex;
+    gap: 10px;
+}
+.filter-actions button {
+    height: 42px;
+    padding: 0 16px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+.filter-actions button:first-child {
+    background: #3b82f6;
+}
+
+.reset-btn {
+    background: #ef4444;
+}
+
+.reset-btn:hover {
+    background: #dc2626;
+}
+.chart-grid,
+.chart-grid-2 {
+    width: 100%;
+}
+.filters-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+
+    background: #f5f7fa;
+    padding: 10px 0;
+
+    border-bottom: 1px solid #ddd;
+}
+body.dark .filters-wrapper {
+    background: #0f172a;
+    border-bottom: 1px solid #334155;
+}
+body.dark {
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+/* cards */
+body.dark .card,
+body.dark .stat-card {
+    background: #1e293b;
+}
+
+/* table */
+body.dark table {
+    background: #1e293b;
+    color: white;
+}
+
+/* sidebar */
+body.dark .sidebar {
+    background: #020617;
+}
+
+/* filters */
+body.dark select {
+    background: #1e293b;
+    color: white;
 }

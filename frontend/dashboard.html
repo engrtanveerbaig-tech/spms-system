@@ -254,17 +254,19 @@ button {
 
 <!-- ================= FILTERS ================= -->
 <div id="activeFilter" style="margin-top:10px; color:#94a3b8;"></div>
+<div class="filters-wrapper">
 <div class="filters">
+
     <select id="filterCompany"></select>
     <select id="filterType"></select>
     <select id="filterSub"></select>
-    
 
     <div class="filter-actions">
-    <button onclick="generateReport()">Generate Report</button>
-    <button onclick="resetDashboard()" class="reset-btn">
-    🔄 Clear Filter
-</button>
+        <button onclick="generateReport()">📄 Report</button>
+        <button onclick="resetDashboard()" class="reset-btn">🔄 Clear</button>
+    </div>
+
+</div>
 </div>
 
 <!-- ================= CHART ROW 1 ================= -->

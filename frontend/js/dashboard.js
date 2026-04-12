@@ -1,4 +1,4 @@
-
+let CURRENT_DATA = [];
 // =====================================================
 // GLOBAL STATE
 // =====================================================
@@ -158,7 +158,11 @@ function updateDependentFilters() {
 }
 
 function applyFilterData() {
-    return AGG_DATA.filter(x =>
+
+    // ✅ if search filter applied → use CURRENT_DATA
+    const source = CURRENT_DATA.length ? CURRENT_DATA : AGG_DATA;
+
+    return source.filter(x =>
         (!FILTER_STATE.company || x.company?.trim() === FILTER_STATE.company?.trim()) &&
         (!FILTER_STATE.type || x.work_type?.trim() === FILTER_STATE.type?.trim()) &&
         (!FILTER_STATE.subcontractor || x.subcontractor?.trim() === FILTER_STATE.subcontractor?.trim())
@@ -195,9 +199,8 @@ function renderKPIs(data) {
 
     document.getElementById("total_subs").innerText = data.length;
     document.getElementById("avg_cert").innerText =
-        (sum(data, "cert_count") / data.length || 0).toFixed(1);
+    data.length ? (sum(data, "cert_count") / data.length).toFixed(1) : "0";
 }
-
 // =====================================================
 // CHARTS
 // =====================================================
@@ -611,7 +614,7 @@ window.applyGlobalFilter = function(filteredData) {
     }
 
     // 🔥 DIRECTLY USE FILTERED DATA
-    RAW_DATA = [...filteredData];
+    CURRENT_DATA = [...filteredData];
 
     // 🔥 RESET FILTER STATE
     FILTER_STATE = {
@@ -630,6 +633,9 @@ window.resetDashboard = function() {
 
     RAW_DATA = [...ORIGINAL_DATA];
 
+    // ✅ CLEAR SEARCH FILTER
+    CURRENT_DATA = [];
+
     FILTER_STATE = {
         company: "",
         type: "",
@@ -647,6 +653,11 @@ window.loadDashboard = loadDashboard;
 window.generateReport = generatePDF;
 })();
 setInterval(() => {
+
+    // ❌ do not refresh if user is filtering
+    if (CURRENT_DATA.length > 0) return;
+
     console.log("🔄 Auto refreshing dashboard...");
     loadDashboard();
-}, 500000); // every 1 minute
+
+}, 500000);
