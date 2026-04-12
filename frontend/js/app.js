@@ -388,14 +388,11 @@ function confirmSearch() {
 
     console.log("Selected:", SELECTED_SEARCH);
 
-    // 🔥 FILTER DASHBOARD DATA
-    if (window.applyGlobalFilter) {
-
     let filtered = [];
 
     if (CURRENT_SEARCH_TYPE === "company") {
         filtered = SEARCH_DATA.filter(x =>
-            (x.company_name || "").trim() === SELECTED_SEARCH.company
+            (x.company_name || "").trim().toLowerCase() === SELECTED_SEARCH.company.toLowerCase()
         );
     }
 
@@ -407,8 +404,12 @@ function confirmSearch() {
 
     console.log("Filtered Result:", filtered.length);
 
-    window.applyGlobalFilter(filtered);
-}
+    // 🚨 IMPORTANT FIX
+    if (window.applyGlobalFilter && typeof window.applyGlobalFilter === "function") {
+        window.applyGlobalFilter(filtered);
+    } else {
+        console.error("applyGlobalFilter NOT FOUND");
+    }
 
     closeSearchModal();
 }

@@ -603,33 +603,24 @@ async function generatePDF() {
 
 window.applyGlobalFilter = function(filteredData) {
 
+    console.log("Applying filter:", filteredData.length);
+
     if (!filteredData || filteredData.length === 0) {
-        console.warn("No filtered data");
+        alert("No data found");
         return;
     }
 
-    // ✅ DO NOT DESTROY ORIGINAL DATA
-    // 🔥 FILTER STRICT BASED ON SEARCH TYPE
-if (window.CURRENT_SEARCH_TYPE === "company") {
-    RAW_DATA = filteredData.filter(x =>
-        x.company_name?.trim() === filteredData[0].company_name?.trim()
-    );
-}
+    // 🔥 DIRECTLY USE FILTERED DATA
+    RAW_DATA = [...filteredData];
 
-if (window.CURRENT_SEARCH_TYPE === "subcontractor") {
-    RAW_DATA = filteredData.filter(x =>
-        (x.subcontractor_name || x.sub_name || "").trim() ===
-        (filteredData[0].subcontractor_name || "").trim()
-    );
-}
-
-    // ✅ RESET FILTERS
+    // 🔥 RESET FILTER STATE
     FILTER_STATE = {
         company: "",
         type: "",
         subcontractor: ""
     };
 
+    // 🔥 REBUILD EVERYTHING
     buildAggregation();
     initFilters();
     renderAll();
