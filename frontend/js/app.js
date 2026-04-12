@@ -275,14 +275,14 @@ function closeSearchModal() {
 // ================= SUGGESTION =================
 function handlePopupSearch() {
 
-    console.log("Typing:", input, "Results:", results.length);
-
     const inputEl = document.getElementById("popupSearchInput");
     const box = document.getElementById("popupSuggestions");
 
     if (!inputEl || !box) return;
 
     const input = inputEl.value.toLowerCase();
+
+    console.log("Typing:", input); // ✅ NOW CORRECT POSITION
 
     // 🔥 WAIT FOR DATA
     if (!SEARCH_DATA || SEARCH_DATA.length === 0) {
@@ -301,24 +301,24 @@ function handlePopupSearch() {
         (x.subcontractor_name || "").toLowerCase().includes(input)
     );
 
-    // 🔥 HANDLE NO RESULTS
     if (results.length === 0) {
         box.innerHTML = "<div>No results found</div>";
         box.style.display = "block";
         return;
     }
 
+    // ✅ SAFE RENDER (NO HTML STRING BUGS)
     box.innerHTML = "";
 
-results.slice(0, 10).forEach(r => {
-    const div = document.createElement("div");
+    results.slice(0, 10).forEach(r => {
+        const div = document.createElement("div");
 
-    div.innerText = `${r.company_name} - ${r.subcontractor_name}`;
+        div.innerText = `${r.company_name} - ${r.subcontractor_name}`;
 
-    div.onclick = () => selectPopupSuggestion(r.company_name, r.subcontractor_name);
+        div.onclick = () => selectPopupSuggestion(r.company_name, r.subcontractor_name);
 
-    box.appendChild(div);
-});
+        box.appendChild(div);
+    });
 
     box.style.display = "block";
 }
