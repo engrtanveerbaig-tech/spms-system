@@ -1,4 +1,4 @@
-const API = "https://spms-backend-jxzn.onrender.com";
+let API = "https://spms-backend-jxzn.onrender.com";
 let originalData = [];
 (function () {
 
@@ -1000,3 +1000,11 @@ window.deletePayment = deletePayment;
 window.editPayment = editPayment;
 window.printPayment = printPayment;
 })();
+window.applyGlobalFilter = function(filteredData) {
+
+    window.applyGlobalFilter = function(filteredData) {
+    renderTable(filteredData);
+};
+
+    renderTable(originalData);
+};

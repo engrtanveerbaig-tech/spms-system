@@ -61,6 +61,8 @@ async function loadDashboard() {
     buildAggregation();
     initFilters();
     renderAll();
+    const btn = document.querySelector(".filters button");
+if (btn) btn.onclick = generatePDF;
 }
 
 // =====================================================
@@ -113,6 +115,7 @@ function initFilters() {
     populateSelect(companyEl, getUnique("company"));
     populateSelect(typeEl, getUnique("work_type"));
     populateSelect(subEl, getUnique("subcontractor"));
+    
 
     companyEl.onchange = () => {
         FILTER_STATE.company = companyEl.value;
@@ -154,9 +157,9 @@ function updateDependentFilters() {
 
 function applyFilterData() {
     return AGG_DATA.filter(x =>
-        (!FILTER_STATE.company || x.company === FILTER_STATE.company) &&
-        (!FILTER_STATE.type || x.work_type === FILTER_STATE.type) &&
-        (!FILTER_STATE.subcontractor || x.subcontractor === FILTER_STATE.subcontractor)
+        (!FILTER_STATE.company || x.company?.trim() === FILTER_STATE.company?.trim()) &&
+        (!FILTER_STATE.type || x.work_type?.trim() === FILTER_STATE.type?.trim()) &&
+        (!FILTER_STATE.subcontractor || x.subcontractor?.trim() === FILTER_STATE.subcontractor?.trim())
     );
 }
 
@@ -593,11 +596,28 @@ async function generatePDF() {
     win.document.close();
 }
 
+window.applyGlobalFilter = function(filteredData) {
+
+    // ✅ RESET FILTER STATE
+    FILTER_STATE = {
+        company: "",
+        type: "",
+        subcontractor: ""
+    };
+
+    RAW_DATA = filteredData;
+
+    buildAggregation();
+    initFilters();   // 🔥 IMPORTANT
+    renderAll();
+};
 // =====================================================
+
+
 window.loadDashboard = loadDashboard;
 window.generateReport = generatePDF;
 })();
 setInterval(() => {
     console.log("🔄 Auto refreshing dashboard...");
     loadDashboard();
-}, 10000); // every 10 seconds
+}, 500000); // every 1 minute

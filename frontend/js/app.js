@@ -1,3 +1,28 @@
+window.openSearchModal = function() {
+    const modal = document.getElementById("searchModal");
+    if (modal) {
+        modal.style.display = "flex";
+        document.getElementById("popupSearch").focus();
+    }
+}
+document.addEventListener("click", function(e) {
+
+    // CLOSE MODAL
+    const modal = document.getElementById("searchModal");
+    const box = document.querySelector(".search-box");
+
+    if (modal && modal.style.display !== "none") {
+        if (box && !box.contains(e.target) && e.target.innerText !== "🔍") {
+            modal.style.display = "none";
+        }
+    }
+
+    // CLOSE SUGGESTIONS
+    if (!e.target.closest(".search-container")) {
+        const sug = document.getElementById("searchSuggestions");
+        if (sug) sug.style.display = "none";
+    }
+});
 // ================= LOGIN CHECK =================
 const role = localStorage.getItem("role");
 
@@ -209,8 +234,20 @@ function selectSuggestion(value, type) {
 
 // ================= CLOSE SUGGESTIONS =================
 document.addEventListener("click", function(e) {
+
+    // CLOSE MODAL
+    const modal = document.getElementById("searchModal");
+    const box = document.querySelector(".search-box");
+
+    if (modal && modal.style.display !== "none") {
+        if (box && !box.contains(e.target) && e.target.innerText !== "🔍") {
+            modal.style.display = "none";
+        }
+    }
+
+    // CLOSE SUGGESTIONS
     if (!e.target.closest(".search-container")) {
-        const box = document.getElementById("searchSuggestions");
-        if (box) box.style.display = "none";
+        const sug = document.getElementById("searchSuggestions");
+        if (sug) sug.style.display = "none";
     }
 });
