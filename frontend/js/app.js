@@ -1,9 +1,17 @@
-window.openSearchModal = function() {
+window.openSearchModal = async function() {
+
     const modal = document.getElementById("searchModal");
-    if (modal) {
-        modal.style.display = "flex";
-        document.getElementById("popupSearchInput").focus();
+    if (!modal) return;
+
+    modal.style.display = "flex";
+
+    // 🔥 LOAD DATA BEFORE SEARCH
+    if (SEARCH_DATA.length === 0) {
+        await loadSearchData();
     }
+
+    const input = document.getElementById("popupSearchInput");
+    if (input) input.focus();
 }
 document.addEventListener("click", function(e) {
 
@@ -231,27 +239,6 @@ function selectSuggestion(value, type) {
         window.applyGlobalFilter(FILTERED_DATA);
     }
 }
-
-// ================= CLOSE SUGGESTIONS =================
-document.addEventListener("click", function(e) {
-
-    // CLOSE MODAL
-    const modal = document.getElementById("searchModal");
-    const box = document.querySelector(".search-box");
-
-    if (modal && modal.style.display !== "none") {
-        if (box && !box.contains(e.target) && e.target.innerText !== "🔍") {
-            modal.style.display = "none";
-        }
-    }
-
-    // CLOSE SUGGESTIONS
-    if (!e.target.closest(".search-container")) {
-        const sug = document.getElementById("searchSuggestions");
-        if (sug) sug.style.display = "none";
-    }
-});
-
 // ================= GLOBAL SEARCH MODAL =================
 
 // store full data
@@ -261,6 +248,8 @@ async function loadSearchData() {
     try {
         const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all");
         SEARCH_DATA = await res.json();
+
+        console.log("SEARCH DATA LOADED:", SEARCH_DATA.length); // ✅ HERE
     } catch (err) {
         console.error("Search API error", err);
     }
@@ -286,10 +275,23 @@ function closeSearchModal() {
 // ================= SUGGESTION =================
 function handlePopupSearch() {
 
-    const input = document.getElementById("popupSearchInput").value.toLowerCase();
+    console.log("Typing:", input, "Results:", results.length);
+
+    const inputEl = document.getElementById("popupSearchInput");
     const box = document.getElementById("popupSuggestions");
 
-    if (!input) {
+    if (!inputEl || !box) return;
+
+    const input = inputEl.value.toLowerCase();
+
+    // 🔥 WAIT FOR DATA
+    if (!SEARCH_DATA || SEARCH_DATA.length === 0) {
+        box.innerHTML = "<div>Loading...</div>";
+        box.style.display = "block";
+        return;
+    }
+
+    if (!input || input.length < 1) {
         box.style.display = "none";
         return;
     }
@@ -299,11 +301,24 @@ function handlePopupSearch() {
         (x.subcontractor_name || "").toLowerCase().includes(input)
     );
 
-    box.innerHTML = results.slice(0, 10).map(r => `
-        <div onclick="selectPopupSuggestion('${r.company_name}', '${r.subcontractor_name}')">
-            ${r.company_name} - ${r.subcontractor_name}
-        </div>
-    `).join("");
+    // 🔥 HANDLE NO RESULTS
+    if (results.length === 0) {
+        box.innerHTML = "<div>No results found</div>";
+        box.style.display = "block";
+        return;
+    }
+
+    box.innerHTML = "";
+
+results.slice(0, 10).forEach(r => {
+    const div = document.createElement("div");
+
+    div.innerText = `${r.company_name} - ${r.subcontractor_name}`;
+
+    div.onclick = () => selectPopupSuggestion(r.company_name, r.subcontractor_name);
+
+    box.appendChild(div);
+});
 
     box.style.display = "block";
 }
