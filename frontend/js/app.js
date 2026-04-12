@@ -389,9 +389,26 @@ function confirmSearch() {
     console.log("Selected:", SELECTED_SEARCH);
 
     // 🔥 FILTER DASHBOARD DATA
-    if (window.filterDashboard) {
-        window.filterDashboard(SELECTED_SEARCH);
+    if (window.applyGlobalFilter) {
+
+    let filtered = [];
+
+    if (CURRENT_SEARCH_TYPE === "company") {
+        filtered = SEARCH_DATA.filter(x =>
+            (x.company_name || "").trim() === SELECTED_SEARCH.company
+        );
     }
+
+    if (CURRENT_SEARCH_TYPE === "subcontractor") {
+        filtered = SEARCH_DATA.filter(x =>
+            (x.subcontractor_name || "").trim() === SELECTED_SEARCH.subcontractor
+        );
+    }
+
+    console.log("Filtered Result:", filtered.length);
+
+    window.applyGlobalFilter(filtered);
+}
 
     closeSearchModal();
 }
