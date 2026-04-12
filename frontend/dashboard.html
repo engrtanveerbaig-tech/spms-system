@@ -212,7 +212,8 @@ button {
 </div>
 
 <!-- ================= KPI ================= -->
-<div class="cards">
+<div class="cards all-cards">
+
     <div class="card">
         <h3>Total Work</h3>
         <p id="total_work">0</p>
@@ -229,13 +230,10 @@ button {
     </div>
 
     <div class="card">
-    <h3>Deductions</h3>
-    <p id="total_deduction">0</p>
-</div>
-</div>
+        <h3>Deductions</h3>
+        <p id="total_deduction">0</p>
+    </div>
 
-<!-- ================= ADVANCED KPI ================= -->
-<div class="cards-advanced">
     <div class="card">
         <h3>Total Subcontractors</h3>
         <p id="total_subs">0</p>
@@ -246,16 +244,17 @@ button {
         <p id="avg_cert">0</p>
     </div>
 
-    <div class="card">
-    <h3 style="font-size:14px; font-weight:600;">AI Insights</h3>
-    <p id="ai_summary" style="font-size:14px; font-weight:500;"></p>
-</div>
+    <div class="card ai-card">
+        <h3>AI Insights</h3>
+        <p id="ai_summary"></p>
+    </div>
+
 </div>
 
 <!-- ================= FILTERS ================= -->
 <div id="activeFilter" style="margin-top:10px; color:#94a3b8;"></div>
 <div class="filters-wrapper">
-<div class="filters">
+<div class="filters single-line">
 
     <select id="filterCompany"></select>
     <select id="filterType"></select>

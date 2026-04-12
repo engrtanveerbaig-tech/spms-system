@@ -211,7 +211,7 @@ function renderKPIs(data) {
 
 function generateAISummary(data) {
 
-    if (!data.length) return "• No data available";
+    if (!data.length) return "• no data available";
 
     const totalNet = sum(data, "total_net");
     const totalWork = sum(data, "total_work");
@@ -220,12 +220,31 @@ function generateAISummary(data) {
 
     const top = data.reduce((a,b)=> a.total_net > b.total_net ? a : b);
 
+    // 🔥 group by work type
+    const typeCount = {};
+    data.forEach(x => {
+        typeCount[x.work_type] = (typeCount[x.work_type] || 0) + 1;
+    });
+
+    const typeSummary = Object.entries(typeCount)
+        .map(([k,v]) => `${k}: ${v}`)
+        .join(", ");
+
     return `
-• Total project value: ${format(totalWork)} SAR
-• Net payment: ${format(totalNet)} SAR
-• Retention: ${format(totalRetention)} SAR
-• Deductions: ${format(totalDeduction)} SAR
-• Top subcontractor: ${top.subcontractor}
+• project value ${format(totalWork)} sar
+• net ${format(totalNet)} sar
+• retention ${format(totalRetention)}
+• deductions ${format(totalDeduction)}
+
+• top subcontractor → ${top.subcontractor}
+
+• work types → ${typeSummary}
+
+• overall: ${
+        totalNet > totalWork
+        ? "strong cash flow"
+        : "controlled spending"
+    }
     `;
 }
 

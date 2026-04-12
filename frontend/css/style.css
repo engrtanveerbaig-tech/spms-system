@@ -451,7 +451,7 @@ body.dark-mode .table-container {
     padding: 10px;
 }
 #ai_summary {
-    font-size: 8px;          /* smaller text */
+    font-size: 12px;          /* smaller text */
     font-weight: 400;         /* remove bold */
     text-align: left;         /* LEFT ALIGN */
     line-height: 1.6;
@@ -461,4 +461,34 @@ body.dark-mode .table-container {
 #ai_summary::before {
     content: "🤖 ";
     margin-right: 5px;
+}
+
+/* ================= ONE LINE FILTER BAR ================= */
+.filters.single-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;   /* ❗ force single line */
+    overflow-x: auto;    /* scroll if small screen */
+}
+
+.filters.single-line select {
+    min-width: 180px;
+    flex-shrink: 0;
+}
+
+.filter-actions {
+    flex-shrink: 0;
+}
+/* ================= ALL KPI IN ONE LINE ================= */
+.all-cards {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* 🔥 all in one row */
+    gap: 12px;
+}
+
+/* AI CARD WIDER */
+.ai-card {
+    grid-column: span 2; /* takes more space */
+    text-align: left;
 }
