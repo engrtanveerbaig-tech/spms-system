@@ -399,11 +399,11 @@ window.toggleTheme = function () {
 
     const body = document.body;
 
-    if (body.classList.contains("dark")) {
-        body.classList.remove("dark");
+    if (body.classList.contains("dark-mode")) {
+        body.classList.remove("dark-mode");
         localStorage.setItem("theme", "light");
     } else {
-        body.classList.add("dark");
+        body.classList.add("dark-mode");
         localStorage.setItem("theme", "dark");
     }
 };

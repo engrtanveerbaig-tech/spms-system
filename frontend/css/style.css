@@ -353,34 +353,85 @@ thead th {
 
     border-bottom: 1px solid #ddd;
 }
-body.dark .filters-wrapper {
-    background: #0f172a;
-    border-bottom: 1px solid #334155;
+/* ================= DARK MODE GLOBAL ================= */
+body.dark-mode {
+    background: #0f172a !important;
+    color: #ffffff !important;
 }
-body.dark {
-    background: #0f172a;
+
+/* CONTENT AREA */
+body.dark-mode .content {
+    background: #0f172a !important;
+}
+
+/* SIDEBAR */
+body.dark-mode .sidebar {
+    background: #020617 !important;
+}
+
+/* CARDS / BOXES */
+body.dark-mode .card,
+body.dark-mode .box,
+body.dark-mode .search-box,
+body.dark-mode .filters,
+body.dark-mode .form-container {
+    background: #1e293b !important;
+    color: #fff !important;
+}
+
+/* INPUTS */
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background: #0f172a !important;
+    color: #fff !important;
+    border: 1px solid #334155 !important;
+}
+
+/* TABLE */
+body.dark-mode table {
+    background: #1e293b !important;
+    color: #fff !important;
+}
+
+body.dark-mode th {
+    background: #1e3a5f !important;
+    color: #fff !important;
+}
+
+body.dark-mode td {
+    color: #e5e7eb !important;
+}
+
+/* DROPDOWNS */
+body.dark-mode option {
+    background: #1e293b;
+    color: white;
+}
+
+/* BUTTONS */
+body.dark-mode button {
+    color: white;
+}
+
+/* FILTER BAR */
+body.dark-mode .filters select {
+    background: #1e293b !important;
+    color: #fff !important;
+}
+
+/* MODAL */
+body.dark-mode .search-modal {
+    background: rgba(0,0,0,0.7);
+}
+body.dark-mode .container {
+    background: #1e293b !important;
+    color: white !important;
+}
+body.dark-mode h2,
+body.dark-mode h3 {
     color: #e2e8f0;
 }
-
-/* cards */
-body.dark .card,
-body.dark .stat-card {
-    background: #1e293b;
-}
-
-/* table */
-body.dark table {
-    background: #1e293b;
-    color: white;
-}
-
-/* sidebar */
-body.dark .sidebar {
-    background: #020617;
-}
-
-/* filters */
-body.dark select {
-    background: #1e293b;
-    color: white;
+body.dark-mode .filters-wrapper {
+    background: #0f172a !important;
 }

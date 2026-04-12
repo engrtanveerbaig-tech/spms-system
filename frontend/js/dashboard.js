@@ -613,17 +613,20 @@ window.applyGlobalFilter = function(filteredData) {
         return;
     }
 
-    // 🔥 DIRECTLY USE FILTERED DATA
-    CURRENT_DATA = [...filteredData];
+    // 🔥 STEP 1: SET RAW DATA TO FILTERED
+    RAW_DATA = [...filteredData];
 
-    // 🔥 RESET FILTER STATE
+    // 🔥 STEP 2: CLEAR CURRENT DATA (IMPORTANT)
+    CURRENT_DATA = [];
+
+    // 🔥 STEP 3: RESET FILTER STATE
     FILTER_STATE = {
         company: "",
         type: "",
         subcontractor: ""
     };
 
-    // 🔥 REBUILD EVERYTHING
+    // 🔥 STEP 4: REBUILD FROM FILTERED DATA
     buildAggregation();
     initFilters();
     renderAll();
@@ -632,8 +635,6 @@ window.applyGlobalFilter = function(filteredData) {
 window.resetDashboard = function() {
 
     RAW_DATA = [...ORIGINAL_DATA];
-
-    // ✅ CLEAR SEARCH FILTER
     CURRENT_DATA = [];
 
     FILTER_STATE = {
