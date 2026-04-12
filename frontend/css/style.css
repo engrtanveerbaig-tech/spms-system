@@ -645,7 +645,7 @@ body.dark-mode .filters select {
 }
 
 /* hover effect */
-body.dark-mode .filters select:hover {
+body.dark-mode .filters select{
     background: #273449;
 }
 
@@ -653,4 +653,11 @@ body.dark-mode .filters select:hover {
 body.dark-mode .filters select:focus {
     outline: none;
     border-color: #3b82f6;
+}
+body.dark-mode .filter-actions button {
+    border-radius: 10px;
+}
+body.dark-mode .filters {
+    background: #0F172A;
+    border-bottom: 1px solid #1e293b;
 }
