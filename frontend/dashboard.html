@@ -39,22 +39,7 @@ body {
     padding: 20px;
     border-radius: 14px;
 }
-.filters {
-    position: sticky;
-    top: 80px;   /* 🔥 adjust based on header height */
-    z-index: 999;
 
-    display: flex;
-    gap: 12px;
-    align-items: center;
-
-    background: #F5F7FA;
-    padding: 10px 0;
-    margin-top: 10px;
-
-    border-bottom: 1px solid #ddd;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-}
 
 .card h3 {
     color: #94a3b8;
@@ -212,6 +197,20 @@ button {
 
 </div>
 
+<!-- ================= FILTERS ================= -->
+<div class="filters">
+
+    <select id="filterCompany"></select>
+    <select id="filterType"></select>
+    <select id="filterSub"></select>
+
+    <div class="filter-actions">
+        <button onclick="generateReport()">📄 Report</button>
+        <button onclick="resetDashboard()" class="reset-btn">🔄 Clear</button>
+    </div>
+
+</div>
+
 <!-- ================= KPI ================= -->
 <div class="dashboard-grid">
 
@@ -247,22 +246,7 @@ button {
 
 </div>
 
-<!-- ================= FILTERS ================= -->
-<div class="filters">
 
-    <select id="filterCompany"></select>
-    <select id="filterType"></select>
-    <select id="filterSub"></select>
-
-    <div class="filter-actions">
-        <button onclick="generateReport()">📄 Report</button>
-        <button onclick="resetDashboard()" class="reset-btn">🔄 Clear</button>
-    </div>
-
-</div>
-
-</div>
-</div>
 
 <!-- ================= CHART ROW 1 ================= -->
 <div class="chart-grid">

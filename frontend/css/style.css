@@ -292,25 +292,24 @@ thead th {
     transform: scale(1.05);
 }
 /* ================= FINAL FILTER BAR ================= */
-/* ================= FINAL FILTER BAR ================= */
 .filters {
     position: sticky;
-    top: 85px;
+    top: 70px;
     z-index: 1000;
 
     display: grid;
     grid-template-columns: 1fr 1fr 1fr auto;
     gap: 12px;
-    align-items: center;
 
-    background: #F5F7FA;
-    padding: 10px 15px;
-    margin-top: 15px;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(10px);   /* 🔥 glass effect */
 
-    border-radius: 10px;
-    border-bottom: 1px solid #ddd;
+    padding: 12px 15px;
+    margin-top: 10px;
 
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    border-radius: 12px;
+
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
 }
 /* 🔥 FIX BUTTON HEIGHT ISSUE */
 .filter-actions {
@@ -632,8 +631,8 @@ body.dark-mode .filter-actions button {
     border-radius: 10px;
 }
 body.dark-mode .filters {
-    background: #1e293b;
-    border-bottom: 1px solid #334155;
+    background: rgba(30,41,59,0.7);
+    backdrop-filter: blur(12px);
 }
 
 body.dark-mode .filters select {
