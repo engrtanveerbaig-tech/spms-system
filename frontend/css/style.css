@@ -1,7 +1,7 @@
 /* ================= GLOBAL ================= */
 body {
     font-family: "Segoe UI", Arial, sans-serif;
-    background: #f5f7fa;
+    background: #F5F7FA;
     margin: 0;
     padding: 0;
 }
@@ -50,7 +50,7 @@ body {
 
 /* ACTIVE */
 .sidebar a.active {
-    background: white;
+    background: #F5F7FA;
     color: #1f4e79;
 }
 
@@ -69,7 +69,7 @@ body {
 .header {
     position: sticky;
     top: 0;
-    background: #fff;
+    background: #F5F7FA;
     z-index: 999;
     padding: 10px 0;
 }
@@ -132,7 +132,7 @@ button.edit:hover {
 
 /* ================= SECTION BOX ================= */
 .container {
-    background: white;
+    background: #F5F7FA;
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 20px;
@@ -180,8 +180,8 @@ td, th {
 
 /* ================= BULK DELETE ================= */
 .bulk-box {
-    background: #fff3f3;
-    border: 1px solid #f5c6c6;
+    background: #F5F7FA;
+    border: 1px solid #F5F7FA;
     padding: 10px;
     border-radius: 5px;
 }
@@ -206,7 +206,7 @@ td, th {
 
 .card {
     background: #1f4e79;
-    color: white;
+    color: #F5F7FA;
     padding: 20px;
     border-radius: 8px;
     text-align: center;
@@ -263,7 +263,7 @@ thead th {
     position: sticky;
     top: 0;
     background: #1f4e79;
-    color: white;
+    color: #F5F7FA;
     z-index: 10;
 }
 .d-table{
@@ -274,7 +274,7 @@ thead th {
     padding: 0 12px;
     font-size: 13px;
     background: #ef4444;
-    color: white;
+    color: #F5F7FA;
     border: none;
     padding: 10px 16px;
     border-radius: 8px;
@@ -313,7 +313,7 @@ thead th {
     padding: 0 10px;
     border-radius: 8px;
     background: #1e293b;
-    color: white;
+    color: #F5F7FA;
     border: none;
 }
 /* right side buttons */
@@ -348,7 +348,7 @@ thead th {
     top: 0;
     z-index: 1000;
 
-    background: #f5f7fa;
+    background: #F5F7FA;
     padding: 10px 0;
 
     border-bottom: 1px solid #ddd;
@@ -440,4 +440,9 @@ body.dark-mode h3 {
 }
 body.dark-mode .filters-wrapper {
     background: #0f172a !important;
+}
+body.dark-mode .table-container {
+    background: #1e293b !important;
+    border-radius: 12px;
+    padding: 10px;
 }
