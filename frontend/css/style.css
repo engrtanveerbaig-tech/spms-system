@@ -371,13 +371,17 @@ body.dark-mode .sidebar {
 
 /* CARDS / BOXES */
 body.dark-mode .card,
-body.dark-mode .header,
 body.dark-mode .box,
 body.dark-mode .search-box,
 body.dark-mode .filters,
 body.dark-mode .form-container {
     background: #1e293b !important;
     color: #fff !important;
+}
+
+body.dark-mode .header{
+    background: #1e293b;
+    color: #fff;
 }
 
 
