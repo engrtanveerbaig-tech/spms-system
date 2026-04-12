@@ -70,76 +70,87 @@ body {
 }
 
 /* ================= SEARCH MODAL ================= */
+/* ===== MODAL BACKGROUND ===== */
 .search-modal {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-
-    background: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(6px);
-
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(8px);
     display: none;
     justify-content: center;
     align-items: center;
-
     z-index: 99999;
-
-    animation: fadeIn 0.3s ease;
 }
 
-/* ================= SEARCH BOX ================= */
+/* ===== BOX ===== */
 .search-box {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    width: 500px;
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 14px;
+    width: 520px;
     max-width: 90%;
-    text-align: center;
-
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
     animation: scaleIn 0.25s ease;
 }
-
+/* ===== SEARCH TYPE TOGGLE ===== */
+.search-type-toggle {
+    display: flex;
+    margin-bottom: 15px;
+    background: #f1f3f5;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.search-type-toggle button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.2s;
+}
+.search-type-toggle button.active {
+    background: #1f4e79;
+    color: white;
+}
 /* ================= INPUT ================= */
+/* ===== INPUT ===== */
 .search-box input {
     width: 100%;
     padding: 14px;
-    font-size: 18px;
+    font-size: 16px;
     border: 1px solid #ccc;
     border-radius: 8px;
-
     outline: none;
     transition: 0.2s;
 }
 
 .search-box input:focus {
     border-color: #1f4e79;
-    box-shadow: 0 0 5px rgba(31, 78, 121, 0.4);
+    box-shadow: 0 0 6px rgba(31,78,121,0.4);
 }
 
-/* ================= SUGGESTIONS ================= */
+/* ===== SUGGESTIONS ===== */
 #popupSuggestions {
     margin-top: 10px;
-    max-height: 220px;
+    max-height: 250px;
     overflow-y: auto;
-    text-align: left;
-    border: 1px solid #ddd;
-    background: rgb(31, 31, 31);
-    position: relative;
-    z-index: 99999;
+    border-radius: 8px;
+    border: 1px solid #eee;
 }
 
+/* ITEM */
 #popupSuggestions div {
-    padding: 10px;
+    padding: 10px 12px;
     cursor: pointer;
-    border-bottom: 1px solid #eee;
-    font-size: 14px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: 0.2s;
 }
 
+/* HOVER */
 #popupSuggestions div:hover {
-    background: #f0f4f8;
+    background: #1f4e79;
+    color: white;
 }
 
 /* ================= BUTTONS ================= */
@@ -147,16 +158,19 @@ body {
     margin-top: 20px;
 }
 
+/* ===== BUTTON ===== */
+.search-footer {
+    margin-top: 15px;
+    text-align: center;
+}
 .search-footer button {
-    padding: 10px 18px;
-    margin: 5px;
+    padding: 10px 20px;
     border: none;
     background: #1f4e79;
     color: white;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
-    transition: 0.2s;
 }
 
 .search-footer button:hover {
@@ -169,6 +183,7 @@ body {
     to { opacity: 1; }
 }
 
+/* ===== ANIMATION ===== */
 @keyframes scaleIn {
     from { transform: scale(0.9); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
@@ -203,22 +218,35 @@ body {
 </div>
 
 <!-- 🔍 SEARCH MODAL -->
+<!-- 🔍 SEARCH MODAL -->
 <div id="searchModal" class="search-modal">
 
     <div class="search-box">
 
-        <input 
-    type="text" 
-    id="popupSearchInput"
-    placeholder="Search company or subcontractor..."
-    oninput="handlePopupSearch()"
->
+        <!-- 🔥 SEARCH TYPE SELECT -->
+        <div class="search-type-toggle">
+            <button id="btnCompany" class="active" onclick="setSearchType('company')">
+                Company
+            </button>
+            <button id="btnSubcontractor" onclick="setSearchType('subcontractor')">
+                Subcontractor
+            </button>
+        </div>
 
+        <!-- 🔍 INPUT -->
+        <input 
+            type="text" 
+            id="popupSearchInput" 
+            placeholder="Type to search..."
+            oninput="handlePopupSearch()"
+        >
+
+        <!-- 📋 SUGGESTIONS -->
         <div id="popupSuggestions"></div>
 
+        <!-- 🔘 ACTION -->
         <div class="search-footer">
-            <button onclick="confirmSearch('company')">Search Company</button>
-<button onclick="confirmSearch('subcontractor')">Search Subcontractor</button>
+            <button onclick="confirmSearch()">Search</button>
         </div>
 
     </div>
