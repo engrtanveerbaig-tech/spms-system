@@ -69,9 +69,9 @@ async function loadPage(page) {
     const role = localStorage.getItem("role");
 
     if (role === "viewer" && !page.includes("dashboard")) {
-        alert("Access Denied");
-        return;
-    }
+    console.warn("Blocked access:", page);
+    return;
+}
 
     const container = document.getElementById("mainContent");
 

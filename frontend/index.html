@@ -224,8 +224,8 @@ body {
     <div class="sidebar-content">
 
         <div class="menu-item" onclick="loadPage('dashboard.html')">📊</div>
-        <div class="menu-item" onclick="loadPage('subcontractor.html')">👷</div>
-        <div class="menu-item" onclick="loadPage('payment.html')">💰</div>
+       <div id="subMenu" class="menu-item" onclick="loadPage('subcontractor.html')">👷</div>
+<div id="payMenu" class="menu-item" onclick="loadPage('payment.html')">💰</div>
         <div class="menu-item" onclick="openSearchModal()">🔍</div>
 
     </div>
@@ -288,8 +288,10 @@ body {
 <script>
 
 
+const role = localStorage.getItem("role");
+
 if (role === "viewer") {
-    const role = localStorage.getItem("role");
+
     const sub = document.getElementById("subMenu");
     const pay = document.getElementById("payMenu");
 
