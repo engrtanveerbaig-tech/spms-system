@@ -294,7 +294,7 @@ thead th {
 /* ================= FINAL FILTER BAR ================= */
 .filters {
     position: sticky;
-    top: 70px;
+    top: 150px;
     z-index: 1000;
 
     display: grid;
