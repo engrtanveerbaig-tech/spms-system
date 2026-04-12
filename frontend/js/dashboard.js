@@ -189,18 +189,45 @@ function renderKPIs(data) {
     const totalWork = sum(data, "total_work");
     const totalNet = sum(data, "total_net");
     const totalRetention = sum(data, "total_retention");
-    const totalAdvance = sum(data, "total_advance");
+    const totalDeduction = sum(data, "total_deduction");
 
     document.getElementById("total_work").innerText = format(totalWork);
     document.getElementById("total_paid").innerText = format(totalNet);
     document.getElementById("total_retention").innerText = format(totalRetention);
-    document.getElementById("total_advance").innerText = format(totalAdvance);
+    document.getElementById("total_deduction").innerText = format(totalDeduction);
     document.getElementById("total_sar").innerText = format(totalNet);
 
     document.getElementById("total_subs").innerText = data.length;
+
     document.getElementById("avg_cert").innerText =
-    data.length ? (sum(data, "cert_count") / data.length).toFixed(1) : "0";
+        data.length ? (sum(data, "cert_count") / data.length).toFixed(1) : "0";
+
+    // ✅ AI SUMMARY FIX
+    const ai = document.getElementById("ai_summary");
+    if (ai) {
+        ai.innerText = generateAISummary(data);
+    }
 }
+
+function generateAISummary(data) {
+
+    if (!data.length) return "No data available";
+
+    const totalNet = sum(data, "total_net");
+    const totalWork = sum(data, "total_work");
+    const totalRetention = sum(data, "total_retention");
+    const totalDeduction = sum(data, "total_deduction");
+
+    const top = data.reduce((a,b)=> a.total_net > b.total_net ? a : b);
+
+    return `
+    Total project value is ${format(totalWork)} SAR. 
+    Net payment reached ${format(totalNet)} SAR with retention ${format(totalRetention)} SAR 
+    and deductions ${format(totalDeduction)} SAR. 
+    Top subcontractor is ${top.subcontractor}.
+    `;
+}
+
 // =====================================================
 // CHARTS
 // =====================================================
@@ -496,13 +523,13 @@ async function generatePDF() {
     }
 
     td, th {
-        border:1px solid #ccc;
+        border: none;
         padding:5px;
         text-align:center;
         font-size:12px;
     }
     td {
-    color: #cacbce;
+    color: #000000;
 }
 
     .page {
