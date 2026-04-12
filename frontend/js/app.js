@@ -2,7 +2,7 @@ window.openSearchModal = function() {
     const modal = document.getElementById("searchModal");
     if (modal) {
         modal.style.display = "flex";
-        document.getElementById("popupSearch").focus();
+        document.getElementById("popupSearchInput").focus();
     }
 }
 document.addEventListener("click", function(e) {
@@ -267,13 +267,15 @@ async function loadSearchData() {
 }
 
 // open modal
-function openSearchModal() {
+async function openSearchModal() {
+
     document.getElementById("searchModal").style.display = "flex";
-    document.getElementById("popupSearchInput").focus();
 
     if (SEARCH_DATA.length === 0) {
-        loadSearchData();
+        await loadSearchData();   // 🔥 WAIT FOR DATA
     }
+
+    document.getElementById("popupSearchInput").focus();
 }
 
 // close modal
@@ -298,7 +300,7 @@ function handlePopupSearch() {
     );
 
     box.innerHTML = results.slice(0, 10).map(r => `
-        <div onclick="selectSuggestion('${r.company_name}', '${r.subcontractor_name}')">
+        <div onclick="selectPopupSuggestion('${r.company_name}', '${r.subcontractor_name}')">
             ${r.company_name} - ${r.subcontractor_name}
         </div>
     `).join("");
@@ -307,7 +309,7 @@ function handlePopupSearch() {
 }
 
 // ================= SELECT =================
-function selectSuggestion(company, subcontractor) {
+function selectPopupSuggestion(company, subcontractor) {
 
     document.getElementById("popupSearchInput").value = subcontractor;
 
