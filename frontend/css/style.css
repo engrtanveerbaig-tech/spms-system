@@ -492,3 +492,99 @@ body.dark-mode .table-container {
     grid-column: span 2; /* takes more space */
     text-align: left;
 }
+
+/* ================= MAIN DASHBOARD GRID ================= */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-top: 15px;
+}
+
+/* KPI CARDS */
+.kpi {
+    background: #1e293b;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    color: white;
+    font-size: 13px;
+}
+
+.kpi span {
+    display: block;
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+/* AI FULL WIDTH */
+.ai-wide {
+    grid-column: span 5;
+    background: #1e293b;
+    padding: 15px;
+    border-radius: 12px;
+    color: white;
+}
+
+/* MINI STATS TEXT */
+.mini {
+    color: #cbd5e1;
+    font-size: 12px;
+    text-align: center;
+}
+
+/* ================= FILTER BAR FIX ================= */
+.filters-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: #F5F7FA;
+    padding: 10px 0;
+}
+
+/* FORCE ONE LINE */
+.filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 10px;
+    align-items: center;
+}
+
+.filters select {
+    height: 42px;
+    width: 100%;
+}
+
+/* BUTTONS RIGHT */
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* ================= CHART LAYOUT (LIKE PROTOTYPE) ================= */
+.chart-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr; /* BIG + SMALL + SMALL */
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.chart-grid-2 {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+/* CHART SIZE REDUCE */
+.chart {
+    height: 240px;   /* 🔥 reduced from 320 */
+}
+
+/* ================= REMOVE OLD GRID CONFLICT ================= */
+.cards,
+.cards-advanced {
+    display: none !important;
+}

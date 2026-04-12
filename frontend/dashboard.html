@@ -212,49 +212,32 @@ button {
 </div>
 
 <!-- ================= KPI ================= -->
-<div class="cards all-cards">
+<div class="dashboard-grid">
 
-    <div class="card">
-        <h3>Total Work</h3>
-        <p id="total_work">0</p>
-    </div>
+    <!-- KPI ROW -->
+    <div class="kpi">Total Work<br><span id="total_work"></span></div>
+    <div class="kpi">Total Paid<br><span id="total_paid"></span></div>
+    <div class="kpi">Retention<br><span id="total_retention"></span></div>
+    <div class="kpi">Deductions<br><span id="total_deduction"></span></div>
+    <div class="kpi">Subcontractors<br><span id="total_subs"></span></div>
 
-    <div class="card">
-        <h3>Total Paid</h3>
-        <p id="total_paid">0</p>
-    </div>
-
-    <div class="card">
-        <h3>Retention</h3>
-        <p id="total_retention">0</p>
-    </div>
-
-    <div class="card">
-        <h3>Deductions</h3>
-        <p id="total_deduction">0</p>
-    </div>
-
-    <div class="card">
-        <h3>Total Subcontractors</h3>
-        <p id="total_subs">0</p>
-    </div>
-
-    <div class="card">
-        <h3>Avg Certificates</h3>
-        <p id="avg_cert">0</p>
-    </div>
-
-    <div class="card ai-card">
+    <!-- AI FULL WIDTH -->
+    <div class="ai-wide">
         <h3>AI Insights</h3>
         <p id="ai_summary"></p>
     </div>
 
+    <!-- MINI STATS -->
+    <div class="mini">Avg Cert: <span id="avg_cert"></span></div>
+    <div class="mini">Types</div>
+    <div class="mini">Top Sub</div>
+    <div class="mini">Retention %</div>
+    <div class="mini">Health</div>
+
 </div>
 
 <!-- ================= FILTERS ================= -->
-<div id="activeFilter" style="margin-top:10px; color:#94a3b8;"></div>
-<div class="filters-wrapper">
-<div class="filters single-line">
+<div class="filters">
 
     <select id="filterCompany"></select>
     <select id="filterType"></select>
@@ -264,6 +247,8 @@ button {
         <button onclick="generateReport()">📄 Report</button>
         <button onclick="resetDashboard()" class="reset-btn">🔄 Clear</button>
     </div>
+
+</div>
 
 </div>
 </div>
