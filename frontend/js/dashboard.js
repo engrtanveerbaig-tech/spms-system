@@ -205,7 +205,8 @@ function renderKPIs(data) {
     // ✅ AI SUMMARY FIX
     const ai = document.getElementById("ai_summary");
     if (ai) {
-        ai.innerText = generateAISummary(data);
+        const summary = generateAISummary(data);
+ai.innerHTML = summary;
     }
 }
 
@@ -231,21 +232,21 @@ function generateAISummary(data) {
         .join(", ");
 
     return `
-• project value ${format(totalWork)} sar
-• net ${format(totalNet)} sar
-• retention ${format(totalRetention)}
-• deductions ${format(totalDeduction)}
+<li>project value ${format(totalWork)} sar</li>
+<li>net ${format(totalNet)} sar</li>
+<li>retention ${format(totalRetention)}</li>
+<li>deductions ${format(totalDeduction)}</li>
 
-• top subcontractor → ${top.subcontractor}
+<li>top subcontractor → ${top.subcontractor}</li>
 
-• work types → ${typeSummary}
+<li>work types → ${typeSummary}</li>
 
-• overall: ${
-        totalNet > totalWork
-        ? "strong cash flow"
-        : "controlled spending"
-    }
-    `;
+<li>overall: ${
+    totalNet > totalWork
+    ? "strong cash flow"
+    : "controlled spending"
+}</li>
+`;
 }
 
 // =====================================================

@@ -458,10 +458,7 @@ body.dark-mode .table-container {
     color: #cbd5e1;
     white-space: normal;
 }
-#ai_summary::before {
-    content: "🤖 ";
-    margin-right: 5px;
-}
+
 
 /* ================= ONE LINE FILTER BAR ================= */
 .filters.single-line {
@@ -587,4 +584,48 @@ body.dark-mode .table-container {
 .cards,
 .cards-advanced {
     display: none !important;
+}
+
+/* ================= AI INSIGHT CARD ================= */
+.ai-box {
+    grid-column: span 5;
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+/* HEADER */
+.ai-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 8px;
+}
+
+/* ACTIONS */
+.ai-actions {
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+/* CONTENT */
+.ai-content {
+    max-height: 120px;   /* 🔥 compact height */
+    overflow-y: auto;
+}
+
+/* BULLET STYLE */
+#ai_summary {
+    padding-left: 18px;
+    margin: 0;
+}
+
+#ai_summary li {
+    font-size: 12px;
+    color: #cbd5e1;
+    margin-bottom: 6px;
+    line-height: 1.4;
 }

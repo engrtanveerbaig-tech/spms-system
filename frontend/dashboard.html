@@ -58,21 +58,6 @@ body {
     margin-top: 15px;
 }
 
-/* ================= FILTERS ================= */
-.filters {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.filters select {
-    padding: 10px;
-    border-radius: 8px;
-    background: #1e293b;
-    color: white;
-    border: none;
-}
-
 /* ================= CHART GRID ================= */
 .chart-grid {
     display: grid;
@@ -222,10 +207,20 @@ button {
     <div class="kpi">Subcontractors<br><span id="total_subs"></span></div>
 
     <!-- AI FULL WIDTH -->
-    <div class="ai-wide">
-        <h3>🤖AI Insights</h3>
-        <p id="ai_summary"></p>
+    <div class="ai-box">
+
+    <div class="ai-header">
+        <span>🤖 AI Insights</span>
+        <div class="ai-actions">
+            <span>⋯</span>
+        </div>
     </div>
+
+    <div class="ai-content">
+        <ul id="ai_summary"></ul>
+    </div>
+
+</div>
 
     <!-- MINI STATS -->
     <div class="mini">Avg Cert: <span id="avg_cert"></span></div>
