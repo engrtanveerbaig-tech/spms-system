@@ -3,23 +3,17 @@
 <head>
 <title>SPMS System</title>
 
+<!-- ✅ EXTERNAL CSS -->
+
 <style>
+    /* ================= GLOBAL ================= */
 body {
     margin: 0;
-    font-family: 'Segoe UI';
+    font-family: 'Segoe UI', Arial, sans-serif;
     display: flex;
 }
-#searchType {
-    width: 180px;         /* fixed size */
-}
-#globalSearch {
-    width: 100%;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-}
 
-/* SIDEBAR */
+/* ================= SIDEBAR ================= */
 .sidebar {
     width: 220px;
     background: #1f4e79;
@@ -38,77 +32,28 @@ body {
 
 .menu-item {
     display: block;
-    padding: 10px;
+    padding: 12px;
     cursor: pointer;
-    border-radius: 5px;
-    margin-bottom: 10px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    font-size: 18px;
+    text-align: center;
+    transition: 0.2s;
 }
 
 .menu-item:hover {
     background: #163b5c;
+    transform: scale(1.05);
 }
 
-/* MAIN CONTENT */
+/* ================= CONTENT ================= */
 .content {
     flex: 1;
     padding: 20px;
     background: #f5f7fa;
-    position: relative;
-    z-index: 1;
 }
 
-/* SEARCH BAR */
-.search-container {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-    position: relative;
-    z-index: 9999;
-
-    width: 100%;          /* 🔥 full width */
-    align-items: center;
-}
-.search-container select,
-.search-container input {
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-}
-
-/* SUGGESTIONS */
-#searchSuggestions {
-    position: absolute;
-    top: 100%;        /* directly below input */
-    left: 0;          /* align with container */
-    width: 100%;      /* full width of search box */
-
-    background: #ffffff;
-    border: 1px solid #ccc;
-    max-height: 250px;
-    overflow-y: auto;
-    display: none;
-
-    z-index: 99999;   /* 🔥 VERY HIGH */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-
-
-
-#searchSuggestions div {
-    padding: 8px;
-    color: #333; 
-    cursor: pointer;
-}
-
-#searchSuggestions div:hover {
-    background: #f0f0f0;
-}
-.search-input-wrapper {
-    position: relative;
-    flex: 1;              /* take full remaining space */
-    min-width: 0;         /* 🔥 IMPORTANT (fix flex overflow issue) */
-}
-/* LOGOUT BUTTON */
+/* ================= LOGOUT ================= */
 .logout {
     margin-top: auto;
     padding: 10px;
@@ -117,10 +62,114 @@ body {
     color: white;
     cursor: pointer;
     border-radius: 5px;
+    transition: 0.2s;
 }
 
 .logout:hover {
     background: darkred;
+}
+
+/* ================= SEARCH MODAL ================= */
+.search-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(6px);
+
+    display: none;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 99999;
+
+    animation: fadeIn 0.3s ease;
+}
+
+/* ================= SEARCH BOX ================= */
+.search-box {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 500px;
+    max-width: 90%;
+    text-align: center;
+
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    animation: scaleIn 0.25s ease;
+}
+
+/* ================= INPUT ================= */
+.search-box input {
+    width: 100%;
+    padding: 14px;
+    font-size: 18px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+
+    outline: none;
+    transition: 0.2s;
+}
+
+.search-box input:focus {
+    border-color: #1f4e79;
+    box-shadow: 0 0 5px rgba(31, 78, 121, 0.4);
+}
+
+/* ================= SUGGESTIONS ================= */
+#popupSuggestions {
+    margin-top: 10px;
+    max-height: 220px;
+    overflow-y: auto;
+    text-align: left;
+
+    border-radius: 6px;
+}
+
+#popupSuggestions div {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+#popupSuggestions div:hover {
+    background: #f0f4f8;
+}
+
+/* ================= BUTTONS ================= */
+.search-footer {
+    margin-top: 20px;
+}
+
+.search-footer button {
+    padding: 10px 18px;
+    margin: 5px;
+    border: none;
+    background: #1f4e79;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.search-footer button:hover {
+    background: #163b5c;
+}
+
+/* ================= ANIMATIONS ================= */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 </style>
 </head>
@@ -135,34 +184,14 @@ body {
     <div class="menu-item" id="subMenu" onclick="loadPage('subcontractor.html')">👷</div>
     <div class="menu-item" id="payMenu" onclick="loadPage('payment.html')">💰</div>
 
+    <!-- 🔍 SEARCH ICON -->
+    <div class="menu-item" onclick="openSearchModal()">🔍</div>
+
     <button class="logout" onclick="logout()">Logout</button>
 </div>
 
 <!-- MAIN PANEL -->
 <div class="content">
-
-    <!-- 🔍 GLOBAL SEARCH -->
-    <div class="search-container">
-
-    <select id="searchType">
-        <option value="company">Company</option>
-        <option value="subcontractor">Subcontractor</option>
-    </select>
-
-    <div class="search-input-wrapper">
-
-        <input 
-            type="text" 
-            id="globalSearch" 
-            placeholder="Search company or subcontractor..."
-            oninput="handleSearchInput()"
-        >
-
-        <div id="searchSuggestions"></div>
-
-    </div>
-
-</div>
 
     <!-- PAGE CONTENT -->
     <div id="mainContent">
@@ -171,6 +200,30 @@ body {
 
 </div>
 
+<!-- 🔍 SEARCH MODAL -->
+<div id="searchModal" class="search-modal">
+
+    <div class="search-box">
+
+        <input 
+            type="text" 
+            id="popupSearch" 
+            placeholder="Search company or subcontractor..."
+            oninput="handlePopupSearch()"
+        >
+
+        <div id="popupSuggestions"></div>
+
+        <div class="search-footer">
+            <button onclick="confirmSearch()">Search Company</button>
+            <button onclick="confirmSearch()">Search Subcontractor</button>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- JS -->
 <script src="./js/app.js"></script>
 
 <!-- 🔐 ROLE CONTROL -->
