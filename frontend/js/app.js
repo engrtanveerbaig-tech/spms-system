@@ -251,3 +251,95 @@ document.addEventListener("click", function(e) {
         if (sug) sug.style.display = "none";
     }
 });
+
+// ================= GLOBAL SEARCH MODAL =================
+
+// store full data
+let SEARCH_DATA = [];
+
+async function loadSearchData() {
+    try {
+        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all");
+        SEARCH_DATA = await res.json();
+    } catch (err) {
+        console.error("Search API error", err);
+    }
+}
+
+// open modal
+function openSearchModal() {
+    document.getElementById("searchModal").style.display = "flex";
+    document.getElementById("popupSearchInput").focus();
+
+    if (SEARCH_DATA.length === 0) {
+        loadSearchData();
+    }
+}
+
+// close modal
+function closeSearchModal() {
+    document.getElementById("searchModal").style.display = "none";
+}
+
+// ================= SUGGESTION =================
+function handlePopupSearch() {
+
+    const input = document.getElementById("popupSearchInput").value.toLowerCase();
+    const box = document.getElementById("popupSuggestions");
+
+    if (!input) {
+        box.style.display = "none";
+        return;
+    }
+
+    const results = SEARCH_DATA.filter(x =>
+        (x.company_name || "").toLowerCase().includes(input) ||
+        (x.subcontractor_name || "").toLowerCase().includes(input)
+    );
+
+    box.innerHTML = results.slice(0, 10).map(r => `
+        <div onclick="selectSuggestion('${r.company_name}', '${r.subcontractor_name}')">
+            ${r.company_name} - ${r.subcontractor_name}
+        </div>
+    `).join("");
+
+    box.style.display = "block";
+}
+
+// ================= SELECT =================
+function selectSuggestion(company, subcontractor) {
+
+    document.getElementById("popupSearchInput").value = subcontractor;
+
+    // FILTER DASHBOARD
+    if (window.applyGlobalFilter) {
+
+        const filtered = SEARCH_DATA.filter(x =>
+            x.subcontractor_name === subcontractor
+        );
+
+        window.applyGlobalFilter(filtered);
+    }
+
+    closeSearchModal();
+}
+
+// ================= BUTTON ACTION =================
+function confirmSearch(type) {
+
+    const input = document.getElementById("popupSearchInput").value.toLowerCase();
+
+    const filtered = SEARCH_DATA.filter(x => {
+        if (type === "company") {
+            return (x.company_name || "").toLowerCase().includes(input);
+        } else {
+            return (x.subcontractor_name || "").toLowerCase().includes(input);
+        }
+    });
+
+    if (window.applyGlobalFilter) {
+        window.applyGlobalFilter(filtered);
+    }
+
+    closeSearchModal();
+}

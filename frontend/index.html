@@ -206,17 +206,17 @@ body {
     <div class="search-box">
 
         <input 
-            type="text" 
-            id="popupSearch" 
-            placeholder="Search company or subcontractor..."
-            oninput="handlePopupSearch()"
-        >
+    type="text" 
+    id="popupSearchInput"
+    placeholder="Search company or subcontractor..."
+    oninput="handlePopupSearch()"
+>
 
         <div id="popupSuggestions"></div>
 
         <div class="search-footer">
-            <button onclick="confirmSearch()">Search Company</button>
-            <button onclick="confirmSearch()">Search Subcontractor</button>
+            <button onclick="confirmSearch('company')">Search Company</button>
+<button onclick="confirmSearch('subcontractor')">Search Subcontractor</button>
         </div>
 
     </div>
@@ -228,7 +228,7 @@ body {
 
 <!-- 🔐 ROLE CONTROL -->
 <script>
-const role = localStorage.getItem("role");
+
 
 if (role === "viewer") {
     const sub = document.getElementById("subMenu");
@@ -237,6 +237,11 @@ if (role === "viewer") {
     if (sub) sub.style.display = "none";
     if (pay) pay.style.display = "none";
 }
+document.getElementById("searchModal").addEventListener("click", function(e){
+    if (e.target.id === "searchModal") {
+        closeSearchModal();
+    }
+});
 </script>
 
 </body>
