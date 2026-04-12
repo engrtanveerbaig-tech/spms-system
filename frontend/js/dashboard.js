@@ -212,7 +212,7 @@ ai.innerHTML = summary;
 
 function generateAISummary(data) {
 
-    if (!data.length) return "• no data available";
+    if (!data.length) return "No data available for this project.";
 
     const totalNet = sum(data, "total_net");
     const totalWork = sum(data, "total_work");
@@ -221,31 +221,32 @@ function generateAISummary(data) {
 
     const top = data.reduce((a,b)=> a.total_net > b.total_net ? a : b);
 
-    // 🔥 group by work type
+    // work type distribution
     const typeCount = {};
     data.forEach(x => {
         typeCount[x.work_type] = (typeCount[x.work_type] || 0) + 1;
     });
 
-    const typeSummary = Object.entries(typeCount)
-        .map(([k,v]) => `${k}: ${v}`)
-        .join(", ");
+    const mainType = Object.entries(typeCount)
+        .sort((a,b)=>b[1]-a[1])[0]?.[0] || "various";
+
+    // performance logic
+    let performance = "balanced financial performance";
+    if (totalNet > totalWork) performance = "strong positive cash flow";
+    if (totalRetention > totalNet * 0.15) performance = "high retention impact on cash flow";
+    if (totalDeduction > totalNet * 0.1) performance = "notable deductions affecting profitability";
 
     return `
-<li>project value ${format(totalWork)} sar</li>
-<li>net ${format(totalNet)} sar</li>
-<li>retention ${format(totalRetention)}</li>
-<li>deductions ${format(totalDeduction)}</li>
+This project has a total work value of ${format(totalWork)} SAR, with total net payments reaching ${format(totalNet)} SAR. 
+The retention amount stands at ${format(totalRetention)} SAR, while total deductions recorded are ${format(totalDeduction)} SAR. 
 
-<li>top subcontractor → ${top.subcontractor}</li>
+The project is primarily driven by ${mainType} works, with the top performing subcontractor being ${top.subcontractor}. 
 
-<li>work types → ${typeSummary}</li>
-
-<li>overall: ${
-    totalNet > totalWork
-    ? "strong cash flow"
-    : "controlled spending"
-}</li>
+Overall, the project demonstrates ${performance}, indicating ${
+        totalNet > totalWork
+        ? "efficient financial management and strong execution."
+        : "controlled spending with stable progress."
+    }
 `;
 }
 
