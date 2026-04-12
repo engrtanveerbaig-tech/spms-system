@@ -5,6 +5,7 @@
 (function(){
 let dashboardLoaded = false;
 let RAW_DATA = [];
+let ORIGINAL_DATA = [];   // ✅ ADD THIS
 let AGG_DATA = [];
 let FILTER_STATE = {
     company: "",
@@ -44,6 +45,7 @@ async function loadDashboard() {
     try {
         const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all");
         RAW_DATA = await res.json();
+ORIGINAL_DATA = [...RAW_DATA];   // ✅ SAVE ORIGINAL
 
         // ✅ DEBUG + SAFETY
         if (!RAW_DATA || RAW_DATA.length === 0) {
@@ -496,6 +498,9 @@ async function generatePDF() {
         text-align:center;
         font-size:12px;
     }
+    td {
+    color: #cacbce;
+}
 
     .page {
         page-break-after: always;
@@ -598,17 +603,50 @@ async function generatePDF() {
 
 window.applyGlobalFilter = function(filteredData) {
 
-    // ✅ RESET FILTER STATE
+    if (!filteredData || filteredData.length === 0) {
+        console.warn("No filtered data");
+        return;
+    }
+
+    // ✅ DO NOT DESTROY ORIGINAL DATA
+    // 🔥 FILTER STRICT BASED ON SEARCH TYPE
+if (window.CURRENT_SEARCH_TYPE === "company") {
+    RAW_DATA = filteredData.filter(x =>
+        x.company_name?.trim() === filteredData[0].company_name?.trim()
+    );
+}
+
+if (window.CURRENT_SEARCH_TYPE === "subcontractor") {
+    RAW_DATA = filteredData.filter(x =>
+        (x.subcontractor_name || x.sub_name || "").trim() ===
+        (filteredData[0].subcontractor_name || "").trim()
+    );
+}
+
+    // ✅ RESET FILTERS
     FILTER_STATE = {
         company: "",
         type: "",
         subcontractor: ""
     };
 
-    RAW_DATA = filteredData;
+    buildAggregation();
+    initFilters();
+    renderAll();
+};
+
+window.resetDashboard = function() {
+
+    RAW_DATA = [...ORIGINAL_DATA];
+
+    FILTER_STATE = {
+        company: "",
+        type: "",
+        subcontractor: ""
+    };
 
     buildAggregation();
-    initFilters();   // 🔥 IMPORTANT
+    initFilters();
     renderAll();
 };
 // =====================================================

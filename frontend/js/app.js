@@ -1,19 +1,7 @@
+
+let SELECTED_SEARCH = null;
 let CURRENT_SEARCH_TYPE = "company";
-window.openSearchModal = async function() {
 
-    const modal = document.getElementById("searchModal");
-    if (!modal) return;
-
-    modal.style.display = "flex";
-
-    // 🔥 LOAD DATA BEFORE SEARCH
-    if (SEARCH_DATA.length === 0) {
-        await loadSearchData();
-    }
-
-    const input = document.getElementById("popupSearchInput");
-    if (input) input.focus();
-}
 document.addEventListener("click", function(e) {
 
     // CLOSE MODAL
@@ -299,18 +287,21 @@ function handlePopupSearch() {
     }
 
     // 🎯 FILTER BASED ON SELECTED TYPE
-    const results = SEARCH_DATA.filter(x => {
+   const results = SEARCH_DATA.filter(x => {
 
-        if (CURRENT_SEARCH_TYPE === "company") {
-            return (x.company_name || "").toLowerCase().includes(input);
-        }
+    const company = (x.company_name || "").toLowerCase();
+    const subcontractor = (x.subcontractor_name || "").toLowerCase();
 
-        if (CURRENT_SEARCH_TYPE === "subcontractor") {
-            return (x.subcontractor_name || "").toLowerCase().includes(input);
-        }
+    if (CURRENT_SEARCH_TYPE === "company") {
+        return company.includes(input);   // ✅ STRICT MATCH
+    }
 
-        return false;
-    });
+    if (CURRENT_SEARCH_TYPE === "subcontractor") {
+        return subcontractor.includes(input);
+    }
+
+    return false;
+});
 
     // ❌ NO RESULT
     if (results.length === 0) {
@@ -329,16 +320,26 @@ function handlePopupSearch() {
 
         // 🎯 SHOW BASED ON TYPE
         if (CURRENT_SEARCH_TYPE === "company") {
-            div.innerText = r.company_name;
-        } else {
-            div.innerText = r.subcontractor_name;
-        }
+    div.innerText = r.company_name || "No Company";
+} else {
+    div.innerText = r.subcontractor_name || "No Subcontractor";
+}
 
         // 🖱 CLICK SELECT
         div.onclick = () => {
-            selectPopupSuggestion(r.company_name, r.subcontractor_name);
-            box.style.display = "none";
-        };
+
+    SELECTED_SEARCH = {
+    company: (r.company_name || "").trim(),
+    subcontractor: (r.subcontractor_name || "").trim()
+};
+
+    document.getElementById("popupSearchInput").value =
+        CURRENT_SEARCH_TYPE === "company"
+        ? r.company_name
+        : r.subcontractor_name;
+
+    box.style.display = "none";
+};
 
         box.appendChild(div);
     });
@@ -378,20 +379,18 @@ function setSearchType(type) {
 }
 
 // ================= BUTTON ACTION =================
-function confirmSearch(type) {
+function confirmSearch() {
 
-    const input = document.getElementById("popupSearchInput").value.toLowerCase();
+    if (!SELECTED_SEARCH) {
+        alert("Please select from list");
+        return;
+    }
 
-    const filtered = SEARCH_DATA.filter(x => {
-        if (type === "company") {
-            return (x.company_name || "").toLowerCase().includes(input);
-        } else {
-            return (x.subcontractor_name || "").toLowerCase().includes(input);
-        }
-    });
+    console.log("Selected:", SELECTED_SEARCH);
 
-    if (window.applyGlobalFilter) {
-        window.applyGlobalFilter(filtered);
+    // 🔥 FILTER DASHBOARD DATA
+    if (window.filterDashboard) {
+        window.filterDashboard(SELECTED_SEARCH);
     }
 
     closeSearchModal();
