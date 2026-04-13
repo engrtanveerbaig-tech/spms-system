@@ -118,29 +118,44 @@ console.log("INSERT VALUES:", {
 });
 
         // 🔥 INSERT
-        await conn.query(`
-INSERT INTO payment_certificates
-(certificate_no, subcontractor_id, project_id, project_name, contract_number, work_type,
-work_value, work_withdrawn, deduction, refund,
-after_deduction, vat_amount, retention_amount, advance_deduction, net_payment)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-`, [
-    certNo,                 // 1️⃣ certificate_no
-    subcontractor_id,       // 2️⃣ subcontractor_id
-    1,                      // 3️⃣ project_id (TEMP)
-    project_name,           // 4️⃣
-    contract_number,        // 5️⃣
-    work_type,              // 6️⃣
-    work,                   // 7️⃣
-    withdrawn,              // 8️⃣
-    ded,                    // 9️⃣
-    ref,                    // 🔟
-    after,                  // 11
-    vat,                    // 12
-    retention,              // 13
-    advance_deduction,      // 14
-    net                     // 15
-]);
+       const sql = `
+INSERT INTO payment_certificates (
+  certificate_no,
+  subcontractor_id,
+  project_id,
+  project_name,
+  contract_number,
+  work_type,
+  work_value,
+  work_withdrawn,
+  deduction,
+  refund,
+  after_deduction,
+  vat_amount,
+  retention_amount,
+  advance_deduction,
+  net_payment
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`;
+
+const values = [
+  req.body.certificate_no,
+  req.body.subcontractor_id,
+  req.body.project_id || null,
+  req.body.project_name,
+  req.body.contract_number,
+  req.body.work_type,
+  req.body.work_value,
+  req.body.work_withdrawn,
+  req.body.deduction,
+  req.body.refund,
+  req.body.after_deduction,
+  req.body.vat_amount,
+  req.body.retention_amount,
+  req.body.advance_deduction,
+  req.body.net_payment
+];
+console.log("INSERT VALUES:", values);
 
         // 🔥 UPDATE ADVANCE
         await conn.query(
