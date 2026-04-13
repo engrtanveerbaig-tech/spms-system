@@ -32,7 +32,6 @@ router.post("/add", async (req, res) => {
             WHERE subcontractor_id = ?
             AND project_name = ?
             AND work_type = ?
-            FOR UPDATE
         `, [subcontractor_id, project_name, work_type]);
 
         const certNo = rows[0].next_no;
@@ -50,9 +49,9 @@ router.post("/add", async (req, res) => {
 
         const sub = subResult[0] || {};
         
-        if (!subResult.length) {
+        if (!subResult || !subResult.length) {
     await conn.rollback();
-    return res.status(400).send("Invalid subcontractor ❌");
+    return res.status(400).send("Subcontractor not found ❌");
 }
 
         const retentionPercent = Number(sub.retention_percent) || 10;
