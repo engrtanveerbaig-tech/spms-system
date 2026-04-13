@@ -1,3 +1,4 @@
+let selectedProject = "";
 let API = "https://spms-system.onrender.com";
 let originalData = [];
 (function () {
@@ -209,7 +210,7 @@ if (hasAdvance) {
     const data = {
     subcontractor_id: +document.getElementById("subcontractor_form").value || 0,
     work_type: document.getElementById("work_type_form").value,
-    project_name: selectedProject,
+    project_name: selectedProject || document.getElementById("project_form").value,
     contract_number: document.getElementById("contract_number").value,
 
     work_value: +work.value || 0,
