@@ -92,8 +92,11 @@ function populateFilters(data) {
     ];
 
     fields.forEach(f => {
-        const select = document.getElementById(f.id);
-        select.innerHTML = '<option value="">All</option>';
+    const select = document.getElementById(f.id);
+
+    if (!select) return;   // ✅ ADD THIS LINE
+
+    select.innerHTML = '<option value="">All</option>';
 
         const values = [...new Set(data.map(x => x[f.key]).filter(v => v !== null && v !== ""))];
 
@@ -189,7 +192,8 @@ async function edit(id) {
     document.getElementById("company").value = d.company_name;
     document.getElementById("phone").value = d.phone;
     document.getElementById("email").value = d.email;
-    document.getElementById("vat").value = d.vat_number ? String(d.vat_number) : "0";
+    document.getElementById("vat_number").value = d.vat_number || "";
+document.getElementById("vat_percent").value = d.vat_percent || 0;
     document.getElementById("cr").value = d.cr_number;
     document.getElementById("retention_percent").value = d.retention_percent || 10;
 
