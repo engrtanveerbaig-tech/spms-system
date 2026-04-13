@@ -139,9 +139,9 @@ router.post("/add", async (req, res) => {
         `;
 
         const values = [
-            certNo,                 // ✅ FIXED
+            String(certNo),                // ✅ FIXED
             subcontractor_id,
-            null,                  // ✅ avoid FK issue (projects empty)
+            1,                  // ✅ avoid FK issue (projects empty)
             project_name,
             contract_number,
             work_type,

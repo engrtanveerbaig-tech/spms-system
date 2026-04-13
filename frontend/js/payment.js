@@ -228,8 +228,6 @@ const data = {
     project_name: projectName,
     project_id: 1, // 🔥 TEMP FIX (IMPORTANT)
 
-    certificate_no: document.getElementById("certificate_no").value || "",
-
     contract_number: document.getElementById("contract_number").value || "",
     work_type: document.getElementById("work_type_form").value || "",
 
