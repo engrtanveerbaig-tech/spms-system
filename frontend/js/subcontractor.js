@@ -1,4 +1,5 @@
 (function () {
+    let API = "https://spms-system.onrender.com";
 
 let editId = null;
 let fullData = [];
@@ -27,7 +28,7 @@ async function load() {
 
     console.log("STEP 2 → Loading API...");
 
-    const res = await fetch("https://spms-backend-jxzn.onrender.com/api/subcontractors/all");
+    const res = await fetch(`${API}/api/subcontractors/all`);
 
     const data = await res.json();
 
@@ -143,12 +144,12 @@ async function save() {
         has_advance: hasAdvance ? 1 : 0
     };
 
-    let url = "https://spms-backend-jxzn.onrender.com/api/subcontractors/add";
+    let url = `${API}/api/subcontractors/add`;
     let method = "POST";
 
     // 🚨 IMPORTANT: DO NOT SEND advance on edit
     if (editId) {
-        url = `https://spms-backend-jxzn.onrender.com/api/subcontractors/update/${editId}`;
+        url = `${API}/api/subcontractors/update/${editId}`;
         method = "PUT";
 
         delete data.advance_amount;
@@ -176,7 +177,7 @@ async function save() {
 // EDIT
 async function edit(id) {
 
-    const res = await fetch(`https://spms-backend-jxzn.onrender.com/api/subcontractors/${id}`);
+    const res = await fetch(`${API}/api/subcontractors/${id}`);
     const d = await res.json();
 
     editId = id;
@@ -203,7 +204,7 @@ async function edit(id) {
 async function del(id) {
     if (!confirm("Delete?")) return;
 
-    await fetch(`https://spms-backend-jxzn.onrender.com/api/subcontractors/delete/${id}`, {
+    await fetch(`${API}/api/subcontractors/delete/${id}`, {
         method: "DELETE"
     });
 

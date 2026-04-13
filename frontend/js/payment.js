@@ -1,4 +1,4 @@
-let API = "https://spms-backend-jxzn.onrender.com";
+let API = "https://spms-system.onrender.com";
 let originalData = [];
 (function () {
 
@@ -226,33 +226,50 @@ if (hasAdvance) {
 };
 
     let url = `${API}/api/payments/add`;
+let method = "POST";
+
+if (editId) {
+    url = `${API}/api/payments/update/${editId}`;
+    method = "PUT";
+}
 
     const res = await fetch(url, {
-        method: "POST",
+    method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
     });
 
     document.getElementById("msg").innerText = await res.text();
 
+    
+
     // ✅ SAVE FIRST
 const currentSub = document.getElementById("subcontractor_form").value;
 
-// clear inputs
+// store mode BEFORE reset
+const isEdit = !!editId;
+
+// 🔥 RESET EDIT MODE FIRST
+editId = null;
+document.getElementById("saveBtn").innerText = "Save Payment";
+
+// 🔥 CLEAR FORM
 document.querySelectorAll("input").forEach(i => i.value = "");
 
-// reload
-await loadSubcontractors();
+// reload subcontractors ONLY for ADD
+if (!isEdit) {
+    await loadSubcontractors();
 
-// restore
-const select = document.getElementById("subcontractor_form");
+    const select = document.getElementById("subcontractor_form");
 
-if (currentSub) {
-    select.value = currentSub;
-    select.dispatchEvent(new Event("change"));
+    if (currentSub) {
+        select.value = currentSub;
+        select.dispatchEvent(new Event("change"));
+    }
 }
 
-    loadPaymentsInit();
+// reload table
+await loadPaymentsInit();
 }
 
 // ================= LOAD =================
@@ -461,7 +478,8 @@ function editPayment(id) {
 
     editId = id;
 
-    
+    document.getElementById("saveBtn").innerText = "Update Payment";
+
     document.getElementById("project_form").value = p.project_id || "";
     document.getElementById("contract_number").value = p.contract_number;
 
