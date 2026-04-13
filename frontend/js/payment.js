@@ -207,24 +207,36 @@ if (hasAdvance) {
     netAmount = after + vatAmount - retentionAmount;
 }
 
-    const data = {
-    subcontractor_id: +document.getElementById("subcontractor_form").value || 0,
+    const subcontractorId = document.getElementById("subcontractor_form").value;
+
+// ❌ STOP if not selected
+if (!subcontractorId) {
+    alert("Please select subcontractor ❌");
+    return;
+}
+
+const data = {
+    subcontractor_id: Number(subcontractorId),   // ✅ FIXED (NO || 0)
+
     work_type: document.getElementById("work_type_form").value,
     project_name: selectedProject || document.getElementById("project_form").value,
     contract_number: document.getElementById("contract_number").value,
 
-    work_value: +work.value || 0,
-    work_withdrawn: +withdrawn.value || 0,
-    deduction: +deduction.value || 0,
-    refund: +refund.value || 0,
+    work_value: Number(work.value) || 0,
+    work_withdrawn: Number(withdrawn.value) || 0,
+    deduction: Number(deduction.value) || 0,
+    refund: Number(refund.value) || 0,
 
-    // 🔥 ADD THESE (CRITICAL)
+    // 🔥 IMPORTANT CALCULATED VALUES
     after_deduction: after,
     vat_amount: vatAmount,
     retention_amount: retentionAmount,
     advance_deduction: advanceDeduction,
     net_payment: netAmount
 };
+
+// ✅ DEBUG (VERY IMPORTANT)
+console.log("SENDING DATA:", data);
 
     let url = `${API}/api/payments/add`;
 let method = "POST";
