@@ -1,4 +1,6 @@
-let selectedProject = "";
+if (!window.selectedProject) {
+    window.selectedProject = "";
+}
 let API = "https://spms-system.onrender.com";
 let originalData = [];
 (function () {
@@ -214,18 +216,11 @@ if (!subcontractorId) {
     alert("Please select subcontractor ❌");
     return;
 }
-const projectSelect = document.getElementById("project_form");
 
-const projectId = projectSelect ? +projectSelect.value : null;
-
-const projectName = projectSelect && projectSelect.selectedOptions.length > 0
-    ? projectSelect.selectedOptions[0].text
-    : selectedProject || "";
 const data = {
     subcontractor_id: +document.getElementById("subcontractor_form").value || 0,
 
-    project_id: projectId,
-    project_name: projectName,
+    project_name: window.selectedProject || "",
 
     contract_number: document.getElementById("contract_number").value,
     work_type: document.getElementById("work_type_form").value,
@@ -929,7 +924,7 @@ let advanceRemaining = Number(d.advance_remaining ?? advanceAmount ?? 0);
     document.getElementById("contract_number").value =
         d.contract_no || "";
 
-    selectedProject = d.project || "";
+    window.selectedProject = d.project || "";
     document.getElementById("project_form").value = selectedProject;
 
     // CERTIFICATE
