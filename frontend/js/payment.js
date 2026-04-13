@@ -214,13 +214,12 @@ if (!subcontractorId) {
     alert("Please select subcontractor ❌");
     return;
 }
-
 const data = {
+
     subcontractor_id: +document.getElementById("subcontractor_form").value || 0,
 
-    // 🔥 IMPORTANT FIX
-    project_id: +document.getElementById("project_form").value || null,
-    project_name: document.getElementById("project_form").selectedOptions[0]?.text || "",
+    project_id: projectId,
+    project_name: projectName,
 
     contract_number: document.getElementById("contract_number").value,
     work_type: document.getElementById("work_type_form").value,
