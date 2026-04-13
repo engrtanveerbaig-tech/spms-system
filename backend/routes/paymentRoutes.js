@@ -49,6 +49,11 @@ router.post("/add", async (req, res) => {
         );
 
         const sub = subResult[0] || {};
+        
+        if (!subResult.length) {
+    await conn.rollback();
+    return res.status(400).send("Invalid subcontractor ❌");
+}
 
         const retentionPercent = Number(sub.retention_percent) || 10;
 
@@ -86,6 +91,15 @@ router.post("/add", async (req, res) => {
 
             net = after + vat - retention;
         }
+
+        // 🔍 DEBUG
+console.log("SUBCONTRACTOR:", sub);
+console.log("CERT NO:", certNo);
+console.log("VALUES:", {
+    subcontractor_id,
+    project_name,
+    work_type
+});
 
         // 🔥 INSERT
         await conn.query(`
