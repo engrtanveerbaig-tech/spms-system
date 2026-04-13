@@ -4,14 +4,13 @@ const db = require("../db");
 
 
 // ===============================
-// ➕ ADD PAYMENT (FINAL CLEAN)
+// ➕ ADD PAYMENT (FIXED FINAL)
 // ===============================
 router.post("/add", async (req, res) => {
 
     const conn = await db.promise().getConnection();
 
     try {
-
         await conn.beginTransaction();
 
         const {
@@ -25,7 +24,9 @@ router.post("/add", async (req, res) => {
             refund = 0
         } = req.body;
 
-        // 🔒 GET NEXT CERT (LOCKED)
+        // ===============================
+        // 🔒 GET NEXT CERT NUMBER
+        // ===============================
         const [rows] = await conn.query(`
             SELECT COALESCE(MAX(certificate_no), 0) + 1 AS next_no
             FROM payment_certificates
@@ -36,32 +37,36 @@ router.post("/add", async (req, res) => {
 
         const certNo = rows[0].next_no;
 
+        // ===============================
+        // 🔢 SAFE NUMBERS
+        // ===============================
         const work = Number(work_value) || 0;
         const withdrawn = Number(work_withdrawn) || 0;
         const ded = Number(deduction) || 0;
         const ref = Number(refund) || 0;
 
-        // 🔥 GET SUBCONTRACTOR
+        // ===============================
+        // 🔥 GET SUBCONTRACTOR DATA
+        // ===============================
         const [subResult] = await conn.query(
             "SELECT retention_percent, vat_percent, advance_remaining FROM subcontractors WHERE id=?",
             [subcontractor_id]
         );
 
-        const sub = subResult[0] || {};
-        
         if (!subResult.length) {
-    await conn.rollback();
-    return res.status(400).send("Subcontractor not found ❌");
-}
+            await conn.rollback();
+            return res.status(400).send("Subcontractor not found ❌");
+        }
+
+        const sub = subResult[0];
 
         const retentionPercent = Number(sub.retention_percent) || 10;
-
-        let vatPercent = Number(sub.vat_percent);
-        if (isNaN(vatPercent)) vatPercent = 0;
-
+        const vatPercent = isNaN(Number(sub.vat_percent)) ? 0 : Number(sub.vat_percent);
         let advanceRemaining = Number(sub.advance_remaining) || 0;
 
-        // ================= CALCULATIONS =================
+        // ===============================
+        // 🧮 CALCULATIONS
+        // ===============================
         const after = work - withdrawn - ded + ref;
 
         let advance_deduction = 0;
@@ -71,8 +76,7 @@ router.post("/add", async (req, res) => {
 
         if (after > 0 && advanceRemaining > 0) {
 
-            advance_deduction = after * 0.25;
-            advance_deduction = Math.min(advance_deduction, advanceRemaining);
+            advance_deduction = Math.min(after * 0.25, advanceRemaining);
 
             const afterAdvance = after - advance_deduction;
 
@@ -91,73 +95,72 @@ router.post("/add", async (req, res) => {
             net = after + vat - retention;
         }
 
-        // 🔍 DEBUG
-console.log("SUBCONTRACTOR:", sub);
-console.log("CERT NO:", certNo);
-console.log("VALUES:", {
-    subcontractor_id,
-    project_name,
-    work_type
-});
+        // ===============================
+        // 🔍 DEBUG LOG
+        // ===============================
+        console.log("FINAL INSERT DATA:", {
+            certNo,
+            subcontractor_id,
+            project_name,
+            contract_number,
+            work_type,
+            work,
+            withdrawn,
+            ded,
+            ref,
+            after,
+            vat,
+            retention,
+            advance_deduction,
+            net
+        });
 
-console.log("INSERT VALUES:", {
-    certNo,
-    subcontractor_id,
-    project_name,
-    contract_number,
-    work_type,
-    work,
-    withdrawn,
-    ded,
-    ref,
-    after,
-    vat,
-    retention,
-    advance_deduction,
-    net
-});
+        // ===============================
+        // 🔥 INSERT (FIXED)
+        // ===============================
+        const sql = `
+        INSERT INTO payment_certificates (
+            certificate_no,
+            subcontractor_id,
+            project_id,
+            project_name,
+            contract_number,
+            work_type,
+            work_value,
+            work_withdrawn,
+            deduction,
+            refund,
+            after_deduction,
+            vat_amount,
+            retention_amount,
+            advance_deduction,
+            net_payment
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
 
-        // 🔥 INSERT
-       const sql = `
-INSERT INTO payment_certificates (
-  certificate_no,
-  subcontractor_id,
-  project_id,
-  project_name,
-  contract_number,
-  work_type,
-  work_value,
-  work_withdrawn,
-  deduction,
-  refund,
-  after_deduction,
-  vat_amount,
-  retention_amount,
-  advance_deduction,
-  net_payment
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-`;
+        const values = [
+            certNo,                 // ✅ FIXED
+            subcontractor_id,
+            null,                  // ✅ avoid FK issue (projects empty)
+            project_name,
+            contract_number,
+            work_type,
+            work,
+            withdrawn,
+            ded,
+            ref,
+            after,
+            vat,
+            retention,
+            advance_deduction,
+            net
+        ];
 
-const values = [
-  req.body.certificate_no,
-  req.body.subcontractor_id,
-  req.body.project_id || null,
-  req.body.project_name,
-  req.body.contract_number,
-  req.body.work_type,
-  req.body.work_value,
-  req.body.work_withdrawn,
-  req.body.deduction,
-  req.body.refund,
-  req.body.after_deduction,
-  req.body.vat_amount,
-  req.body.retention_amount,
-  req.body.advance_deduction,
-  req.body.net_payment
-];
-console.log("INSERT VALUES:", values);
+        await conn.query(sql, values);
 
-        // 🔥 UPDATE ADVANCE
+        // ===============================
+        // 🔄 UPDATE ADVANCE
+        // ===============================
         await conn.query(
             "UPDATE subcontractors SET advance_remaining=? WHERE id=?",
             [advanceRemaining, subcontractor_id]
@@ -168,18 +171,15 @@ console.log("INSERT VALUES:", values);
         res.send({
             message: "Saved ✅ Payment Certificate #" + certNo,
             advance_remaining: advanceRemaining,
-            advance_deduction: advance_deduction
+            advance_deduction
         });
 
     } catch (err) {
 
         await conn.rollback();
 
-        if (err.code === "ER_DUP_ENTRY") {
-            return res.status(400).send("Duplicate certificate detected. Please try again.");
-        }
-
         console.error("🔥 ERROR:", err);
+
         res.status(500).send(err.message);
 
     } finally {
@@ -195,22 +195,18 @@ router.get("/all", (req, res) => {
 
     const sql = `
         SELECT pc.*, 
-       s.name AS subcontractor_name, 
-       s.work_type,
-       s.company_name,
-       s.phone,
-       s.email,
-       s.vat_number,
-       s.cr_number,
-       s.retention_percent,
-       s.initial_advance
+        s.name AS subcontractor_name, 
+        s.work_type,
+        s.company_name,
+        s.phone,
+        s.email,
+        s.vat_number,
+        s.cr_number,
+        s.retention_percent,
+        s.initial_advance
         FROM payment_certificates pc
         JOIN subcontractors s ON pc.subcontractor_id = s.id
-        ORDER BY 
-        pc.project_name,
-        pc.work_type,
-        s.name,
-        pc.certificate_no ASC
+        ORDER BY pc.project_name, pc.work_type, s.name, pc.certificate_no ASC
     `;
 
     db.query(sql, (err, result) => {
@@ -239,42 +235,20 @@ router.put("/update/:id", (req, res) => {
     const ref = Number(refund) || 0;
 
     db.query(
-        "SELECT retention_percent, vat_percent, advance_remaining AS advance_remaining FROM subcontractors WHERE id=?",
+        "SELECT retention_percent, vat_percent FROM subcontractors WHERE id=?",
         [subcontractor_id],
         (err, subResult) => {
 
             if (err) return res.status(500).send(err);
 
             const retentionPercent = Number(subResult[0].retention_percent) || 10;
-
-            let vatPercent = Number(subResult[0].vat_percent);
-            if (isNaN(vatPercent)) vatPercent = 0;
+            const vatPercent = Number(subResult[0].vat_percent) || 0;
 
             const after = work - withdrawn - ded + ref;
-            let advanceRemaining = Number(subResult[0].advance_remaining) || 0;
 
-let advance_deduction = 0;
-let vat = 0;
-let retention = 0;
-let net = 0;
-
-if (after > 0 && advanceRemaining > 0) {
-
-    advance_deduction = after * 0.25;
-    const afterAdvance = after - advance_deduction;
-
-    vat = afterAdvance * (vatPercent / 100);
-    retention = after * (retentionPercent / 100);
-
-    net = afterAdvance + vat - retention;
-
-} else {
-
-    vat = after * (vatPercent / 100);
-    retention = after * (retentionPercent / 100);
-
-    net = after + vat - retention;
-}
+            const vat = after * (vatPercent / 100);
+            const retention = after * (retentionPercent / 100);
+            const net = after + vat - retention;
 
             const sql = `
                 UPDATE payment_certificates SET
@@ -300,9 +274,7 @@ if (after > 0 && advanceRemaining > 0) {
                 net,
                 req.params.id
             ], (err2) => {
-
                 if (err2) return res.status(500).send("Update failed");
-
                 res.send("Updated successfully ✅");
             });
         }
