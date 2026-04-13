@@ -226,7 +226,9 @@ const data = {
     subcontractor_id: +document.getElementById("subcontractor_form").value || 0,
 
     project_name: projectName,
-    project_id: null, // 🔥 IMPORTANT TEMP FIX
+    project_id: 1, // 🔥 TEMP FIX (IMPORTANT)
+
+    certificate_no: document.getElementById("certificate_no").value || "",
 
     contract_number: document.getElementById("contract_number").value || "",
     work_type: document.getElementById("work_type_form").value || "",

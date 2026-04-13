@@ -102,27 +102,28 @@ console.log("VALUES:", {
 
         // 🔥 INSERT
         await conn.query(`
-            INSERT INTO payment_certificates
-            (subcontractor_id, certificate_no, project_name, contract_number, work_type,
-             work_value, work_withdrawn, deduction, refund,
-             after_deduction, vat_amount, retention_amount, net_payment, advance_deduction)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, [
-            subcontractor_id,
-            certNo,
-            project_name,
-            contract_number,
-            work_type,
-            work,
-            withdrawn,
-            ded,
-            ref,
-            after,
-            vat,
-            retention,
-            net,
-            advance_deduction
-        ]);
+INSERT INTO payment_certificates
+(certificate_no, subcontractor_id, project_id, project_name, contract_number, work_type,
+work_value, work_withdrawn, deduction, refund,
+after_deduction, vat_amount, retention_amount, advance_deduction, net_payment)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`, [
+    certNo,                 // ✅ certificate_no
+    subcontractor_id,       // ✅ subcontractor_id
+    1,                      // ✅ project_id (TEMP FIX)
+    project_name,
+    contract_number,
+    work_type,
+    work,
+    withdrawn,
+    ded,
+    ref,
+    after,
+    vat,
+    retention,
+    advance_deduction,
+    net
+]);
 
         // 🔥 UPDATE ADVANCE
         await conn.query(
