@@ -98,23 +98,34 @@ router.post("/add", (req, res) => {
                 `;
 
                 db.query(sql, [
-                    subcontractor_id,
-                    certNo,
-                    project_name,
-                    contract_number,
-                    work_type,
-                    work,
-                    withdrawn,
-                    ded,
-                    ref,
-                    after,
-                    vat,
-                    retention,
-                    net,
-                    advance_deduction
-                ], (err3) => {
+    subcontractor_id,
+    certNo,
+    project_name,
+    contract_number,
+    work_type,
+    work,
+    withdrawn,
+    ded,
+    ref,
+    after,
+    vat,
+    retention,
+    net,
+    advance_deduction
+], (err3) => {
 
-                    if (err3) return res.status(500).send(err3);
+    if (err3) {
+
+        // 🔥 HANDLE DUPLICATE CERT
+        if (err3.code === "ER_DUP_ENTRY") {
+
+            return res.status(400).send(
+                "Duplicate certificate detected. Please try again."
+            );
+        }
+
+        return res.status(500).send(err3);
+    }
 
                     // ================= UPDATE ADVANCE =================
                     db.query(

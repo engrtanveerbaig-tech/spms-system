@@ -901,13 +901,19 @@ let advanceRemaining = Number(d.advance_remaining ?? advanceAmount ?? 0);
     const res2 = await fetch(`${API}/api/payments/all`);
     const payments = await res2.json();
 
-    const count = payments.filter(p =>
-        p.subcontractor_id == id &&
-        p.project_name == selectedProject &&
-        p.work_type == workType
-    ).length;
+    const filtered = payments.filter(p =>
+    p.subcontractor_id == id &&
+    p.project_name == selectedProject &&
+    p.work_type == workType
+);
 
-    document.getElementById("certificate_no").value = count + 1;
+// 🔥 GET MAX CERTIFICATE NUMBER
+const maxCert = filtered.reduce((max, p) => {
+    return Math.max(max, Number(p.certificate_no) || 0);
+}, 0);
+
+// ✅ NEXT CERT NUMBER
+document.getElementById("certificate_no").value = maxCert + 1;
 
     // 🔥 MOST IMPORTANT
     calculate();
