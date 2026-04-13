@@ -110,6 +110,7 @@ console.log("VALUES:", {
         `, [
             subcontractor_id,
             certNo,
+            null,
             project_name,
             contract_number,
             work_type,
