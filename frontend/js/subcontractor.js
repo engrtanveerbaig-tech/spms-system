@@ -1,5 +1,6 @@
 (function () {
-    let API = "https://spms-system.onrender.com";
+    const API = window.API || "https://spms-system.onrender.com";
+window.API = API;
 
 let editId = null;
 let fullData = [];

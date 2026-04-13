@@ -1,7 +1,9 @@
 if (!window.selectedProject) {
     window.selectedProject = "";
 }
-let API = "https://spms-system.onrender.com";
+if (!window.API) {
+    window.API = "https://spms-system.onrender.com";
+}
 let originalData = [];
 (function () {
 
@@ -289,7 +291,7 @@ await loadPaymentsInit();
 
 // ================= LOAD =================
 async function loadPaymentsInit() {
-    const res = await fetch(`${API}/api/payments/all`);
+    const res = await fetch(`${window.API}/api/payments/all`);
     originalData = await res.json();
 
     populateFilters(originalData); // ✅ ADD
@@ -539,7 +541,7 @@ function printPayment(id) {
 // ================= EXPORT =================
 document.getElementById("exportBtn").onclick = async function () {
 
-    const res = await fetch(`${API}/api/payments/all`);
+    const res = await fetch(`${window.API}/api/payments/all`);
     const data = await res.json();
 
     const filtered = applyCurrentFilterForExport(data);
@@ -931,7 +933,7 @@ let advanceRemaining = Number(d.advance_remaining ?? advanceAmount ?? 0);
     const workType = document.getElementById("work_type_form").value;
     if (!workType) return;
 
-    const res2 = await fetch(`${API}/api/payments/all`);
+    const res2 = await fetch(`${window.API}/api/payments/all`);
     const payments = await res2.json();
 
     const filtered = payments.filter(p =>
