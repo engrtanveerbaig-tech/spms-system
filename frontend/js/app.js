@@ -24,7 +24,8 @@ document.addEventListener("click", function(e) {
         if (sug) sug.style.display = "none";
     }
 });
-
+// ================= LOGIN CHECK =================
+const role = localStorage.getItem("role");
 
 if (!role) {
     window.location.href = "login.html";

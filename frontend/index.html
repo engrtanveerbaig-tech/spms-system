@@ -293,13 +293,7 @@ body {
 <!-- 🔐 ROLE CONTROL -->
 <script>
 
-
-const role = localStorage.getItem("role");
-
-// 👇 REMOVE second const
-// const role = localStorage.getItem("role"); ❌
-
-if (role === "viewer") {
+if (localStorage.getItem("role") === "viewer") {
 
     const sub = document.getElementById("subMenu");
     const pay = document.getElementById("payMenu");
