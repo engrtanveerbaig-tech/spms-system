@@ -214,8 +214,14 @@ if (!subcontractorId) {
     alert("Please select subcontractor ❌");
     return;
 }
-const data = {
+const projectSelect = document.getElementById("project_form");
 
+const projectId = projectSelect ? +projectSelect.value : null;
+
+const projectName = projectSelect && projectSelect.selectedOptions.length > 0
+    ? projectSelect.selectedOptions[0].text
+    : selectedProject || "";
+const data = {
     subcontractor_id: +document.getElementById("subcontractor_form").value || 0,
 
     project_id: projectId,
