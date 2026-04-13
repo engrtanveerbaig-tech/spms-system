@@ -219,28 +219,35 @@ if (!subcontractorId) {
     return;
 }
 
+// 🔥 GET PROJECT NAME FIRST (OUTSIDE data)
+const projectSelect = document.getElementById("project_form");
+
+const projectName = projectSelect && projectSelect.selectedOptions.length > 0
+    ? projectSelect.selectedOptions[0].text.trim()
+    : "";
+
+// ✅ NOW CREATE DATA OBJECT (ONLY ONE TIME)
 const data = {
     subcontractor_id: +document.getElementById("subcontractor_form").value || 0,
 
-    project_name: window.selectedProject || "",
-
-    contract_number: document.getElementById("contract_number").value,
-    work_type: document.getElementById("work_type_form").value,
+    project_name: projectName,
+    contract_number: document.getElementById("contract_number").value || "",
+    work_type: document.getElementById("work_type_form").value || "",
 
     work_value: +work.value || 0,
     work_withdrawn: +withdrawn.value || 0,
     deduction: +deduction.value || 0,
     refund: +refund.value || 0,
 
-    after_deduction: after,
-    vat_amount: vatAmount,
-    retention_amount: retentionAmount,
-    advance_deduction: advanceDeduction,
-    net_payment: netAmount
+    after_deduction: after || 0,
+    vat_amount: vatAmount || 0,
+    retention_amount: retentionAmount || 0,
+    advance_deduction: advanceDeduction || 0,
+    net_payment: netAmount || 0
 };
 
-// ✅ DEBUG (VERY IMPORTANT)
-console.log("SENDING DATA:", data);
+// 🔍 DEBUG
+console.log("FINAL DATA:", data);
 
     let url = `${API}/api/payments/add`;
 let method = "POST";
