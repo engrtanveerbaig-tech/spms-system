@@ -220,17 +220,14 @@ if (!subcontractorId) {
 }
 
 // 🔥 GET PROJECT NAME FIRST (OUTSIDE data)
-const projectSelect = document.getElementById("project_form");
+const projectName = document.getElementById("project_form").value || "";
 
-const projectName = projectSelect && projectSelect.selectedOptions.length > 0
-    ? projectSelect.selectedOptions[0].text.trim()
-    : "";
-
-// ✅ NOW CREATE DATA OBJECT (ONLY ONE TIME)
 const data = {
     subcontractor_id: +document.getElementById("subcontractor_form").value || 0,
 
     project_name: projectName,
+    project_id: null, // 🔥 IMPORTANT TEMP FIX
+
     contract_number: document.getElementById("contract_number").value || "",
     work_type: document.getElementById("work_type_form").value || "",
 
@@ -245,7 +242,6 @@ const data = {
     advance_deduction: advanceDeduction || 0,
     net_payment: netAmount || 0
 };
-
 // 🔍 DEBUG
 console.log("FINAL DATA:", data);
 
