@@ -6,145 +6,139 @@ const db = require("../db");
 // ===============================
 // ➕ ADD PAYMENT (FINAL CLEAN)
 // ===============================
-router.post("/add", (req, res) => {
+router.post("/add", async (req, res) => {
 
-    const {
-        subcontractor_id,
-        project_name,
-        contract_number,
-        work_type,
-        work_value,
-        work_withdrawn = 0,
-        deduction = 0,
-        refund = 0
-    } = req.body;
+    const conn = await db.promise().getConnection();
 
-    // ================= GET NEXT CERT =================
-    const getNext = `
-        SELECT COALESCE(MAX(certificate_no), 0) + 1 AS next_no
-        FROM payment_certificates
-        WHERE subcontractor_id = ?
-        AND project_name = ?
-        AND work_type = ?
-    `;
+    try {
 
-    db.query(getNext, [subcontractor_id, project_name, work_type], (err, result) => {
+        await conn.beginTransaction();
 
-        if (err) return res.status(500).send(err);
+        const {
+            subcontractor_id,
+            project_name,
+            contract_number,
+            work_type,
+            work_value,
+            work_withdrawn = 0,
+            deduction = 0,
+            refund = 0
+        } = req.body;
 
-        const certNo = result[0].next_no;
+        // 🔒 GET NEXT CERT (LOCKED)
+        const [rows] = await conn.query(`
+            SELECT COALESCE(MAX(certificate_no), 0) + 1 AS next_no
+            FROM payment_certificates
+            WHERE subcontractor_id = ?
+            AND project_name = ?
+            AND work_type = ?
+            FOR UPDATE
+        `, [subcontractor_id, project_name, work_type]);
+
+        const certNo = rows[0].next_no;
 
         const work = Number(work_value) || 0;
         const withdrawn = Number(work_withdrawn) || 0;
         const ded = Number(deduction) || 0;
         const ref = Number(refund) || 0;
 
-        // ================= GET SUBCONTRACTOR =================
-        db.query(
+        // 🔥 GET SUBCONTRACTOR
+        const [subResult] = await conn.query(
             "SELECT retention_percent, vat_percent, advance_remaining FROM subcontractors WHERE id=?",
-            [subcontractor_id],
-            (err, subResult) => {
+            [subcontractor_id]
+        );
 
-                if (err) return res.status(500).send(err);
+        const sub = subResult[0] || {};
 
-                const sub = subResult[0] || {};
+        const retentionPercent = Number(sub.retention_percent) || 10;
 
-                const retentionPercent = Number(sub.retention_percent) || 10;
+        let vatPercent = Number(sub.vat_percent);
+        if (isNaN(vatPercent)) vatPercent = 0;
 
-                let vatPercent = Number(sub.vat_percent);
-                if (isNaN(vatPercent)) vatPercent = 0;
+        let advanceRemaining = Number(sub.advance_remaining) || 0;
 
-                let advanceRemaining = Number(sub.advance_remaining) || 0;
+        // ================= CALCULATIONS =================
+        const after = work - withdrawn - ded + ref;
 
-                // ================= STEP A =================
-                const after = work - withdrawn - ded + ref;
+        let advance_deduction = 0;
+        let vat = 0;
+        let retention = 0;
+        let net = 0;
 
-                let advance_deduction = 0;
-                let vat = 0;
-                let retention = 0;
-                let net = 0;
+        if (after > 0 && advanceRemaining > 0) {
 
-                // ================= STEP B: ADVANCE =================
-                if (after > 0 && advanceRemaining > 0) {
+            advance_deduction = after * 0.25;
+            advance_deduction = Math.min(advance_deduction, advanceRemaining);
 
-                    advance_deduction = after * 0.25;
-                    advance_deduction = Math.min(advance_deduction, advanceRemaining);
+            const afterAdvance = after - advance_deduction;
 
-                    const afterAdvance = after - advance_deduction;
+            vat = afterAdvance * (vatPercent / 100);
+            retention = after * (retentionPercent / 100);
 
-                    vat = afterAdvance * (vatPercent / 100);
-                    retention = after * (retentionPercent / 100);
+            net = afterAdvance + vat - retention;
 
-                    net = afterAdvance + vat - retention;
+            advanceRemaining = Math.max(advanceRemaining - advance_deduction, 0);
 
-                    advanceRemaining = Math.max(advanceRemaining - advance_deduction, 0);
+        } else {
 
-                } else {
+            vat = after * (vatPercent / 100);
+            retention = after * (retentionPercent / 100);
 
-                    vat = after * (vatPercent / 100);
-                    retention = after * (retentionPercent / 100);
-
-                    net = after + vat - retention;
-                }
-
-
-                // ================= INSERT =================
-                const sql = `
-                    INSERT INTO payment_certificates
-                    (subcontractor_id, certificate_no, project_name, contract_number, work_type,
-                     work_value, work_withdrawn, deduction, refund,
-                     after_deduction, vat_amount, retention_amount, net_payment, advance_deduction)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `;
-
-                db.query(sql, [
-    subcontractor_id,
-    certNo,
-    project_name,
-    contract_number,
-    work_type,
-    work,
-    withdrawn,
-    ded,
-    ref,
-    after,
-    vat,
-    retention,
-    net,
-    advance_deduction
-], (err3) => {
-
-    if (err3) {
-
-        // 🔥 HANDLE DUPLICATE CERT
-        if (err3.code === "ER_DUP_ENTRY") {
-
-            return res.status(400).send(
-                "Duplicate certificate detected. Please try again."
-            );
+            net = after + vat - retention;
         }
 
-        return res.status(500).send(err3);
-    }
+        // 🔥 INSERT
+        await conn.query(`
+            INSERT INTO payment_certificates
+            (subcontractor_id, certificate_no, project_name, contract_number, work_type,
+             work_value, work_withdrawn, deduction, refund,
+             after_deduction, vat_amount, retention_amount, net_payment, advance_deduction)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            subcontractor_id,
+            certNo,
+            project_name,
+            contract_number,
+            work_type,
+            work,
+            withdrawn,
+            ded,
+            ref,
+            after,
+            vat,
+            retention,
+            net,
+            advance_deduction
+        ]);
 
-                    // ================= UPDATE ADVANCE =================
-                    db.query(
-                        "UPDATE subcontractors SET advance_remaining=? WHERE id=?",
-                        [advanceRemaining, subcontractor_id],
-                        (err4) => {
-                            if (err4) console.error("Advance update error:", err4);
-                        }
-                    );
-
-                    res.send({
-                        message: "Saved ✅ Payment Certificate #" + certNo,
-                        advance_remaining: advanceRemaining,
-                        advance_deduction: advance_deduction
-                    });
-                });
-            }
+        // 🔥 UPDATE ADVANCE
+        await conn.query(
+            "UPDATE subcontractors SET advance_remaining=? WHERE id=?",
+            [advanceRemaining, subcontractor_id]
         );
-    });
+
+        await conn.commit();
+
+        res.send({
+            message: "Saved ✅ Payment Certificate #" + certNo,
+            advance_remaining: advanceRemaining,
+            advance_deduction: advance_deduction
+        });
+
+    } catch (err) {
+
+        await conn.rollback();
+
+        if (err.code === "ER_DUP_ENTRY") {
+            return res.status(400).send("Duplicate certificate detected. Please try again.");
+        }
+
+        console.error(err);
+        res.status(500).send("Server error");
+
+    } finally {
+        conn.release();
+    }
 });
 
 
