@@ -49,7 +49,7 @@ router.post("/add", async (req, res) => {
 
         const sub = subResult[0] || {};
         
-        if (!subResult || !subResult.length) {
+        if (!subResult.length) {
     await conn.rollback();
     return res.status(400).send("Subcontractor not found ❌");
 }
@@ -100,17 +100,9 @@ console.log("VALUES:", {
     work_type
 });
 
-        // 🔥 INSERT
-        await conn.query(`
-INSERT INTO payment_certificates
-(certificate_no, subcontractor_id, project_id, project_name, contract_number, work_type,
-work_value, work_withdrawn, deduction, refund,
-after_deduction, vat_amount, retention_amount, advance_deduction, net_payment)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-`, [
-    certNo,                 // ✅ certificate_no
-    subcontractor_id,       // ✅ subcontractor_id
-    1,                      // ✅ project_id (TEMP FIX)
+console.log("INSERT VALUES:", {
+    certNo,
+    subcontractor_id,
     project_name,
     contract_number,
     work_type,
@@ -123,6 +115,31 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     retention,
     advance_deduction,
     net
+});
+
+        // 🔥 INSERT
+        await conn.query(`
+INSERT INTO payment_certificates
+(certificate_no, subcontractor_id, project_id, project_name, contract_number, work_type,
+work_value, work_withdrawn, deduction, refund,
+after_deduction, vat_amount, retention_amount, advance_deduction, net_payment)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`, [
+    certNo,                 // 1️⃣ certificate_no
+    subcontractor_id,       // 2️⃣ subcontractor_id
+    1,                      // 3️⃣ project_id (TEMP)
+    project_name,           // 4️⃣
+    contract_number,        // 5️⃣
+    work_type,              // 6️⃣
+    work,                   // 7️⃣
+    withdrawn,              // 8️⃣
+    ded,                    // 9️⃣
+    ref,                    // 🔟
+    after,                  // 11
+    vat,                    // 12
+    retention,              // 13
+    advance_deduction,      // 14
+    net                     // 15
 ]);
 
         // 🔥 UPDATE ADVANCE
@@ -207,7 +224,7 @@ router.put("/update/:id", (req, res) => {
     const ref = Number(refund) || 0;
 
     db.query(
-        "SELECT retention_percent, vat_percent, advance_remaining FROM subcontractors WHERE id=?",
+        "SELECT retention_percent, vat_percent, advance_remaining AS advance_remaining FROM subcontractors WHERE id=?",
         [subcontractor_id],
         (err, subResult) => {
 
