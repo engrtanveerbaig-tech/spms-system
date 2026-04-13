@@ -164,7 +164,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             return res.status(400).send("Duplicate certificate detected. Please try again.");
         }
 
-        console.error(err);
+        console.error("🔥 ERROR:", err);
         res.status(500).send(err.message);
 
     } finally {
