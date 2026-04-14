@@ -40,7 +40,7 @@ function getCtx(id) {
 // =====================================================
 async function loadDashboard() {
     try {
-        const res = await fetch("http://127.0.0.1:5000/api/payments/all");
+        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all");
 
         // 🔥 HANDLE SERVER ERROR
         if (!res.ok) {
@@ -103,11 +103,6 @@ async function loadDashboard() {
     }
 
 }
-
-// 🚀 RUN
-loadDashboard();
-
-
 
 function renderWorkTypeSummary(data) {
 
@@ -403,44 +398,6 @@ function createTopSubsList(data) {
                 <div class="top-rank">#${i + 1}</div>
                 <div class="top-name">${x.company}</div>
                 <div class="top-value">${x.total.toLocaleString()} SAR</div>
-            </div>
-        `;
-    });
-
-    container.innerHTML = html;
-}
-
-// =====================================================
-function createTopSubsList(data) {
-
-    const container = document.getElementById("topSubsList");
-    if (!container) return;
-
-    const grouped = {};
-
-    data.forEach(item => {
-        const name = item.company || "Unknown";   // ✅ FIXED
-
-        if (!grouped[name]) grouped[name] = 0;
-
-        grouped[name] += Number(item.total_net || 0);
-    });
-
-    const top5 = Object.entries(grouped)
-        .map(([name, total]) => ({ name, total }))
-        .sort((a, b) => b.total - a.total)
-        .slice(0, 5);
-
-    let html = "";
-
-    top5.forEach(x => {
-        html += `
-            <div class="top-card">
-                <div class="top-card-inner">
-                    <div class="top-name">${x.name}</div>
-                    <div class="top-value">${x.total.toLocaleString()}</div>
-                    <div class="top-currency">SAR</div>
-                </div>
             </div>
         `;
     });

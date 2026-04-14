@@ -70,8 +70,14 @@ async function loadPage(page) {
 
     const role = localStorage.getItem("role");
 
-    if (role === "viewer" && !page.includes("dashboard")) {
-    console.warn("Blocked access:", page);
+    if (!role) {
+    alert("Please login");
+    window.location.href = "login.html";
+    return;
+}
+
+if (role === "viewer" && !page.includes("dashboard")) {
+    alert("Access denied");
     return;
 }
 
@@ -140,7 +146,7 @@ let FILTERED_DATA = [];
 // ================= LOAD GLOBAL DATA =================
 async function loadGlobalData() {
     try {
-        const res = await fetch("http://127.0.0.1:5000/api/payments/all");
+        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all");
         GLOBAL_DATA = await res.json();
     } catch (err) {
         console.error("Global search load error", err);
@@ -234,7 +240,7 @@ let SEARCH_DATA = [];
 
 async function loadSearchData() {
     try {
-        const res = await fetch("http://127.0.0.1:5000/api/payments/all");
+        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all");
         SEARCH_DATA = await res.json();
 
         console.log("SEARCH DATA LOADED:", SEARCH_DATA.length); // ✅ HERE

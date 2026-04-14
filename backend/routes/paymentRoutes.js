@@ -139,20 +139,25 @@ const subResult = result[0]; // ✅ FIX
 // ===============================
 router.get("/all", async (req, res) => {
     try {
+
         const [rows] = await db.query(`
-            SELECT pc.*, 
-            s.name AS subcontractor_name, 
-            s.work_type,
-            s.company_name
-            FROM payment_certificates pc
-            JOIN subcontractors s ON pc.subcontractor_id = s.id
-            ORDER BY pc.id DESC
+            SELECT 
+                p.*,
+                s.name AS subcontractor_name,
+                s.company_name
+            FROM payments p
+            LEFT JOIN subcontractors s 
+            ON p.subcontractor_id = s.id
         `);
 
         res.json(rows);
 
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error("❌ ERROR in /payments/all:", err);
+        res.status(500).json({
+            error: "Database error",
+            details: err.message
+        });
     }
 });
 
