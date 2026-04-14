@@ -145,7 +145,7 @@ router.get("/all", async (req, res) => {
                 p.*,
                 s.name AS subcontractor_name,
                 s.company_name
-            FROM payments p
+            FROM payment_certificates p
             LEFT JOIN subcontractors s 
             ON p.subcontractor_id = s.id
         `);
