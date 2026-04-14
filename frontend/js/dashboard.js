@@ -1,8 +1,9 @@
-let CURRENT_DATA = [];
+
 // =====================================================
 // GLOBAL STATE
 // =====================================================
 (function(){
+let CURRENT_DATA = [];
 let dashboardLoaded = false;
 let RAW_DATA = [];
 let ORIGINAL_DATA = [];   // ✅ ADD THIS
@@ -50,6 +51,11 @@ async function loadDashboard() {
         }
 
         const data = await res.json();
+
+if (!Array.isArray(data)) {
+    console.error("Invalid API response:", data);
+    return;
+}
         console.log("DATA:", data);
 
         // ===============================
@@ -426,7 +432,7 @@ function createTypeChart(data) {
         "#ef4444",
         "#8b5cf6"
     ],
-    borderColor: "#transparent",   // ✅ ADD THIS
+    borderColor: "transparent",   // ✅ ADD THIS
     borderWidth: 0,           // 🔥 slightly thicker = premium look
     hoverOffset: 8            // 🔥 smooth hover pop
 }]
