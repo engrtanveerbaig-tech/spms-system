@@ -1,5 +1,5 @@
 (function () {
-    const API = "http://127.0.0.1:5000";
+    const API = "https://spms-backend-jxzn.onrender.com";
 window.API = API;
 
 let editId = null;
