@@ -4,11 +4,10 @@ const db = require("../db");
 
 
 // ===============================
-// ➕ ADD PAYMENT (FIXED FINAL)
+// ➕ ADD PAYMENT
 // ===============================
 router.post("/add", async (req, res) => {
-
-    const conn = await db.promise().getConnection();
+    const conn = await db.getConnection();
 
     try {
         await conn.beginTransaction();
@@ -21,37 +20,22 @@ router.post("/add", async (req, res) => {
             work_value,
             work_withdrawn = 0,
             deduction = 0,
-            refund = 0
+            refund = 0,
+            certificate_no
         } = req.body;
 
-        // ===============================
-        // 🔒 GET NEXT CERT NUMBER
-        // ===============================
-        const [rows] = await conn.query(`
-            SELECT COALESCE(MAX(certificate_no), 0) + 1 AS next_no
-            FROM payment_certificates
-            WHERE subcontractor_id = ?
-            AND project_name = ?
-            AND work_type = ?
-        `, [subcontractor_id, project_name, work_type]);
-
-        const certNo = rows[0].next_no;
-
-        // ===============================
-        // 🔢 SAFE NUMBERS
-        // ===============================
+        // 🔥 ADD THIS LINE HERE (IMPORTANT)
+        const certNo = Number(certificate_no);
         const work = Number(work_value) || 0;
         const withdrawn = Number(work_withdrawn) || 0;
         const ded = Number(deduction) || 0;
         const ref = Number(refund) || 0;
 
-        // ===============================
-        // 🔥 GET SUBCONTRACTOR DATA
-        // ===============================
-        const [subResult] = await conn.query(
-            "SELECT retention_percent, vat_percent, advance_remaining FROM subcontractors WHERE id=?",
-            [subcontractor_id]
-        );
+        const result = await conn.query(
+    "SELECT retention_percent, vat_percent, advance_remaining FROM subcontractors WHERE id=?",
+    [subcontractor_id]
+);
+const subResult = result[0]; // ✅ FIX
 
         if (!subResult.length) {
             await conn.rollback();
@@ -61,12 +45,9 @@ router.post("/add", async (req, res) => {
         const sub = subResult[0];
 
         const retentionPercent = Number(sub.retention_percent) || 10;
-        const vatPercent = isNaN(Number(sub.vat_percent)) ? 0 : Number(sub.vat_percent);
+        const vatPercent = Number(sub.vat_percent) || 0;
         let advanceRemaining = Number(sub.advance_remaining) || 0;
 
-        // ===============================
-        // 🧮 CALCULATIONS
-        // ===============================
         const after = work - withdrawn - ded + ref;
 
         let advance_deduction = 0;
@@ -75,7 +56,6 @@ router.post("/add", async (req, res) => {
         let net = 0;
 
         if (after > 0 && advanceRemaining > 0) {
-
             advance_deduction = Math.min(after * 0.25, advanceRemaining);
 
             const afterAdvance = after - advance_deduction;
@@ -88,36 +68,12 @@ router.post("/add", async (req, res) => {
             advanceRemaining = Math.max(advanceRemaining - advance_deduction, 0);
 
         } else {
-
             vat = after * (vatPercent / 100);
             retention = after * (retentionPercent / 100);
 
             net = after + vat - retention;
         }
 
-        // ===============================
-        // 🔍 DEBUG LOG
-        // ===============================
-        console.log("FINAL INSERT DATA:", {
-            certNo,
-            subcontractor_id,
-            project_name,
-            contract_number,
-            work_type,
-            work,
-            withdrawn,
-            ded,
-            ref,
-            after,
-            vat,
-            retention,
-            advance_deduction,
-            net
-        });
-
-        // ===============================
-        // 🔥 INSERT (FIXED)
-        // ===============================
         const sql = `
         INSERT INTO payment_certificates (
             certificate_no,
@@ -138,10 +94,10 @@ router.post("/add", async (req, res) => {
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
-        const values = [
-            String(certNo),                // ✅ FIXED
+        await conn.query(sql, [
+            certNo,
             subcontractor_id,
-            1,                  // ✅ avoid FK issue (projects empty)
+            1,
             project_name,
             contract_number,
             work_type,
@@ -154,13 +110,8 @@ router.post("/add", async (req, res) => {
             retention,
             advance_deduction,
             net
-        ];
+        ]);
 
-        await conn.query(sql, values);
-
-        // ===============================
-        // 🔄 UPDATE ADVANCE
-        // ===============================
         await conn.query(
             "UPDATE subcontractors SET advance_remaining=? WHERE id=?",
             [advanceRemaining, subcontractor_id]
@@ -168,20 +119,15 @@ router.post("/add", async (req, res) => {
 
         await conn.commit();
 
-        res.send({
-            message: "Saved ✅ Payment Certificate #" + certNo,
-            advance_remaining: advanceRemaining,
-            advance_deduction
+        res.json({
+            message: "Saved ✅ Certificate #" + certNo,
+            advance_remaining: advanceRemaining
         });
 
     } catch (err) {
-
         await conn.rollback();
-
-        console.error("🔥 ERROR:", err);
-
+        console.error(err);
         res.status(500).send(err.message);
-
     } finally {
         conn.release();
     }
@@ -191,170 +137,142 @@ router.post("/add", async (req, res) => {
 // ===============================
 // 📄 GET ALL PAYMENTS
 // ===============================
-router.get("/all", (req, res) => {
+router.get("/all", async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT pc.*, 
+            s.name AS subcontractor_name, 
+            s.work_type,
+            s.company_name
+            FROM payment_certificates pc
+            JOIN subcontractors s ON pc.subcontractor_id = s.id
+            ORDER BY pc.id DESC
+        `);
 
-    const sql = `
-        SELECT pc.*, 
-        s.name AS subcontractor_name, 
-        s.work_type,
-        s.company_name,
-        s.phone,
-        s.email,
-        s.vat_number,
-        s.cr_number,
-        s.retention_percent,
-        s.initial_advance
-        FROM payment_certificates pc
-        JOIN subcontractors s ON pc.subcontractor_id = s.id
-        ORDER BY pc.project_name, pc.work_type, s.name, pc.certificate_no ASC
-    `;
+        res.json(rows);
 
-    db.query(sql, (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.json(result);
-    });
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
 });
 
 
 // ===============================
 // ✏️ UPDATE PAYMENT
 // ===============================
-router.put("/update/:id", (req, res) => {
+router.put("/update/:id", async (req, res) => {
+    try {
+        const {
+            subcontractor_id,
+            work_value,
+            work_withdrawn = 0,
+            deduction = 0,
+            refund = 0
+        } = req.body;
 
-    const {
-        subcontractor_id,
-        work_value,
-        work_withdrawn = 0,
-        deduction = 0,
-        refund = 0
-    } = req.body;
+        const work = Number(work_value) || 0;
+        const withdrawn = Number(work_withdrawn) || 0;
+        const ded = Number(deduction) || 0;
+        const ref = Number(refund) || 0;
 
-    const work = Number(work_value) || 0;
-    const withdrawn = Number(work_withdrawn) || 0;
-    const ded = Number(deduction) || 0;
-    const ref = Number(refund) || 0;
+        const [sub] = await db.query(
+            "SELECT retention_percent, vat_percent FROM subcontractors WHERE id=?",
+            [subcontractor_id]
+        );
 
-    db.query(
-        "SELECT retention_percent, vat_percent FROM subcontractors WHERE id=?",
-        [subcontractor_id],
-        (err, subResult) => {
+        const retentionPercent = sub[0].retention_percent || 10;
+        const vatPercent = sub[0].vat_percent || 0;
 
-            if (err) return res.status(500).send(err);
+        const after = work - withdrawn - ded + ref;
+        const vat = after * (vatPercent / 100);
+        const retention = after * (retentionPercent / 100);
+        const net = after + vat - retention;
 
-            const retentionPercent = Number(subResult[0].retention_percent) || 10;
-            const vatPercent = Number(subResult[0].vat_percent) || 0;
+        await db.query(`
+            UPDATE payment_certificates SET
+                work_value=?,
+                work_withdrawn=?,
+                deduction=?,
+                refund=?,
+                after_deduction=?,
+                vat_amount=?,
+                retention_amount=?,
+                net_payment=?
+            WHERE id=?
+        `, [work, withdrawn, ded, ref, after, vat, retention, net, req.params.id]);
 
-            const after = work - withdrawn - ded + ref;
+        res.send("Updated ✅");
 
-            const vat = after * (vatPercent / 100);
-            const retention = after * (retentionPercent / 100);
-            const net = after + vat - retention;
-
-            const sql = `
-                UPDATE payment_certificates SET
-                    work_value=?,
-                    work_withdrawn=?,
-                    deduction=?,
-                    refund=?,
-                    after_deduction=?,
-                    vat_amount=?,
-                    retention_amount=?,
-                    net_payment=?
-                WHERE id=?
-            `;
-
-            db.query(sql, [
-                work,
-                withdrawn,
-                ded,
-                ref,
-                after,
-                vat,
-                retention,
-                net,
-                req.params.id
-            ], (err2) => {
-                if (err2) return res.status(500).send("Update failed");
-                res.send("Updated successfully ✅");
-            });
-        }
-    );
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
 });
 
 
 // ===============================
 // 🗑️ DELETE
 // ===============================
-router.delete("/delete/:id", (req, res) => {
-
-    db.query(
-        "DELETE FROM payment_certificates WHERE id=?",
-        [req.params.id],
-        (err) => {
-            if (err) return res.status(500).send("Delete failed");
-            res.send("Deleted successfully 🗑️");
-        }
-    );
+router.delete("/delete/:id", async (req, res) => {
+    try {
+        await db.query(
+            "DELETE FROM payment_certificates WHERE id=?",
+            [req.params.id]
+        );
+        res.send("Deleted ✅");
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
 });
 
 
 // ===============================
 // 🔥 BULK DELETE
 // ===============================
-router.delete("/bulk-delete", (req, res) => {
+router.delete("/bulk-delete", async (req, res) => {
+    try {
+        const {
+            subcontractor_id,
+            work_type,
+            project_name,
+            from_cert,
+            to_cert
+        } = req.body;
 
-    const {
-        subcontractor_id,
-        work_type,
-        project_name,
-        from_cert,
-        to_cert
-    } = req.body;
-
-    const sql = `
-        DELETE FROM payment_certificates
-        WHERE subcontractor_id = ?
-        AND work_type = ?
-        AND project_name = ?
-        AND certificate_no BETWEEN ? AND ?
-    `;
-
-    db.query(sql, [
-        subcontractor_id,
-        work_type,
-        project_name,
-        from_cert,
-        to_cert
-    ], (err, result) => {
-
-        if (err) return res.status(500).send("Bulk delete failed");
+        const [result] = await db.query(`
+            DELETE FROM payment_certificates
+            WHERE subcontractor_id=?
+            AND work_type=?
+            AND project_name=?
+            AND certificate_no BETWEEN ? AND ?
+        `, [subcontractor_id, work_type, project_name, from_cert, to_cert]);
 
         res.send(`Deleted ${result.affectedRows} records ✅`);
-    });
+
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
 });
 
 
 // ===============================
 // 📊 DASHBOARD
 // ===============================
-router.get("/dashboard", (req, res) => {
+router.get("/dashboard", async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT 
+                COUNT(*) AS total_records,
+                SUM(net_payment) AS total_net,
+                SUM(retention_amount) AS total_retention,
+                SUM(deduction) AS total_deductions
+            FROM payment_certificates
+        `);
 
-    const sql = `
-    SELECT 
-        COUNT(DISTINCT project_name) AS total_projects,
-        COUNT(DISTINCT subcontractor_id) AS total_subcontractors,
-        SUM(work_value) AS total_work,
-        SUM(net_payment) AS total_paid,
-        SUM(retention_amount) AS total_retention,
-        SUM(advance_deduction) AS total_advance_used
-    FROM payment_certificates
-    `;
+        res.json(rows[0]);
 
-    db.query(sql, (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.json(result[0]);
-    });
-
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
 });
 
 
