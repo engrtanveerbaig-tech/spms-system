@@ -1,3 +1,6 @@
+// ================= MAINTENANCE MODE =================
+const MAINTENANCE_MODE = false; // 🔥 change true/false
+let selectedSubcontractorId = null;
 const savedTheme = localStorage.getItem("theme");
 
 if (savedTheme === "dark") {
@@ -24,12 +27,7 @@ document.addEventListener("click", function(e) {
         if (sug) sug.style.display = "none";
     }
 });
-// ================= LOGIN CHECK =================
-const role = localStorage.getItem("role");
 
-if (!role) {
-    window.location.href = "login.html";
-}
 
 // ================= APPLY ROLE UI =================
 function applyRoleUI() {
@@ -130,10 +128,7 @@ async function loadPage(page) {
 loadPage("./dashboard.html");
 
 // ================= LOGOUT =================
-function logout() {
-    localStorage.removeItem("role");
-    window.location.href = "login.html";
-}
+
 
 // =======================================================
 // 🔍 GLOBAL SEARCH SYSTEM (FINAL)
@@ -145,7 +140,7 @@ let FILTERED_DATA = [];
 // ================= LOAD GLOBAL DATA =================
 async function loadGlobalData() {
     try {
-        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all");
+        const res = await fetch("http://127.0.0.1:5000/api/payments/all");
         GLOBAL_DATA = await res.json();
     } catch (err) {
         console.error("Global search load error", err);
@@ -239,7 +234,7 @@ let SEARCH_DATA = [];
 
 async function loadSearchData() {
     try {
-        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all");
+        const res = await fetch("http://127.0.0.1:5000/api/payments/all");
         SEARCH_DATA = await res.json();
 
         console.log("SEARCH DATA LOADED:", SEARCH_DATA.length); // ✅ HERE
@@ -266,6 +261,16 @@ function closeSearchModal() {
 }
 
 // ================= SUGGESTION =================
+function highlightText(text, query) {
+    if (!query) return text;
+
+    const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // escape regex
+    const regex = new RegExp(`(${safeQuery})`, "gi");
+
+    return text.replace(regex, `<span class="highlight">$1</span>`);
+}
+
+
 function handlePopupSearch() {
 
     const inputEl = document.getElementById("popupSearchInput");
@@ -290,22 +295,22 @@ function handlePopupSearch() {
         return;
     }
 
-    // 🎯 FILTER BASED ON SELECTED TYPE
-   const results = SEARCH_DATA.filter(x => {
+    // 🎯 FILTER BASED ON TYPE
+    const results = SEARCH_DATA.filter(x => {
 
-    const company = (x.company_name || "").toLowerCase();
-    const subcontractor = (x.subcontractor_name || "").toLowerCase();
+        const company = (x.company_name || "").toLowerCase();
+        const subcontractor = (x.subcontractor_name || "").toLowerCase();
 
-    if (CURRENT_SEARCH_TYPE === "company") {
-        return company.includes(input);   // ✅ STRICT MATCH
-    }
+        if (CURRENT_SEARCH_TYPE === "company") {
+            return company.includes(input);
+        }
 
-    if (CURRENT_SEARCH_TYPE === "subcontractor") {
-        return subcontractor.includes(input);
-    }
+        if (CURRENT_SEARCH_TYPE === "subcontractor") {
+            return subcontractor.includes(input);
+        }
 
-    return false;
-});
+        return false;
+    });
 
     // ❌ NO RESULT
     if (results.length === 0) {
@@ -317,33 +322,38 @@ function handlePopupSearch() {
     // ✅ CLEAR OLD RESULTS
     box.innerHTML = "";
 
-    // 🔥 LIMIT RESULTS (performance)
+    // 🔥 LIMIT RESULTS
     results.slice(0, 10).forEach(r => {
 
         const div = document.createElement("div");
 
-        // 🎯 SHOW BASED ON TYPE
+        let text = "";
+
         if (CURRENT_SEARCH_TYPE === "company") {
-    div.innerText = r.company_name || "No Company";
-} else {
-    div.innerText = r.subcontractor_name || "No Subcontractor";
-}
+            text = r.company_name || "No Company";
+        } else {
+            text = r.subcontractor_name || "No Subcontractor";
+        }
+
+        // ✅ 🔥 APPLY HIGHLIGHT HERE
+        div.innerHTML = highlightText(text, input);
 
         // 🖱 CLICK SELECT
         div.onclick = () => {
 
-    SELECTED_SEARCH = {
-    company: (r.company_name || "").trim(),
-    subcontractor: (r.subcontractor_name || "").trim()
-};
+            SELECTED_SEARCH = {
+                id: r.subcontractor_id,
+                company: (r.company_name || "").trim(),
+                subcontractor: (r.subcontractor_name || "").trim()
+            };
 
-    document.getElementById("popupSearchInput").value =
-        CURRENT_SEARCH_TYPE === "company"
-        ? r.company_name
-        : r.subcontractor_name;
+            document.getElementById("popupSearchInput").value =
+                CURRENT_SEARCH_TYPE === "company"
+                ? r.company_name
+                : r.subcontractor_name;
 
-    box.style.display = "none";
-};
+            box.style.display = "none";
+        };
 
         box.appendChild(div);
     });
@@ -434,16 +444,16 @@ function confirmSearch() {
     let filtered = [];
 
     if (CURRENT_SEARCH_TYPE === "company") {
-        filtered = SEARCH_DATA.filter(x =>
-            (x.company_name || "").trim().toLowerCase() === SELECTED_SEARCH.company.toLowerCase()
-        );
-    }
+    filtered = SEARCH_DATA.filter(x =>
+        x.company_name === SELECTED_SEARCH.company
+    );
+}
 
-    if (CURRENT_SEARCH_TYPE === "subcontractor") {
-        filtered = SEARCH_DATA.filter(x =>
-            (x.subcontractor_name || "").trim() === SELECTED_SEARCH.subcontractor
-        );
-    }
+   if (CURRENT_SEARCH_TYPE === "subcontractor") {
+    filtered = SEARCH_DATA.filter(x =>
+        x.subcontractor_id == SELECTED_SEARCH.id   // ✅ FIX
+    );
+}
 
     console.log("Filtered Result:", filtered.length);
 

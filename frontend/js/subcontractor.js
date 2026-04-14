@@ -1,5 +1,5 @@
 (function () {
-    const API = window.API || "https://spms-system.onrender.com";
+    const API = "http://127.0.0.1:5000";
 window.API = API;
 
 let editId = null;

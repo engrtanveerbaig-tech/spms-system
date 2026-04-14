@@ -2,7 +2,7 @@ if (!window.selectedProject) {
     window.selectedProject = "";
 }
 if (!window.API) {
-    window.API = "https://spms-system.onrender.com";
+    window.API = "http://127.0.0.1:5000";
 }
 let originalData = [];
 (function () {
@@ -225,8 +225,10 @@ const projectName = document.getElementById("project_form").value || "";
 const data = {
     subcontractor_id: +document.getElementById("subcontractor_form").value || 0,
 
+    certificate_no: +document.getElementById("certificate_no").value || 0, // ✅ FIX
+
     project_name: projectName,
-    project_id: 1, // 🔥 TEMP FIX (IMPORTANT)
+    project_id: 1,
 
     contract_number: document.getElementById("contract_number").value || "",
     work_type: document.getElementById("work_type_form").value || "",

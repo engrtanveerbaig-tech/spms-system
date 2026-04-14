@@ -39,34 +39,112 @@ function getCtx(id) {
 // LOAD DASHBOARD
 // =====================================================
 async function loadDashboard() {
-
-    dashboardLoaded = false; // always allow reload
-
     try {
-        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all");
-        RAW_DATA = await res.json();
-ORIGINAL_DATA = [...RAW_DATA];   // ✅ SAVE ORIGINAL
+        const res = await fetch("http://127.0.0.1:5000/api/payments/all");
 
-        // ✅ DEBUG + SAFETY
-        if (!RAW_DATA || RAW_DATA.length === 0) {
-            console.warn("No data received from API");
+        // 🔥 HANDLE SERVER ERROR
+        if (!res.ok) {
+            const text = await res.text();
+            console.error("Server Error:", text);
+            return;
         }
 
-        console.log("DATA LOADED:", RAW_DATA);
+        const data = await res.json();
+        console.log("DATA:", data);
+
+        // ===============================
+        // ✅ IMPORTANT: SET GLOBAL DATA
+        // ===============================
+        RAW_DATA = data;
+        ORIGINAL_DATA = data;
+
+        
+
+        // ===============================
+        // 🔢 BASIC TOTALS (TOP CARDS)
+        // ===============================
+        let totalWork = 0;
+        let totalRetention = 0;
+        let totalDeduction = 0;
+        let totalNet = 0;
+
+        data.forEach(item => {
+            totalWork += Number(item.work_value || 0);
+            totalRetention += Number(item.retention_amount || 0);
+            totalDeduction += Number(item.deduction || 0);
+            totalNet += Number(item.net_payment || 0);
+        });
+
+        // ===============================
+        // ✅ SAFE UI UPDATE
+        // ===============================
+        const el1 = document.getElementById("total_work");
+        const el2 = document.getElementById("total_retention");
+        const el3 = document.getElementById("total_deduction");
+        const el4 = document.getElementById("total_paid");
+        const el5 = document.getElementById("total_sar");
+
+        if (el1) el1.innerText = totalWork.toFixed(2);
+        if (el2) el2.innerText = totalRetention.toFixed(2);
+        if (el3) el3.innerText = totalDeduction.toFixed(2);
+        if (el4) el4.innerText = totalNet.toFixed(2);
+        if (el5) el5.innerText = totalNet.toFixed(2);
+
+        
+        // ===============================
+        // 🔥 BUILD FULL DASHBOARD
+        // ===============================
+        buildAggregation();
+        initFilters();
+        renderAll();
 
     } catch (err) {
-        console.error("API ERROR", err);
-        return;
+        console.error("Dashboard Error:", err);
     }
 
-    // ✅ RUN AFTER DATA LOAD
-    buildAggregation();
-    initFilters();
-    renderAll();
-    const btn = document.querySelector(".filters button");
-if (btn) btn.onclick = generatePDF;
 }
 
+// 🚀 RUN
+loadDashboard();
+
+
+
+function renderWorkTypeSummary(data) {
+
+    if (!data || data.length === 0) return;
+
+    const container = document.getElementById("workTypeSummary");
+    if (!container) return;
+
+    // 🔹 TOTAL CERTIFICATES
+    const total = data.length;
+
+    // 🔹 GROUP BY WORK TYPE
+    const typeCounts = {};
+
+    data.forEach(item => {
+        const type = item.work_type || "Other";
+
+        if (!typeCounts[type]) {
+            typeCounts[type] = 0;
+        }
+
+        typeCounts[type]++;
+    });
+
+    // 🔹 BUILD TEXT
+    let summaryText = `<strong>Total Certificates:</strong> ${total}<br>`;
+
+    const parts = [];
+
+    for (let type in typeCounts) {
+        parts.push(`${type}: ${typeCounts[type]}`);
+    }
+
+    summaryText += parts.join(" &nbsp; | &nbsp; ");
+
+    container.innerHTML = summaryText;
+}
 // =====================================================
 // AGGREGATION
 // =====================================================
@@ -139,8 +217,18 @@ function initFilters() {
 
 function populateSelect(el, values) {
     if (!el) return;
+
+    const currentValue = el.value; // keep selected
+
     el.innerHTML = `<option value="">All</option>` +
         values.map(v => `<option value="${v}">${v}</option>`).join("");
+
+    // ✅ restore selection if still valid
+    if (values.includes(currentValue)) {
+        el.value = currentValue;
+    } else {
+        el.value = ""; // reset to All
+    }
 }
 
 function getUnique(key) {
@@ -159,10 +247,8 @@ function updateDependentFilters() {
 
 function applyFilterData() {
 
-    // ✅ if search filter applied → use CURRENT_DATA
-    const source = CURRENT_DATA.length ? CURRENT_DATA : AGG_DATA;
-
-    return source.filter(x =>
+    // ✅ ALWAYS USE FULL DATA (AGG_DATA)
+    return AGG_DATA.filter(x =>
         (!FILTER_STATE.company || x.company?.trim() === FILTER_STATE.company?.trim()) &&
         (!FILTER_STATE.type || x.work_type?.trim() === FILTER_STATE.type?.trim()) &&
         (!FILTER_STATE.subcontractor || x.subcontractor?.trim() === FILTER_STATE.subcontractor?.trim())
@@ -179,6 +265,17 @@ function renderAll() {
     renderKPIs(data);
     renderCharts(data);
     renderTable(data);
+
+     renderWorkTypeSummary(getFilteredRawData());
+}
+function getFilteredRawData() {
+
+    return RAW_DATA.filter(x =>
+        (!FILTER_STATE.company || x.company_name === FILTER_STATE.company) &&
+        (!FILTER_STATE.type || x.work_type === FILTER_STATE.type) &&
+        (!FILTER_STATE.subcontractor || x.subcontractor_name === FILTER_STATE.subcontractor)
+    );
+
 }
 
 // =====================================================
@@ -240,7 +337,7 @@ function generateAISummary(data) {
 This project has a total work value of ${format(totalWork)} SAR, with total net payments reaching ${format(totalNet)} SAR. 
 The retention amount stands at ${format(totalRetention)} SAR, while total deductions recorded are ${format(totalDeduction)} SAR. 
 
-The project is primarily driven by ${mainType} works, with the top performing subcontractor being ${top.subcontractor}. 
+The project is primarily driven by ${mainType} works, with the top performing subcontractor being ${top.company}. 
 
 Overall, the project demonstrates ${performance}, indicating ${
         totalNet > totalWork
@@ -257,12 +354,17 @@ function renderCharts(data) {
 
     destroyCharts();
 
-    createTopSubsChart(data);
-    createTypeChart(data);
-    createFinanceChart(data);
-    createRetentionChart(data);
     createTrendChart(data);
-    createCertChart(data);
+    createTypeChart(data);
+    createRetentionChart(data);
+
+    // ❌ REMOVE THIS (not used in UI)
+    // createTopSubsChart(data);
+
+    // ✅ ADD THIS (your right panel data)
+    createTopSubsList(data);
+
+    renderWorkTypeCards(data);
 }
 
 // =====================================================
@@ -271,24 +373,79 @@ function destroyCharts() {
         .forEach(k => window[k]?.destroy?.());
 }
 
-// =====================================================
-function createTopSubsChart(data) {
+function createTopSubsList(data) {
 
-    const ctx = getCtx("topSubsChart");
-    if (!ctx) return;
+    const container = document.getElementById("topSubsList");
+    if (!container) return;
 
-    window.topSubsChart = new Chart(ctx, {
-        type: "bar",
-        data: {
-            labels: data.map(x => x.subcontractor || "Unknown"),
-            datasets: [{
-                label: "Net Amount",
-                data: data.map(x => x.total_net),
-                backgroundColor: "#3b82f6",
-                borderRadius: 8
-            }]
-        }
+    const grouped = {};
+
+    data.forEach(item => {
+        const name = item.company || "Unknown";
+
+        if (!grouped[name]) grouped[name] = 0;
+        grouped[name] += Number(item.total_net || 0);
     });
+
+    const top5 = Object.entries(grouped)
+        .map(([company, total]) => ({ company, total }))
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 5);
+
+    let html = "";
+
+    top5.forEach((x, i) => {
+
+        const sizeClass = i === 0 ? "big" : "small";
+
+        html += `
+            <div class="top-card ${sizeClass}">
+                <div class="top-rank">#${i + 1}</div>
+                <div class="top-name">${x.company}</div>
+                <div class="top-value">${x.total.toLocaleString()} SAR</div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+// =====================================================
+function createTopSubsList(data) {
+
+    const container = document.getElementById("topSubsList");
+    if (!container) return;
+
+    const grouped = {};
+
+    data.forEach(item => {
+        const name = item.company || "Unknown";   // ✅ FIXED
+
+        if (!grouped[name]) grouped[name] = 0;
+
+        grouped[name] += Number(item.total_net || 0);
+    });
+
+    const top5 = Object.entries(grouped)
+        .map(([name, total]) => ({ name, total }))
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 5);
+
+    let html = "";
+
+    top5.forEach(x => {
+        html += `
+            <div class="top-card">
+                <div class="top-card-inner">
+                    <div class="top-name">${x.name}</div>
+                    <div class="top-value">${x.total.toLocaleString()}</div>
+                    <div class="top-currency">SAR</div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
 }
 
 // =====================================================
@@ -304,58 +461,40 @@ function createTypeChart(data) {
         data: {
             labels: Object.keys(group),
             datasets: [{
-                data: Object.values(group),
-                backgroundColor: ["#3b82f6","#10b981","#f59e0b","#ef4444"]
-            }]
-        }
-    });
-}
-
-// =====================================================
-function createFinanceChart(data) {
-
-    const ctx = getCtx("financeChart");
-    if (!ctx) return;
-
-    window.financeChart = new Chart(ctx, {
-        type: "bar",
-        data: {
-            labels: ["Work","Net","Retention","Advance"],
-            datasets: [{
-                data: [
-                    sum(data,"total_work"),
-                    sum(data,"total_net"),
-                    sum(data,"total_retention"),
-                    sum(data,"total_advance")
-                ],
-                backgroundColor: ["#3b82f6","#22c55e","#f59e0b","#ef4444"]
-            }]
-        }
-    });
-}
-
-// =====================================================
-function createRetentionChart(data) {
-
-    const ctx = getCtx("retentionChart");
-    if (!ctx) return;
-
-    window.retentionChart = new Chart(ctx, {
-        type: "bar",
-        data: {
-            labels: data.map(x => x.subcontractor || "Unknown"),
-            datasets: [
-                {
-                    label: "Retention",
-                    data: data.map(x => x.total_retention),
-                    backgroundColor: "#f59e0b"
-                },
-                {
-                    label: "Deduction",
-                    data: data.map(x => x.total_deduction),
-                    backgroundColor: "#ef4444"
+    data: Object.values(group),
+    backgroundColor: [
+        "#3b82f6",
+        "#10b981",
+        "#f59e0b",
+        "#ef4444",
+        "#8b5cf6"
+    ],
+    borderColor: "#transparent",   // ✅ ADD THIS
+    borderWidth: 0,           // 🔥 slightly thicker = premium look
+    hoverOffset: 8            // 🔥 smooth hover pop
+}]
+        },
+        options: {
+            cutout: "70%", // 🔥 premium donut
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+    enabled: true,
+    mode: 'index',
+    intersect: false,
+    backgroundColor: "#0f172a",
+    titleColor: "#fff",
+    bodyColor: "#e5e7eb",
+    borderColor: "none",
+    borderWidth: 1
+},
+                scales: {
+                x: { display: false },
+                y: { display: false
+                    
                 }
-            ]
+            }
+            }
         }
     });
 }
@@ -366,47 +505,180 @@ function createTrendChart(data) {
     const ctx = getCtx("trendChart");
     if (!ctx) return;
 
+    const top10 = [...data]
+        .sort((a, b) => b.total_net - a.total_net)
+        .slice(0, 100);
+
+    // 🔥 GRADIENTS
+    const gradNet = ctx.createLinearGradient(0, 0, 0, 300);
+    gradNet.addColorStop(0, "rgba(34,197,94,0.5)");
+    gradNet.addColorStop(1, "rgba(34,197,94,0)");
+
+    const gradRet = ctx.createLinearGradient(0, 0, 0, 300);
+    gradRet.addColorStop(0, "rgba(245,158,11,0.5)");
+    gradRet.addColorStop(1, "rgba(245,158,11,0)");
+
+    const gradDed = ctx.createLinearGradient(0, 0, 0, 300);
+    gradDed.addColorStop(0, "rgba(239,68,68,0.5)");
+    gradDed.addColorStop(1, "rgba(239,68,68,0)");
+
     window.trendChart = new Chart(ctx, {
         type: "line",
         data: {
-            labels: data.map(x => x.subcontractor || "Unknown"),
+            labels: top10.map(x => `${x.company} | ${x.subcontractor}`),
             datasets: [
                 {
-                    label: "Work",
-                    data: data.map(x => x.total_work),
-                    borderColor: "#3b82f6",
-                    tension: 0.4
+                    label: "Net",
+                    data: top10.map(x => x.total_net),
+                    borderColor: "#22c55e",
+                    backgroundColor: gradNet,
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 1
                 },
                 {
-                    label: "Net",
-                    data: data.map(x => x.total_net),
-                    borderColor: "#22c55e",
-                    tension: 0.4
+                    label: "Retention",
+                    data: top10.map(x => x.total_retention),
+                    borderColor: "#f59e0b",
+                    backgroundColor: gradRet,
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 1
+                },
+                {
+                    label: "Deduction",
+                    data: top10.map(x => x.total_deduction),
+                    borderColor: "#ef4444",
+                    backgroundColor: gradDed,
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 1
                 }
             ]
+        },
+        options: {
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+    enabled: true,
+    mode: 'index',
+    intersect: false,
+    backgroundColor: "#0f172a",
+    titleColor: "#fff",
+    bodyColor: "#e5e7eb",
+    borderColor: "#334155",
+    borderWidth: 1
+}
+            },
+            scales: {
+                x: { display: false },
+                y: { display: false
+                    
+                }
+            }
         }
     });
 }
 
-// =====================================================
-function createCertChart(data) {
+function createRetentionChart(data) {
 
-    const ctx = getCtx("certChart");
+    const ctx = getCtx("retentionChart");
     if (!ctx) return;
 
-    window.certChart = new Chart(ctx, {
+    const top10 = [...data]
+        .sort((a, b) => b.total_retention - a.total_retention)
+        .slice(0, 30);
+
+    window.retentionChart = new Chart(ctx, {
         type: "bar",
         data: {
-            labels: data.map(x => x.subcontractor || "Unknown"),
-            datasets: [{
-                label: "Certificates",
-                data: data.map(x => x.cert_count),
-                backgroundColor: "#8b5cf6"
-            }]
+            labels: top10.map(x => `${x.company} | ${x.subcontractor}`),
+            
+            datasets: [
+                {
+                    data: top10.map(x => x.total_retention),
+                    backgroundColor: "#f59e0b",
+                    borderRadius: 6
+                },
+                {
+                    data: top10.map(x => x.total_deduction),
+                    backgroundColor: "#ef4444",
+                    borderRadius: 15
+                }
+            ]
+        },
+        options: {
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+    enabled: true,
+    mode: 'index',
+    intersect: false,
+    backgroundColor: "#0f172a",
+    titleColor: "#fff",
+    bodyColor: "#e5e7eb",
+    borderColor: "#334155",
+    borderWidth: 1
+}
+            },
+            scales: {
+                x: { display: false },
+                y: { display: false
+                    
+                }
+            }
         }
     });
 }
 
+function renderWorkTypeCards(data) {
+    const container = document.getElementById("workTypeCards");
+    if (!container) return;
+
+    const grouped = {};
+
+    // ⚠️ USE RAW DATA (VERY IMPORTANT)
+    const raw = getFilteredRawData();
+
+    raw.forEach(item => {
+        const type = item.work_type || "Unknown";
+
+        if (!grouped[type]) {
+            grouped[type] = {
+                certs: new Set(),
+                subs: new Set()
+            };
+        }
+
+        // ✅ UNIQUE CERTIFICATE (use real field)
+        grouped[type].certs.add(item.id || item.payment_id || item.invoice_no);
+
+        // ✅ UNIQUE SUBCONTRACTOR
+        grouped[type].subs.add(item.subcontractor_name);
+    });
+
+    let html = "";
+
+    Object.keys(grouped).forEach(type => {
+        html += `
+            <div class="work-card-premium">
+                <div class="card-top">${type}</div>
+                <div class="card-main">${grouped[type].certs.size}</div>
+                <div class="card-bottom">${grouped[type].subs.size} Subs</div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
 // =====================================================
 // TABLE
 // =====================================================
@@ -458,7 +730,7 @@ function fixArabic(text) {
     return text.split("").reverse().join("");
 }
 
-// =====================================================
+
 // =====================================================
 // PDF EXPORT (ADVANCED)
 // =====================================================
@@ -466,188 +738,156 @@ async function generatePDF() {
 
     const data = applyFilterData();
 
+    // wait charts render
+    await new Promise(r => setTimeout(r, 800));
+
     // ================================
     // 🔷 CAPTURE CHARTS
     // ================================
     function getChartImage(id) {
-        const canvas = document.getElementById(id);
-        if (!canvas) return "";
-        return canvas.toDataURL("image/png");
-    }
-
-    const charts = [
-        getChartImage("topSubsChart"),
-        getChartImage("typeChart"),
-        getChartImage("financeChart"),
-        getChartImage("retentionChart"),
-        getChartImage("trendChart"),
-        getChartImage("certChart")
-    ];
-
-    // ================================
-    // 🔷 BUILD HTML
-    // ================================
-    let html = `
-    <html>
-    <head>
-    <style>
-
-    body {
-        font-family: 'Amiri', serif;
-        padding:20px;
-        direction: rtl;
-    }
-
-    h1,h2 {
-        text-align:center;
-    }
-
-    .cover {
-        text-align:center;
-        margin-top:80px;
-    }
-
-    .header-logo {
-        position:absolute;
-        top:10px;
-        right:20px;
-        width:120px;
-    }
-
-    .chart-grid {
-        display:grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap:10px;
-        margin-top:20px;
-    }
-
-    .chart-box {
-        border:1px solid #ddd;
-        padding:5px;
-        text-align:center;
-    }
-
-    .chart-box img {
-        width:100%;
-        height:180px;
-        object-fit:contain;
-    }
-
-    table {
-        width:100%;
-        border-collapse:collapse;
-        margin-top:15px;
-    }
-
-    th {
-        background:#1f4e79;
-        color:white;
-    }
-
-    td, th {
-        border: none;
-        padding:5px;
-        text-align:center;
-        font-size:12px;
-    }
-    td {
-    color: #000000;
+    const canvas = document.getElementById(id);
+    if (!canvas) return "";
+    return canvas.toDataURL("image/png");
 }
 
-    .page {
-        page-break-after: always;
-    }
-
-    </style>
-    </head>
-
-    <body>
-
-    <!-- ================= COVER ================= -->
-    <div class="cover page">
-        <img src="assets/logo2.png" width="300"><br><br>
-
-        <h1>NAM-153VILLAS-040624</h1>
-        <p>Subcontractors | Payment Certificates Report</p>
-
-        <br><br>
-
-        <p>Prepared by: Eng. Tanveer Ahmad</p>
-        <p>Date: ${new Date().toLocaleDateString()}</p>
-    </div>
-
-    <!-- ================= MAIN ================= -->
-    <div>
-
-    <img src="assets/nam.png" class="header-logo">
-
-    <h2>📊 Analysis Charts</h2>
-
-    <div class="chart-grid">
-        ${charts.map(img => `
-            <div class="chart-box">
-                <img src="${img}">
-            </div>
-        `).join("")}
-    </div>
-
-    <h2>Summary</h2>
-
-    <table>
-        <tr>
-            <th>Total Work</th>
-            <th>Net</th>
-            <th>Retention</th>
-            <th>Advance</th>
-        </tr>
-        <tr>
-            <td>${format(sum(data,"total_work"))}</td>
-            <td>${format(sum(data,"total_net"))}</td>
-            <td>${format(sum(data,"total_retention"))}</td>
-            <td>${format(sum(data,"total_advance"))}</td>
-        </tr>
-    </table>
-
-    <h2>Details</h2>
-
-    <table>
-        <tr>
-            <th>Company</th>
-            <th>Subcontractor</th>
-            <th>Cert</th>
-            <th>Type</th>
-            <th>Work</th>
-            <th>Deduction</th>
-            <th>Refund</th>
-            <th>Retention</th>
-            <th>Net</th>
-        </tr>
-
-        ${data.map(x => `
-        <tr>
-            <td>${x.company}</td>
-            <td>${x.subcontractor}</td>
-            <td>${x.cert_count}</td>
-            <td>${x.work_type}</td>
-            <td>${format(x.total_work)}</td>
-            <td>${format(x.total_deduction)}</td>
-            <td>${format(x.total_refund)}</td>
-            <td>${format(x.total_retention)}</td>
-            <td>${format(x.total_net)}</td>
-        </tr>
-        `).join("")}
-
-    </table>
-
-    </div>
-
-    </body>
-    </html>
-    `;
+    
 
     // ================================
-    // 🔷 OPEN PRINT WINDOW
+    // 🔷 BUILD HTML (PREMIUM)
     // ================================
+    let html = `
+<html>
+<head>
+<style>
+
+body {
+    font-family: Arial;
+    background:#fff;
+    color:#000;
+    padding:20px;
+}
+
+h1,h2 {
+    text-align:center;
+    margin:10px 0;
+}
+
+/* COMMON */
+.box {
+    padding: 8px;
+    background: transparent;
+    border: none;        /* ❌ REMOVE BORDER */
+    box-shadow: none;    /* ❌ REMOVE SHADOW */
+}
+
+/* IMAGE */
+.box img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.chart-box img {
+    width:100%;
+    height:180px;
+    object-fit:contain;
+}
+
+/* ===== TABLE ===== */
+table {
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+th, td {
+    border:1px solid #dadada;
+    padding:5px;
+    font-size:11px;
+    text-align:center;
+}
+
+th {
+    background:#f0f0f0;
+    font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- COVER -->
+<div style="text-align:center; margin-top:100px;">
+    <img src="assets/logo2.png" width="250"><br><br>
+
+    <h1>NAM-153VILLAS-040624</h1>
+    <p>Subcontractors | Payment Certificates Report</p>
+
+    <br><br>
+
+    <p>Prepared by: Eng. Tanveer Ahmad</p>
+    <p>Date: ${new Date().toLocaleDateString()}</p>
+</div>
+
+<div style="page-break-after:always;"></div>
+
+
+
+<!-- SUMMARY -->
+<h2>Summary</h2>
+
+<table>
+<tr>
+    <th>Advance</th>
+    <th>Retention</th>
+    <th>Net</th>
+    <th>Total Work</th>
+</tr>
+<tr>
+    <td>${format(sum(data,"total_advance"))}</td>
+    <td>${format(sum(data,"total_retention"))}</td>
+    <td>${format(sum(data,"total_net"))}</td>
+    <td>${format(sum(data,"total_work"))}</td>
+</tr>
+</table>
+
+<!-- DETAILS -->
+<h2>Details</h2>
+
+<table>
+<tr>
+    <th>Net</th>
+    <th>Retention</th>
+    <th>Refund</th>
+    <th>Deduction</th>
+    <th>Work</th>
+    <th>Type</th>
+    <th>Cert</th>
+    <th>Subcontractor</th>
+    <th>Company</th>
+</tr>
+
+${data.map(x => `
+<tr>
+    <td>${format(x.total_net)}</td>
+    <td>${format(x.total_retention)}</td>
+    <td>${format(x.total_refund)}</td>
+    <td>${format(x.total_deduction)}</td>
+    <td>${format(x.total_work)}</td>
+    <td>${x.work_type}</td>
+    <td>${x.cert_count}</td>
+    <td>${x.subcontractor}</td>
+    <td>${x.company}</td>
+</tr>
+`).join("")}
+
+</table>
+
+</body>
+</html>
+`;
+
     const win = window.open("", "", "width=1200,height=800");
     win.document.write(html);
     win.document.close();

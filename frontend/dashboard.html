@@ -168,6 +168,7 @@ button {
     margin: 5px 0 0;
 }
 
+
 </style>
 </head>
 
@@ -196,7 +197,8 @@ button {
     </div>
 
 </div>
-
+<div id="workTypeSummary" class="ai-summary-small"></div>
+<hr>
 <!-- ================= FILTERS ================= -->
 <div class="filters">
 
@@ -220,7 +222,7 @@ button {
     <div class="kpi">Retention<br><span id="total_retention"></span></div>
     <div class="kpi">Deductions<br><span id="total_deduction"></span></div>
     <div class="kpi">Subcontractors<br><span id="total_subs"></span></div>
-
+    
     <!-- AI FULL WIDTH -->
     <div class="ai-box">
 
@@ -230,6 +232,8 @@ button {
             <span>⋯</span>
         </div>
     </div>
+
+    
 
     <div class="ai-content">
         <div id="ai_summary" class="ai-text"></div>
@@ -243,39 +247,37 @@ button {
     <div class="mini">Top Sub</div>
     <div class="mini">Retention %</div>
     <div class="mini">Health</div>
-
 </div>
+<hr>
 
 
+<div class="dashboard-custom">
 
-<!-- ================= CHART ROW 1 ================= -->
-<div class="chart-grid">
-    <div class="chart">
-        <canvas id="topSubsChart"></canvas>
-    </div>
-
-    <div class="chart">
-        <canvas id="typeChart"></canvas>
-    </div>
-
-    <div class="chart">
-        <canvas id="financeChart"></canvas>
-    </div>
-</div>
-
-<!-- ================= CHART ROW 2 ================= -->
-<div class="chart-grid-2">
-    <div class="chart">
-        <canvas id="retentionChart"></canvas>
-    </div>
-
-    <div class="chart">
+    <!-- BIG LEFT -->
+    <div class="chart big">
         <canvas id="trendChart"></canvas>
     </div>
 
-    <div class="chart">
-        <canvas id="certChart"></canvas>
+    <!-- TOP RIGHT SMALL -->
+    <div class="chart small-top">
+        <canvas id="typeChart"></canvas>
     </div>
+    
+    <!-- RIGHT PANEL (FULL HEIGHT) -->
+    <div class="chart right-panel">
+        <div id="workTypeCards" class="worktype-cards"></div>
+    </div>
+
+    <!-- BOTTOM LEFT SMALL -->
+    <div class="chart small-bottom">
+        <canvas id="retentionChart"></canvas>
+    </div>
+
+    <!-- BOTTOM CENTER BIG -->
+    <div class="chart big-bottom">
+        <div id="topSubsList" class="top-subs-grid"></div>
+    </div>
+
 </div>
 
 <!-- ================= TABLE ================= -->

@@ -1,3 +1,12 @@
+:root {
+    --text-primary: #1f2937;     /* dark text for light mode */
+    --text-secondary: #4b5563;
+}
+
+body.dark {
+    --text-primary: #e5e7eb;     /* light text for dark mode */
+    --text-secondary: #9ca3af;
+}
 /* ================= GLOBAL ================= */
 body {
     font-family: "Segoe UI", Arial, sans-serif;
@@ -67,7 +76,6 @@ body {
 
 /* ================= HEADER ================= */
 .header {
-    position: sticky;
     top: 0;
     background: #F5F7FA;
     z-index: 999;
@@ -294,7 +302,7 @@ thead th {
 /* ================= FINAL FILTER BAR ================= */
 .filters {
     position: sticky;
-    top: 150px;
+    top: 0px;
     z-index: 1000;
 
     display: grid;
@@ -639,4 +647,299 @@ body.dark-mode .filters select {
     background: #273449;
     color: #fff;
     border: 1px solid #334155;
+}
+body.dark-mode #workTypeSummary{
+    color: #a4afc5;
+}
+.ai-summary-small {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #1f2a44;
+    line-height: 1.6;
+    text-align: left;
+    opacity: 0.6;
+    margin-left: 15px;
+    letter-spacing: 1.5px;
+}
+body.dark-mode .mini{
+    color: #a4afc5;
+    
+}
+.mini{
+    color: #1f2a44;
+    opacity: 0.6;
+}
+
+ 
+
+.dashboard-custom {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+
+    /* 🔥 THIS IS THE KEY */
+    column-gap: 16px;   /* 👉 horizontal gap (LEFT ↔ RIGHT) */
+    row-gap: 16px;      /* 👉 vertical gap (TOP ↕ BOTTOM) */
+
+    align-items: start;
+}
+
+/* ================= ROW 1 ================= */
+
+/* BIG LEFT (50%) */
+.chart.big {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+/* SMALL TOP (25%) */
+.chart.small-top {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+/* RIGHT PANEL (25% FULL HEIGHT) */
+.right-panel {
+    grid-column: 3;      /* 🔥 FIX POSITION */
+    grid-row: 1 / span 2; /* 🔥 FULL HEIGHT */
+
+    min-height: 600px;
+    height: auto;
+
+    display: flex;
+    flex-direction: column;
+}
+
+/* ================= ROW 2 ================= */
+
+/* SMALL LEFT (25%) */
+.chart.small-bottom {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+/* BIG CENTER (50%) */
+.chart.big-bottom {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+/* ================= COMMON ================= */
+
+.chart {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    border-radius: 14px;
+    padding: 12px; /* 🔥 little more breathing space */
+    height: 300px;
+}
+
+/* FIX CHART SCALE */
+.chart canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* RIGHT PANEL GRID */
+.worktype-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+
+    /* 🔥 IMPORTANT */
+    height: 100%;
+    align-content: start;   /* prevents stretching */
+}
+
+/* MOBILE */
+@media (max-width: 1000px) {
+    .dashboard-custom {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+
+    .chart.right-panel {
+        grid-row: auto;
+        height: auto;
+    }
+}
+.work-card-premium {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    border-radius: 14px;
+    padding: 14px;
+    height: auto;
+    min-height: 90px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    position: relative;
+    overflow: hidden;
+
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+/* TOP STRIP */
+.work-card-premium::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 4px;
+    width: 100%;
+    background: linear-gradient(90deg, #3b82f6, #22c55e, #f59e0b);
+}
+
+/* TOP LABEL */
+.card-top {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+/* MAIN VALUE */
+.card-main {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+/* SUB TEXT */
+.card-bottom {
+    font-size: 12px;
+    color: #cbd5e1;
+}
+
+/* COLOR STRIP */
+.work-card-premium::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 4px;
+    width: 100%;
+    background: linear-gradient(90deg, #3b82f6, #22c55e, #f59e0b);
+}
+
+.sub-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    padding: 12px 16px;
+    border-radius: 14px;
+
+    transition: 0.3s;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.sub-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+.top-subs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px;
+}
+
+.top-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #22c55e;
+}
+
+.top-currency {
+    font-size: 9px;
+    color: #94a3b8;
+}
+/* GRID LAYOUT */
+.top-subs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    height: 100%; /* 🔥 fill container */
+}
+
+/* #1 BIG CARD */
+.top-card.big {
+    grid-column: 1 / span 2;
+}
+
+/* NORMAL CARDS */
+.top-card.small {
+    height: 90px;
+}
+
+/* CARD DESIGN */
+.top-card {
+    background: linear-gradient(135deg, #020617, #1e293b);
+    border-radius: 14px;
+    padding: 10px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    gap: 4px;
+
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: 0.3s;
+
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.top-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+.top-rank {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    font-size: 12px;
+    color: #94a3b8;
+}
+#workTypeCards:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+
+}
+#topSubsList {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(3, 1fr);
+    gap: 8px;              /* 🔥 reduce gap */
+    height: 100%;
+    overflow: hidden;      /* 🔥 PREVENT overflow */
+}
+
+.top-card-inner {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.top-name {
+    font-size: 10px;
+    line-height: 1.1;
+    color: #cbd5e1;
+
+    display: -webkit-box;
+    
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+/* 🔥 REDUCE LEFT SIDE GRAPH HEIGHT */
+.chart.big,
+.chart.small-top {
+    height: 260px !important;
+       /* adjust 200–240 as you like */
+}
+.highlight {
+    color: #ff0202f8; 
 }

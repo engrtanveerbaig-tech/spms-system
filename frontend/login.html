@@ -1,63 +1,77 @@
-<body>
+<!DOCTYPE html>
+<html>
+<head>
+<title>SPMS Login</title>
 
 <style>
-    body {
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        height:100vh;
-        font-family:Arial;
-        background:#0f172a;
-        color:white;
-        text-align:center;
-    }
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #0f172a;
+    font-family: Arial;
+}
 
-    .box {
-        max-width:400px;
-    }
+.login-box {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(15px);
+    padding: 30px;
+    border-radius: 16px;
+    width: 320px;
+    text-align: center;
+}
 
-    h1 {
-        font-size:28px;
-        margin-bottom:10px;
-    }
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: none;
+}
 
-    p {
-        opacity:0.7;
-    }
-
-    .timer {
-        margin-top:20px;
-        font-size:26px;
-        color:#38bdf8;
-        font-weight:bold;
-    }
+button {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg,#3b82f6,#22c55e);
+    border: none;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+}
 </style>
+</head>
 
-<div class="box">
-    <h1>🚧 System Under Maintenance</h1>
-    <p>We are upgrading the system.<br>Please check back soon.</p>
+<body>
 
-    <div class="timer" id="timer">Loading...</div>
+<div class="login-box">
+    <h2 style="color:white;">SPMS Login</h2>
+
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
+
+    <button onclick="login()">Login</button>
 </div>
 
 <script>
-    // ⏱ Set countdown (in seconds)
-    let seconds = 5000; // 30 minutes
+function login() {
+    const u = document.getElementById("username").value;
+    const p = document.getElementById("password").value;
 
-    function updateTimer() {
-        let min = Math.floor(seconds / 60);
-        let sec = seconds % 60;
-
-        document.getElementById("timer").innerText =
-            min + "m " + (sec < 10 ? "0" : "") + sec + "s";
-
-        if (seconds > 0) {
-            seconds--;
-        }
+    // 🔥 SIMPLE ROLE SYSTEM
+    if (u === "admin" && p === "123") {
+        localStorage.setItem("role", "admin");
+        window.location.href = "index.html";
+    } 
+    else if (u === "viewer" && p === "123") {
+        localStorage.setItem("role", "viewer");
+        window.location.href = "index.html";
+    } 
+    else {
+        alert("Invalid login");
     }
-
-    updateTimer();
-    setInterval(updateTimer, 1000);
+}
 </script>
 
 </body>
+</html>

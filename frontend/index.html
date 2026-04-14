@@ -4,7 +4,11 @@
 <title>SPMS System</title>
 
 <!-- ✅ EXTERNAL CSS -->
-
+<script>
+if (!localStorage.getItem("role")) {
+    window.location.href = "login.html";
+}
+</script>
 <style>
     /* ================= GLOBAL ================= */
 body {
@@ -33,9 +37,11 @@ body {
 }
 
 .logo {
-    font-size: 22px;
+    font-size: 50px;
+    opacity: 0.8;
     font-weight: bold;
     margin-bottom: 50px;
+
 }
 
 .menu-item {
@@ -64,19 +70,20 @@ body {
 /* ================= LOGOUT ================= */
 .logout {
     margin-top: auto;   /* ✅ push to bottom */
-    padding: 12px;
-    background: red;
+    padding: 2px;
+    background: rgb(213, 28, 28);
     border: none;
     color: white;
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: 8px;
 
-    width: 100%;        /* ✅ full width */
+    width: 80%;        /* ✅ full width */
     
 }
 
 .logout:hover {
-    background: darkred;
+    background: rgb(255, 255, 255);
+    color: black;
 }
 
 /* ================= SEARCH MODAL ================= */
@@ -94,45 +101,72 @@ body {
 
 /* ===== BOX ===== */
 .search-box {
-    background: #ffffff;
-    padding: 25px;
-    border-radius: 14px;
+    background: rgba(255,255,255,0.08);   /* 🔥 transparent */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    border-radius: 50px;
     width: 520px;
     max-width: 90%;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
-    animation: scaleIn 0.25s ease;
+
+    padding: 25px;
+
+    border: 1px solid rgba(255,255,255,0.15);
+
+    box-shadow: 
+        0 8px 32px rgba(0,0,0,0.3),
+        inset 0 1px 0 rgba(255,255,255,0.1);
+     position: relative;   
 }
+
 /* ===== SEARCH TYPE TOGGLE ===== */
 .search-type-toggle {
-    display: flex;
-    margin-bottom: 15px;
-    background: #f1f3f5;
-    border-radius: 8px;
-    overflow: hidden;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 4px;
 }
 .search-type-toggle button {
-    flex: 1;
-    padding: 10px;
-    border: none;
     background: transparent;
-    cursor: pointer;
-    font-weight: 500;
-    transition: 0.2s;
+    color: rgba(255,255,255,0.6);
+    border-radius: 50px;
 }
 .search-type-toggle button.active {
-    background: #1f4e79;
+    background: linear-gradient(135deg, #3b82f6, #22c55e);
     color: white;
 }
 /* ================= INPUT ================= */
 /* ===== INPUT ===== */
 .search-box input {
-    width: 100%;
-    padding: 14px;
-    font-size: 16px;
-    border: 1px solid #000000;
-    border-radius: 8px;
+    width: 90%;              /* 🔥 reduce width */
+    margin: 15px auto;       /* 🔥 center inside box */
+    display: block;
+
+    padding: 12px 16px;
+
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
+
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 50px;
+
+    color: white;
+    font-size: 15px;
+
+    direction: rtl;          /* 🔥 Arabic fix */
+    text-align: right;
+
+    line-height: 1.8;        /* 🔥 spacing fix */
+
     outline: none;
-    transition: 0.2s;
+}
+
+.search-box input::placeholder {
+    color: rgba(255,255,255,0.6);
+}
+
+.search-box input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 10px rgba(59,130,246,0.5);
 }
 
 .search-box input:focus {
@@ -142,31 +176,46 @@ body {
 
 /* ===== SUGGESTIONS ===== */
 #popupSuggestions {
-    margin-top: 10px;
-    max-height: 250px;
+    width: 95%;
+    margin: 0 auto;
+
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px);
+    color: #f5f7fa;
+
+    border-radius: 0px;
+    border: 1px solid rgba(255,255,255,0.15);
+
+    max-height: 180px;
     overflow-y: auto;
 
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
 
 
-/* ITEM */
 #popupSuggestions div {
-    padding: 12px 14px;
-    cursor: pointer;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 10px 16px;
 
-    color: #333;                 /* ✅ FIX TEXT COLOR */
     font-size: 14px;
+    line-height: 1.8;
+
+    direction: rtl;
+    text-align: right;
+
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+
+    transition: 0.2s;
 }
 
-/* HOVER */
-#popupSuggestions div:hover {
-    background: #1f4e79;
-    color: white;
+#popupSuggestions div:last-child {
+    border-bottom: none;
 }
+
+#popupSuggestions div:hover {
+    background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(34,197,94,0.3));
+}
+
+
 
 /* ================= BUTTONS ================= */
 .search-footer {
@@ -179,17 +228,21 @@ body {
     text-align: center;
 }
 .search-footer button {
-    padding: 10px 20px;
-    border: none;
-    background: #1f4e79;
+    margin-top: 10px;
+
+    padding: 10px 24px;
+    border-radius: 12px;
+
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+
     color: white;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
+
+    transition: 0.3s;
 }
 
 .search-footer button:hover {
-    background: #163b5c;
+    background: linear-gradient(135deg, #3b82f6, #22c55e);
 }
 .sidebar-content::-webkit-scrollbar {
     width: 6px;
@@ -213,12 +266,14 @@ body {
 </style>
 </head>
 
-<body>
+<body onload="initPage()">
+
+
 
 <!-- SIDEBAR -->
 <div class="sidebar">
 
-    <div class="logo">SPMS</div>
+    
 
     <!-- 🔥 SCROLLABLE AREA -->
     <div class="sidebar-content">
@@ -229,7 +284,12 @@ body {
         <div id="payMenu" class="menu-item" onclick="loadPage('payment.html')">💰</div>
         <div class="menu-item" onclick="toggleTheme()">🌙</div>
 
+        
     </div>
+    <div class="logo">S<br><br>
+
+    P<br><br>
+S<br></div>
 
     <!-- 🔥 ALWAYS AT BOTTOM -->
     <button class="logout" onclick="logout()">Logout</button>
@@ -280,7 +340,7 @@ body {
 
         <!-- 🔘 ACTION -->
         <div class="search-footer">
-            <button onclick="confirmSearch()">Search</button>
+            <button onclick="confirmSearch()">Search / بحث</button>
         </div>
 
     </div>
