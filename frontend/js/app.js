@@ -31,7 +31,13 @@ document.addEventListener("click", function(e) {
 
 // ================= APPLY ROLE UI =================
 function applyRoleUI() {
-    const role = localStorage.getItem("role");
+    const token = localStorage.getItem("token");
+const role = localStorage.getItem("role");
+
+if (!token) {
+    window.location.href = "login.html";
+    return;
+}
 
     const subMenu = document.getElementById("subMenu");
     const payMenu = document.getElementById("payMenu");
@@ -77,9 +83,15 @@ async function loadScript(src) {
 // ================= LOAD PAGE =================
 async function loadPage(page) {
 
-    const role = localStorage.getItem("role");
+    const token = localStorage.getItem("token");
+const role = localStorage.getItem("role");
 
-    if (!role) {
+if (!token) {
+    window.location.href = "login.html";
+    return;
+}
+
+if (!token) {
     alert("Please login");
     window.location.href = "login.html";
     return;
@@ -144,6 +156,7 @@ if (role === "viewer" && !page.includes("dashboard")) {
 
 // ================= DEFAULT LOAD =================
 loadPage("./dashboard.html");
+loadSearchData();
 
 // ================= LOGOUT =================
 
@@ -154,19 +167,6 @@ loadPage("./dashboard.html");
 
 let GLOBAL_DATA = [];
 let FILTERED_DATA = [];
-
-// ================= LOAD GLOBAL DATA =================
-async function loadGlobalData() {
-    try {
-        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all");
-        GLOBAL_DATA = await res.json();
-    } catch (err) {
-        console.error("Global search load error", err);
-    }
-}
-
-// load once
-loadGlobalData();
 
 // ================= HANDLE SEARCH =================
 function handleSearchInput() {
@@ -251,9 +251,15 @@ function selectSuggestion(value, type) {
 let SEARCH_DATA = [];
 
 async function loadSearchData() {
+    if (SEARCH_DATA.length > 0) return; // ✅ cache
     try {
-        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all");
+        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all", {
+    headers: {
+        "Authorization": localStorage.getItem("token")
+    }
+});
         SEARCH_DATA = await res.json();
+        GLOBAL_DATA = SEARCH_DATA; // ✅ ADD THIS
 
         console.log("SEARCH DATA LOADED:", SEARCH_DATA.length); // ✅ HERE
     } catch (err) {
