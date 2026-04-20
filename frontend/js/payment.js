@@ -37,8 +37,7 @@ function initPaymentPage() {
     document.getElementById("saveBtn").onclick = addPayment;
 
     // 🔥 ADD THESE (MISSING)
-    loadPaymentsInit(1);   // paginated table
-    loadFullData();       // full data for filters         // ✅ load table
+    loadFullData();   // ONLY load data for filters       // full data for filters         // ✅ load table
     loadSubcontractors();         // ✅ load dropdown
 
     document.getElementById("subcontractor_form")
@@ -54,6 +53,8 @@ setTimeout(() => {
         loadSubcontractors(); // will auto select first
     }
 }, 200);
+
+document.getElementById("table").innerHTML = "";
 }
 
 
@@ -292,7 +293,8 @@ if (!isEdit) {
 }
 
 // reload table
-await loadPaymentsInit();
+await loadFullData();
+applyFilter();
 }
 
 // ================= LOAD =================
@@ -305,14 +307,6 @@ async function loadFullData() {
 }
 let currentPage = 1;
 
-async function loadPaymentsInit(page = 1) {
-    currentPage = page;
-
-    const res = await fetch(`${window.API}/api/payments/all?page=${page}`);
-    const data = await res.json();
-
-    renderTable(data);
-}
 function loadBulkOptions() {
 
     const companies = [...new Set(originalData.map(p => p.company_name))];
@@ -391,27 +385,32 @@ function applyFilter() {
 
     const f = id => document.getElementById(id)?.value;
 
-    const filtered = originalData.filter(p =>
-        (!f("f_scid") || p.subcontractor_id == f("f_scid")) &&
-        (!f("f_project") || p.project_name == f("f_project")) &&
-        (!f("f_contract") || p.contract_number == f("f_contract")) &&
-        (!f("f_company") || p.company_name == f("f_company")) &&   // ✅ FIX
-        (!f("f_sub") || p.subcontractor_name == f("f_sub")) &&
-        (!f("f_work") || p.work_type == f("f_work")) &&
-        (!f("f_cert") || p.certificate_no == f("f_cert")) &&       // ✅ FIX
+    const isAllEmpty =
+        !f("f_scid") &&
+        !f("f_project") &&
+        !f("f_contract") &&
+        !f("f_company") &&
+        !f("f_sub") &&
+        !f("f_work") &&
+        !f("f_cert");
 
-        (!f("f_workval") || p.work_value == f("f_workval")) &&
-        (!f("f_withdrawn") || p.work_withdrawn == f("f_withdrawn")) &&
-        (!f("f_deduction") || p.deduction == f("f_deduction")) &&
-        (!f("f_refund") || p.refund == f("f_refund")) &&
-        (!f("f_after") || p.after_deduction == f("f_after")) &&
-        (!f("f_vat") || p.vat_amount == f("f_vat")) &&
-        (!f("f_retention") || p.retention_amount == f("f_retention")) &&
-        (!f("f_advance") || p.advance_deduction == f("f_advance")) && // ✅ FIX
-        (!f("f_net") || p.net_payment == f("f_net"))
-    );
+    let data = originalData;
 
-    renderTable(filtered);
+    // ✅ IF ANY FILTER SELECTED → FILTER DATA
+    if (!isAllEmpty) {
+        data = originalData.filter(p =>
+            (!f("f_scid") || p.subcontractor_id == f("f_scid")) &&
+            (!f("f_project") || p.project_name == f("f_project")) &&
+            (!f("f_contract") || p.contract_number == f("f_contract")) &&
+            (!f("f_company") || p.company_name == f("f_company")) &&
+            (!f("f_sub") || p.subcontractor_name == f("f_sub")) &&
+            (!f("f_work") || p.work_type == f("f_work")) &&
+            (!f("f_cert") || p.certificate_no == f("f_cert"))
+        );
+    }
+
+    // ✅ IF ALL FILTERS = ALL → SHOW ALL DATA
+    renderTable(data);
 }
 
 function resetFilter() {
@@ -531,7 +530,6 @@ async function deletePayment(id) {
     method: "DELETE"
 });
 
-    loadPaymentsInit();
 }
 
 // ================= PRINT =================
