@@ -297,7 +297,13 @@ if (!isEdit) {
 console.log("Payment saved, no full reload");
 // ✅ SEND TO DASHBOARD (NO RELOAD)
 if (window.updateDashboardLive) {
-    window.updateDashboardLive(data);
+    originalData.push({
+        ...data,
+        created_at: new Date().toISOString()
+    });
+
+    populateFilters(originalData);
+    applyFilter();
 }
 }
 
@@ -413,26 +419,45 @@ function applyFilter() {
         );
     }
 
-    // ✅ IF ALL FILTERS = ALL → SHOW ALL DATA
-    renderTable(data);
+    if (data.length !== originalData.length) {
+    updateDependentFilters(data);
+}
+renderTable(data);
+}
+function getFilteredDataForExport(data) {
+
+    const f = id => document.getElementById(id)?.value;
+
+    // ✅ MOVE FUNCTION HERE (OUTSIDE filter)
+    const formatDate = d => new Date(d).toISOString().slice(0,10);
+
+    return data.filter(p =>
+        (!f("f_scid") || p.subcontractor_id == f("f_scid")) &&
+        (!f("f_project") || p.project_name == f("f_project")) &&
+        (!f("f_contract") || p.contract_number == f("f_contract")) &&
+        (!f("f_company") || p.company_name == f("f_company")) &&
+        (!f("f_sub") || p.subcontractor_name == f("f_sub")) &&
+        (!f("f_work") || p.work_type == f("f_work")) &&
+        (!f("f_cert") || p.certificate_no == f("f_cert")) &&
+
+        (!f("f_workval") || p.work_value == f("f_workval")) &&
+        (!f("f_withdrawn") || p.work_withdrawn == f("f_withdrawn")) &&
+        (!f("f_deduction") || p.deduction == f("f_deduction")) &&
+        (!f("f_refund") || p.refund == f("f_refund")) &&
+        (!f("f_after") || p.after_deduction == f("f_after")) &&
+        (!f("f_vat") || p.vat_amount == f("f_vat")) &&
+        (!f("f_retention") || p.retention_amount == f("f_retention")) &&
+        (!f("f_advance") || p.advance_deduction == f("f_advance")) &&
+        (!f("f_net") || p.net_payment == f("f_net")) &&
+
+        (!f("f_date") || formatDate(p.created_at) === f("f_date"))
+    );
 }
 
 function resetFilter() {
     filter_sub.value = "";
     filter_project.value = "";
     renderTable(originalData);
-}
-
-function applyCurrentFilterForExport(data) {
-
-    const f = id => document.getElementById(id)?.value;
-
-    return data.filter(p =>
-        (!f("f_contract") || p.contract_number == f("f_contract")) &&
-        (!f("f_sub") || p.subcontractor_name == f("f_sub")) &&
-        (!f("f_work") || p.work_type == f("f_work")) &&
-        (!f("f_project") || p.project_name == f("f_project"))
-    );
 }
 
 // ================= RENDER =================
@@ -557,10 +582,7 @@ function printPayment(id) {
 // ================= EXPORT =================
 document.getElementById("exportBtn").onclick = async function () {
 
-    const res = await fetch(`${window.API}/api/payments/all-full`);
-    const data = await res.json();
-
-    const filtered = applyCurrentFilterForExport(data);
+    const filtered = getFilteredDataForExport(originalData);
 
     // ✅ SORT (PROJECT → WORK → SUB → CERT)
     filtered.sort((a, b) =>
@@ -948,9 +970,7 @@ let advanceRemaining = Number(d.advance_remaining ?? advanceAmount ?? 0);
     // CERTIFICATE
     const workType = document.getElementById("work_type_form").value;
     if (!workType) return;
-
-    const res2 = await fetch(`${window.API}/api/payments/all-full`);
-    const payments = await res2.json();
+    const payments = originalData;
 
     const filtered = payments.filter(p =>
     p.subcontractor_id == id &&
@@ -1006,6 +1026,44 @@ function populateFilters(data) {
         });
     });
 }
+function updateDependentFilters(filteredData) {
+
+    // 🔥 SAVE CURRENT FILTER VALUES FIRST
+    const currentFilters = {
+        f_company: document.getElementById("f_company")?.value,
+        f_sub: document.getElementById("f_sub")?.value,
+        f_work: document.getElementById("f_work")?.value,
+        f_contract: document.getElementById("f_contract")?.value,
+        f_cert: document.getElementById("f_cert")?.value
+    };
+
+    const map = [
+        {id:"f_company", key:"company_name"},
+        {id:"f_sub", key:"subcontractor_name"},
+        {id:"f_work", key:"work_type"},
+        {id:"f_contract", key:"contract_number"},
+        {id:"f_cert", key:"certificate_no"}
+    ];
+
+    map.forEach(f => {
+
+        const select = document.getElementById(f.id);
+        if (!select) return;
+
+        const values = [...new Set(
+            filteredData.map(x => x[f.key]).filter(v => v)
+        )];
+
+        // rebuild options
+        select.innerHTML = '<option value="">All</option>' +
+            values.map(v => `<option value="${v}">${v}</option>`).join("");
+
+        // 🔥 RESTORE PREVIOUS VALUE (IMPORTANT)
+        if (currentFilters[f.id] && values.includes(currentFilters[f.id])) {
+            select.value = currentFilters[f.id];
+        }
+    });
+}
 
 
 async function bulkDelete() {
@@ -1058,10 +1116,5 @@ window.editPayment = editPayment;
 window.printPayment = printPayment;
 })();
 window.applyGlobalFilter = function(filteredData) {
-
-    window.applyGlobalFilter = function(filteredData) {
     renderTable(filteredData);
-};
-
-    renderTable(originalData);
 };
