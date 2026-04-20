@@ -300,11 +300,16 @@ if (!isEdit) {
 console.log("Payment saved, no full reload");
 // ✅ SEND TO DASHBOARD (NO RELOAD)
 if (window.updateDashboardLive) {
-    originalData.push({
+
+    const newRow = {
         ...data,
         created_at: new Date().toISOString()
-    });
-applyFilter();
+    };
+
+    originalData.push(newRow);
+
+    // ✅ FAST UPDATE (NO FILTER REBUILD)
+    renderTable(originalData);
 }
 }
 
