@@ -40,8 +40,10 @@ function getCtx(id) {
 // LOAD DASHBOARD
 // =====================================================
 async function loadDashboard() {
+    if (dashboardLoaded) return;
+dashboardLoaded = true;
     try {
-        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all");
+        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all-full");
 
         // 🔥 HANDLE SERVER ERROR
         if (!res.ok) {
@@ -905,12 +907,27 @@ window.resetDashboard = function() {
 window.loadDashboard = loadDashboard;
 window.generateReport = generatePDF;
 })();
-setInterval(() => {
-
+//setInterval(() => {
+//
     // ❌ do not refresh if user is filtering
-    if (CURRENT_DATA.length > 0) return;
+  //  if (CURRENT_DATA.length > 0) return;
 
-    console.log("🔄 Auto refreshing dashboard...");
-    loadDashboard();
+    //console.log("🔄 Auto refreshing dashboard...");
+    //loadDashboard();
 
-}, 500000);
+//}, 500000);
+// ===============================
+// 🔥 LIVE UPDATE FROM PAYMENT PAGE
+// ===============================
+window.updateDashboardLive = function(newPayment) {
+
+    console.log("Live update received:", newPayment);
+
+    // ✅ PUSH into RAW DATA
+    RAW_DATA = [...RAW_DATA, newPayment];
+ORIGINAL_DATA = [...RAW_DATA];
+
+    // ✅ REBUILD EVERYTHING
+    buildAggregation();
+    renderAll();
+};

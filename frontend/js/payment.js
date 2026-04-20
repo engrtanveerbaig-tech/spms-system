@@ -293,8 +293,12 @@ if (!isEdit) {
 }
 
 // reload table
-await loadFullData();
-applyFilter();
+// ✅ DO NOT reload everything
+console.log("Payment saved, no full reload");
+// ✅ SEND TO DASHBOARD (NO RELOAD)
+if (window.updateDashboardLive) {
+    window.updateDashboardLive(data);
+}
 }
 
 // ================= LOAD =================
