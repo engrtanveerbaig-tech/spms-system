@@ -142,12 +142,18 @@ router.get("/all", async (req, res) => {
 
         const [rows] = await db.query(`
             SELECT 
-                p.*,
+                p.id,
+                p.certificate_no,
+                p.project_name,
+                p.work_type,
+                p.net_payment,
                 s.name AS subcontractor_name,
                 s.company_name
             FROM payment_certificates p
             LEFT JOIN subcontractors s 
             ON p.subcontractor_id = s.id
+            ORDER BY p.id DESC
+            LIMIT 50
         `);
 
         res.json(rows);
