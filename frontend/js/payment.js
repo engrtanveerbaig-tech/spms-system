@@ -395,14 +395,11 @@ function applyFilter() {
 
     const f = id => document.getElementById(id)?.value;
 
-    const isAllEmpty =
-        !f("f_scid") &&
-        !f("f_project") &&
-        !f("f_contract") &&
-        !f("f_company") &&
-        !f("f_sub") &&
-        !f("f_work") &&
-        !f("f_cert");
+    const isAllEmpty = ![
+    "f_scid","f_project","f_contract","f_company","f_sub","f_work","f_cert",
+    "f_workval","f_withdrawn","f_deduction","f_refund",
+    "f_after","f_vat","f_retention","f_advance","f_net","f_date"
+].some(id => document.getElementById(id)?.value);
 
     let data = originalData;
 
@@ -419,7 +416,11 @@ function applyFilter() {
         );
     }
 
-    if (data.length !== originalData.length) {
+    if (isAllEmpty) {
+    // 🔥 RESET ALL FILTERS TO ORIGINAL DATA
+    populateFilters(originalData);
+} else {
+    // 🔥 DEPENDENT FILTERS
     updateDependentFilters(data);
 }
 renderTable(data);
