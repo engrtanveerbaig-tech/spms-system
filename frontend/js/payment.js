@@ -4,11 +4,8 @@ if (!window.selectedProject) {
 if (!window.API) {
     window.API = "https://spms-backend-jxzn.onrender.com";
 }
-if (!window.originalData) {
-    window.originalData = [];
-}
-let originalData = window.originalData;
-window.originalData = originalData; // ✅ keep sync
+window.originalData = window.originalData || [];
+const originalData = window.originalData;
 (function () {
 
 let editId = null;
@@ -58,6 +55,7 @@ setTimeout(() => {
 }, 200);
 
 document.getElementById("table").innerHTML = "";
+initExportButton();
 }
 
 
@@ -308,15 +306,17 @@ if (window.updateDashboardLive) {
 
     originalData.push(newRow);
 
-    // ✅ FAST UPDATE (NO FILTER REBUILD)
-    renderTable(originalData);
+// ✅ ONLY ADD NEW ROW (NO FULL RENDER)
+appendRow(newRow);
 }
 }
 
 // ================= LOAD =================
 async function loadFullData() {
     const res = await fetch(`${window.API}/api/payments/all-full`);
-    originalData = await res.json();
+    const data = await res.json();
+originalData.length = 0;
+originalData.push(...data);
 
 originalData.sort((a, b) =>
     Number(a.certificate_no) - Number(b.certificate_no)
@@ -537,6 +537,34 @@ document.getElementById("t_retention").innerText = formatNumber(t_retention);
 document.getElementById("t_advance").innerText = formatNumber(t_advance);
 document.getElementById("t_net").innerText = formatNumber(t_net);
 }
+function appendRow(p) {
+
+    const table = document.getElementById("table");
+
+    const row = document.createElement("tr");
+
+    row.innerHTML =
+        "<td>"+p.subcontractor_id+"</td>"+
+        "<td>"+p.project_name+"</td>"+
+        "<td>"+(p.contract_number || "")+"</td>"+
+        "<td>"+(p.company_name || "")+"</td>"+
+        "<td>"+p.subcontractor_name+"</td>"+
+        "<td>"+p.work_type+"</td>"+
+        "<td>"+p.certificate_no+"</td>"+
+        "<td>"+formatNumber(p.work_value)+"</td>"+
+        "<td>"+formatNumber(p.work_withdrawn)+"</td>"+
+        "<td>"+formatNumber(p.deduction)+"</td>"+
+        "<td>"+formatNumber(p.refund)+"</td>"+
+        "<td>"+formatNumber(p.after_deduction)+"</td>"+
+        "<td>"+formatNumber(p.vat_amount)+"</td>"+
+        "<td>"+formatNumber(p.retention_amount)+"</td>"+
+        "<td>"+formatNumber(p.advance_deduction || 0)+"</td>"+
+        "<td>"+formatNumber(p.net_payment)+"</td>"+
+        "<td>"+new Date(p.created_at).toLocaleDateString()+"</td>"+
+        "<td><button onclick='editPayment("+p.id+")'>Edit</button></td>";
+
+    table.appendChild(row);
+}
 
 // ================= EDIT =================
 function editPayment(id) {
@@ -588,7 +616,11 @@ function printPayment(id) {
 }
 
 // ================= EXPORT =================
-document.getElementById("exportBtn").onclick = async function () {
+function initExportButton() {
+    const btn = document.getElementById("exportBtn");
+    if (!btn) return;
+
+    btn.onclick = async function () {
 
     const filtered = getFilteredDataForExport(originalData);
 
@@ -934,11 +966,11 @@ const remaining = Number(first.advance_remaining || 0);
     html += `</body></html>`;
 
     const win = window.open("", "", "width=900,height=700");
-    win.document.write(html);
-    win.document.close();
+win.document.write(html);
+win.document.close();
 
-    
-};
+}; // ✅ CLOSE onclick properly
+}
 async function onSubcontractorChange() {
 
     const id = document.getElementById("subcontractor_form").value;
@@ -1128,7 +1160,10 @@ window.bulkDelete = bulkDelete;
 window.deletePayment = deletePayment;
 window.editPayment = editPayment;
 window.printPayment = printPayment;
-})();
+window.renderTable = renderTable;
+
 window.applyGlobalFilter = function(filteredData) {
     renderTable(filteredData);
 };
+
+})();
