@@ -8,6 +8,7 @@ if (!window.originalData) {
     window.originalData = [];
 }
 let originalData = window.originalData;
+window.originalData = originalData; // ✅ keep sync
 (function () {
 
 let editId = null;
@@ -383,18 +384,6 @@ function loadBulkOptions() {
 };
 }
 
-// ================= FILTER DROPDOWN =================
-function fillFilters() {
-
-    const subs = [...new Set(originalData.map(p => p.subcontractor_name))];
-    const projects = [...new Set(originalData.map(p => p.project_name))];
-
-    filter_sub.innerHTML = "<option value=''>All</option>";
-    filter_project.innerHTML = "<option value=''>All</option>";
-
-    subs.forEach(s => filter_sub.innerHTML += `<option>${s}</option>`);
-    projects.forEach(p => filter_project.innerHTML += `<option>${p}</option>`);
-}
 
 // ================= APPLY FILTER =================
 function applyFilter() {
@@ -436,7 +425,11 @@ function applyFilter() {
 
    if (!isAllEmpty) {
     updateDependentFilters(data);
+} else {
+    // ✅ FIX: restore full dropdowns when reset
+    populateFilters(originalData);
 }
+
 renderTable(data);
 }
 function getFilteredDataForExport(data) {
@@ -1027,13 +1020,19 @@ function populateFilters(data) {
 
         if (!select) return;
 
-        select.innerHTML = '<option value="">All</option>';
+        const currentValue = select.value;
+
+select.innerHTML = '<option value="">All</option>';
 
         const values = [...new Set(data.map(x => x[f.key]).filter(v => v))];
 
         values.forEach(v => {
             select.innerHTML += `<option value="${v}">${v}</option>`;
         });
+        // ✅ restore previous selection if still valid
+if (currentValue && values.includes(currentValue)) {
+    select.value = currentValue;
+}
     });
 }
 function updateDependentFilters(filteredData) {
