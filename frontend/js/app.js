@@ -52,18 +52,23 @@ function applyRoleUI() {
 
 // ================= LOAD SCRIPT =================
 async function loadScript(src) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
 
-        // ✅ DO NOT REMOVE SCRIPT
-        const existing = document.querySelector(`script[src^="${src}"]`);
-        if (existing) {
-            resolve();
-            return;
-        }
+        // ❌ remove existing check completely (temporary fix)
+        // because it may skip broken script
 
         const s = document.createElement("script");
         s.src = src + "?v=" + Date.now();
-        s.onload = resolve;
+
+        s.onload = () => {
+            console.log("Loaded:", src);
+            resolve();
+        };
+
+        s.onerror = () => {
+            console.error("Failed to load:", src);
+            reject();
+        };
 
         document.body.appendChild(s);
     });
@@ -102,20 +107,12 @@ if (role === "viewer" && !page.includes("dashboard")) {
 
         if (page.includes("dashboard")) {
 
-    // ✅ LOAD CHART FIRST
-    await loadScript("./js/charts.min.js");
+    await loadScript("js/charts.min.js");
 
-    // 🔥 WAIT UNTIL CHART IS READY
-    let tries = 0;
-    while (typeof Chart === "undefined" && tries < 20) {
-        await new Promise(r => setTimeout(r, 50));
-        tries++;
-    }
+    console.log("Chart after load:", typeof Chart);
 
-    // ✅ THEN LOAD DASHBOARD
-    await loadScript("./js/dashboard.js");
+    await loadScript("js/dashboard.js");
 
-    // ✅ NOW SAFE TO RUN
     if (window.loadDashboard) {
         window.loadDashboard();
     }
