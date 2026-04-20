@@ -37,7 +37,8 @@ function initPaymentPage() {
     document.getElementById("saveBtn").onclick = addPayment;
 
     // 🔥 ADD THESE (MISSING)
-    loadPaymentsInit();           // ✅ load table
+    loadPaymentsInit(1);   // paginated table
+    loadFullData();       // full data for filters         // ✅ load table
     loadSubcontractors();         // ✅ load dropdown
 
     document.getElementById("subcontractor_form")
@@ -295,14 +296,22 @@ await loadPaymentsInit();
 }
 
 // ================= LOAD =================
-async function loadPaymentsInit() {
-    const res = await fetch(`${window.API}/api/payments/all`);
+async function loadFullData() {
+    const res = await fetch(`${window.API}/api/payments/all-full`);
     originalData = await res.json();
 
-    populateFilters(originalData); // ✅ ADD
-    renderTable(originalData);
-
+    populateFilters(originalData);
     loadBulkOptions();
+}
+let currentPage = 1;
+
+async function loadPaymentsInit(page = 1) {
+    currentPage = page;
+
+    const res = await fetch(`${window.API}/api/payments/all?page=${page}`);
+    const data = await res.json();
+
+    renderTable(data);
 }
 function loadBulkOptions() {
 
@@ -546,7 +555,7 @@ function printPayment(id) {
 // ================= EXPORT =================
 document.getElementById("exportBtn").onclick = async function () {
 
-    const res = await fetch(`${window.API}/api/payments/all`);
+    const res = await fetch(`${window.API}/api/payments/all-full`);
     const data = await res.json();
 
     const filtered = applyCurrentFilterForExport(data);
@@ -938,7 +947,7 @@ let advanceRemaining = Number(d.advance_remaining ?? advanceAmount ?? 0);
     const workType = document.getElementById("work_type_form").value;
     if (!workType) return;
 
-    const res2 = await fetch(`${window.API}/api/payments/all`);
+    const res2 = await fetch(`${window.API}/api/payments/all-full`);
     const payments = await res2.json();
 
     const filtered = payments.filter(p =>

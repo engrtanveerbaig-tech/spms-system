@@ -139,6 +139,9 @@ const subResult = result[0]; // ✅ FIX
 // ===============================
 router.get("/all", async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 50;
+        const offset = (page - 1) * limit;
 
         const [rows] = await db.query(`
             SELECT 
@@ -153,17 +156,14 @@ router.get("/all", async (req, res) => {
             LEFT JOIN subcontractors s 
             ON p.subcontractor_id = s.id
             ORDER BY p.id DESC
-            LIMIT 50
-        `);
+            LIMIT ? OFFSET ?
+        `, [limit, offset]);
 
         res.json(rows);
 
     } catch (err) {
-        console.error("❌ ERROR in /payments/all:", err);
-        res.status(500).json({
-            error: "Database error",
-            details: err.message
-        });
+        console.error("❌ ERROR:", err);
+        res.status(500).json({ error: "Database error" });
     }
 });
 
@@ -285,6 +285,26 @@ router.get("/dashboard", async (req, res) => {
         res.status(500).send(err.message);
     }
 });
+// ===============================
+// 📄 GET ALL FULL DATA (NO LIMIT)
+// ===============================
+router.get("/all-full", async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT 
+                p.*,
+                s.name AS subcontractor_name,
+                s.company_name
+            FROM payment_certificates p
+            LEFT JOIN subcontractors s 
+            ON p.subcontractor_id = s.id
+        `);
 
+        res.json(rows);
+
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
+});
 
 module.exports = router;
