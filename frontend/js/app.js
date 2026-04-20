@@ -54,8 +54,12 @@ function applyRoleUI() {
 async function loadScript(src) {
     return new Promise((resolve) => {
 
-        const old = document.querySelector(`script[src^="${src}"]`);
-        if (old) old.remove();
+        // ✅ DO NOT REMOVE SCRIPT
+        const existing = document.querySelector(`script[src^="${src}"]`);
+        if (existing) {
+            resolve();
+            return;
+        }
 
         const s = document.createElement("script");
         s.src = src + "?v=" + Date.now();
