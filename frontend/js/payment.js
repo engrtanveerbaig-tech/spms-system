@@ -4,11 +4,13 @@ if (!window.selectedProject) {
 if (!window.API) {
     window.API = "https://spms-backend-jxzn.onrender.com";
 }
-let originalData = [];
+if (!window.originalData) {
+    window.originalData = [];
+}
+let originalData = window.originalData;
 (function () {
 
 let editId = null;
-let fullData = [];
 function formatNumber(n) {
     return Number(n || 0).toLocaleString(undefined, {
         minimumFractionDigits: 2,
@@ -301,9 +303,7 @@ if (window.updateDashboardLive) {
         ...data,
         created_at: new Date().toISOString()
     });
-
-    populateFilters(originalData);
-    applyFilter();
+applyFilter();
 }
 }
 
@@ -312,8 +312,14 @@ async function loadFullData() {
     const res = await fetch(`${window.API}/api/payments/all-full`);
     originalData = await res.json();
 
-    populateFilters(originalData);
-    loadBulkOptions();
+originalData.sort((a, b) =>
+    Number(a.certificate_no) - Number(b.certificate_no)
+);
+
+populateFilters(originalData);
+loadBulkOptions();
+
+renderTable(originalData);
 }
 let currentPage = 1;
 
@@ -406,21 +412,29 @@ function applyFilter() {
     // ✅ IF ANY FILTER SELECTED → FILTER DATA
     if (!isAllEmpty) {
         data = originalData.filter(p =>
-            (!f("f_scid") || p.subcontractor_id == f("f_scid")) &&
-            (!f("f_project") || p.project_name == f("f_project")) &&
-            (!f("f_contract") || p.contract_number == f("f_contract")) &&
-            (!f("f_company") || p.company_name == f("f_company")) &&
-            (!f("f_sub") || p.subcontractor_name == f("f_sub")) &&
-            (!f("f_work") || p.work_type == f("f_work")) &&
-            (!f("f_cert") || p.certificate_no == f("f_cert"))
-        );
+    (!f("f_scid") || p.subcontractor_id == f("f_scid")) &&
+    (!f("f_project") || p.project_name == f("f_project")) &&
+    (!f("f_contract") || p.contract_number == f("f_contract")) &&
+    (!f("f_company") || p.company_name == f("f_company")) &&
+    (!f("f_sub") || p.subcontractor_name == f("f_sub")) &&
+    (!f("f_work") || p.work_type == f("f_work")) &&
+    (!f("f_cert") || p.certificate_no == f("f_cert")) &&
+
+    (!f("f_workval") || p.work_value == f("f_workval")) &&
+    (!f("f_withdrawn") || p.work_withdrawn == f("f_withdrawn")) &&
+    (!f("f_deduction") || p.deduction == f("f_deduction")) &&
+    (!f("f_refund") || p.refund == f("f_refund")) &&
+    (!f("f_after") || p.after_deduction == f("f_after")) &&
+    (!f("f_vat") || p.vat_amount == f("f_vat")) &&
+    (!f("f_retention") || p.retention_amount == f("f_retention")) &&
+    (!f("f_advance") || p.advance_deduction == f("f_advance")) &&
+    (!f("f_net") || p.net_payment == f("f_net")) &&
+
+    (!f("f_date") || new Date(p.created_at).toISOString().slice(0,10) === f("f_date"))
+);
     }
 
-    if (isAllEmpty) {
-    // 🔥 RESET ALL FILTERS TO ORIGINAL DATA
-    populateFilters(originalData);
-} else {
-    // 🔥 DEPENDENT FILTERS
+   if (!isAllEmpty) {
     updateDependentFilters(data);
 }
 renderTable(data);
@@ -463,11 +477,6 @@ function resetFilter() {
 
 // ================= RENDER =================
 function renderTable(data) {
-
-    // ✅ ADD THIS HERE (VERY IMPORTANT)
-    data.sort((a, b) =>
-        Number(a.certificate_no) - Number(b.certificate_no)
-    );
 
     const table = document.getElementById("table");
     table.innerHTML = "";
