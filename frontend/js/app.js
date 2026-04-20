@@ -102,13 +102,24 @@ if (role === "viewer" && !page.includes("dashboard")) {
 
         if (page.includes("dashboard")) {
 
-            await loadScript("./js/charts.min.js");
-            await loadScript("./js/dashboard.js");
+    // ✅ LOAD CHART FIRST
+    await loadScript("./js/charts.min.js");
 
-            if (window.loadDashboard) {
-                window.loadDashboard();
-            }
-        }
+    // 🔥 WAIT UNTIL CHART IS READY
+    let tries = 0;
+    while (typeof Chart === "undefined" && tries < 20) {
+        await new Promise(r => setTimeout(r, 50));
+        tries++;
+    }
+
+    // ✅ THEN LOAD DASHBOARD
+    await loadScript("./js/dashboard.js");
+
+    // ✅ NOW SAFE TO RUN
+    if (window.loadDashboard) {
+        window.loadDashboard();
+    }
+}
 
         if (page.includes("subcontractor")) {
 
