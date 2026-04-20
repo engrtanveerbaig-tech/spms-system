@@ -54,21 +54,38 @@ button {
 </div>
 
 <script>
-function login() {
-    const u = document.getElementById("username").value;
-    const p = document.getElementById("password").value;
+async function login() {
 
-    // 🔥 SIMPLE ROLE SYSTEM
-    if (u === "admin" && p === "123") {
-        localStorage.setItem("role", "admin");
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    try {
+        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.message || "Login failed");
+            return;
+        }
+
+        // ✅ SAVE AUTH DATA
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("role", data.role);
+        localStorage.setItem("username", data.username);
+
+        // ✅ REDIRECT
         window.location.href = "index.html";
-    } 
-    else if (u === "viewer" && p === "123") {
-        localStorage.setItem("role", "viewer");
-        window.location.href = "index.html";
-    } 
-    else {
-        alert("Invalid login");
+
+    } catch (err) {
+        console.error("Login error:", err);
+        alert("Server not reachable");
     }
 }
 </script>
