@@ -25,15 +25,16 @@ body {
     width: 80px;
     height: 100vh;
 
-    background: linear-gradient(180deg, #0f172a, #1e293b);
-    backdrop-filter: blur(20px);
+    /* 🔥 SAME AS LOGIN */
+    background: linear-gradient(180deg, #7c1d6f, #db2777);
 
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 20px 10px;
 
-    box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+    /* 🔥 PREMIUM SHADOW */
+    box-shadow: 6px 0 25px rgba(0,0,0,0.4);
 }
 /* ICON CONTAINER */
 .sidebar-content {
@@ -56,22 +57,22 @@ body {
 
 /* ICON BUTTON */
 .menu-item {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    border-radius: 14px;
-
-    font-size: 20px;
+    border-radius: 16px;
+    font-size: 22px;
     cursor: pointer;
 
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.15);
 
-    transition: all 0.25s ease;
+    backdrop-filter: blur(10px);
+
+    transition: 0.3s;
 }
 
 /* HOVER EFFECT */
@@ -92,7 +93,7 @@ body {
 }
 /* ================= CONTENT ================= */
 .content {
-    flex: 1;
+    margin-left: 80px;   /* 🔥 IMPORTANT FIX */
     padding: 20px;
     background: #f5f7fa;
 }
@@ -101,9 +102,9 @@ body {
 .logout {
     width: 100%;
     padding: 10px;
-    border-radius: 10px;
+    border-radius: 12px;
 
-    background: linear-gradient(135deg,#ef4444,#b91c1c);
+    background: rgba(0,0,0,0.2);
     border: none;
     color: white;
     cursor: pointer;
@@ -112,8 +113,8 @@ body {
 }
 
 .logout:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+    background: white;
+    color: #db2777;
 }
 
 /* ================= SEARCH MODAL ================= */
@@ -188,7 +189,10 @@ body {
 
     outline: none;
 }
-
+.sidebar-bottom {
+    margin-top: auto;
+    width: 100%;
+}
 .search-box input::placeholder {
     color: rgba(255,255,255,0.6);
 }
@@ -328,13 +332,11 @@ body {
     </div>
 
 </div>
-    <div class="logo">S<br><br>
+    <div class="logo">S<br>P<br>S</div>
 
-    P<br><br>
-S<br></div>
-
-    <!-- 🔥 ALWAYS AT BOTTOM -->
+<div class="sidebar-bottom">
     <button class="logout" onclick="logout()">Logout</button>
+</div>
 
 </div>
 

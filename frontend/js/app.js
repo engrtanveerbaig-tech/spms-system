@@ -91,6 +91,19 @@ async function loadScript(src) {
 // ================= LOAD PAGE =================
 async function loadPage(page) {
 
+    // 🔥 ACTIVE SIDEBAR FIX
+document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("active"));
+
+if (page.includes("dashboard")) {
+    document.querySelectorAll(".menu-item")[0].classList.add("active");
+}
+if (page.includes("subcontractor")) {
+    document.getElementById("subMenu").classList.add("active");
+}
+if (page.includes("payment")) {
+    document.getElementById("payMenu").classList.add("active");
+}
+
     const token = localStorage.getItem("token");
 const role = localStorage.getItem("role");
 
