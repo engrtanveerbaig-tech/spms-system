@@ -60,14 +60,10 @@ body{
 }
 
 .premium-card .input-group label{
-    font-size:12px;
-    margin-bottom:6px;
-    color:var(--muted);
-}
-
-.input-group input,
-.input-group select{
-    height:42px;
+    position:absolute;
+    top:50%;
+    left:12px;
+    transform:translateY(-50%);
 }
 .form-grid .col-4 button{
     height:42px;
@@ -249,33 +245,26 @@ tbody tr:hover{
 .premium-card .input-group{
     position:relative;
 }
-.premium-card .input-group label{
-    position:absolute;
-}
 /* LABEL */
+/* NORMAL LABEL (ALL FORMS) */
 .input-group label{
-    top:50%;
-    left:12px;
-    transform:translateY(-50%);
-    font-size:13px;
+    position:static;
+    transform:none;
+    margin-bottom:4px;
+    font-size:12px;
     color:var(--muted);
-    background:var(--card);
-    padding:0 4px;
-    pointer-events:none;
-    transition:0.25s;
 }
 
 /* INPUT FIELD */
 .input-group input,
 .input-group select{
-    height:42px;
-    padding:10px 12px;
+    height:38px;
+    padding:8px 10px;
+    font-size:13.5px;
     border-radius:10px;
     border:1px solid var(--border);
     background:var(--card);
     color:var(--text);
-    font-size:14px;
-    transition:all 0.25s ease;
 }
 @media(max-width:1200px){
     .col-3{grid-column:span 6;}
