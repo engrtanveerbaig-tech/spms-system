@@ -51,13 +51,18 @@ const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all
     }
 });
 
-        if (!res.ok) {
+    if (!res.ok) {
     const text = await res.text();
     console.error("Server Error:", text);
 
-    alert("Session expired. Please login again.");
-    localStorage.clear();
-    window.location.href = "login.html";
+    if (text.includes("token") || text.includes("Unauthorized")) {
+        alert("Session expired. Please login again.");
+        localStorage.clear();
+        window.location.href = "login.html";
+        return;
+    }
+
+    alert("Server error. Please try again.");
     return;
 }
 

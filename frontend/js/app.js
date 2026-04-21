@@ -259,14 +259,15 @@ async function loadSearchData() {
         "Authorization": `Bearer ${localStorage.getItem("token")}`
     }
 });
-        SEARCH_DATA = await res.json();
+       const result = await res.json();
+
 if (!Array.isArray(result)) {
     console.error("Invalid search data:", result);
     return;
 }
-SEARCH_DATA = result;
 
-        GLOBAL_DATA = SEARCH_DATA; // ✅ ADD THIS
+SEARCH_DATA = result;
+GLOBAL_DATA = SEARCH_DATA;
 
         console.log("SEARCH DATA LOADED:", SEARCH_DATA.length); // ✅ HERE
     } catch (err) {
