@@ -32,8 +32,44 @@ body{
 .container{
     max-width:1200px;
     margin:auto;
+    border-radius:16px;
+    padding:25px;
+    box-shadow:0 8px 25px rgba(0,0,0,0.06);
 }
 
+.form-grid{
+    display:grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap:16px;
+    align-items:end;
+}
+
+/* COLUMN SYSTEM */
+.col-2{grid-column: span 2;}
+.col-3{grid-column: span 3;}
+.col-4{grid-column: span 4;}
+.col-6{grid-column: span 6;}
+.col-12{grid-column: span 12;}
+
+.input-group{
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+}
+
+.input-group label{
+    font-size:12px;
+    margin-bottom:6px;
+    color:var(--muted);
+}
+
+.input-group input,
+.input-group select{
+    height:42px;
+}
+.form-grid .col-4 button{
+    height:42px;
+}
 .card{
     background:var(--card);
     border-radius:14px;
