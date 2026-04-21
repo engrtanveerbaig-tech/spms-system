@@ -112,45 +112,105 @@ tfoot td{
 
 <div class="form-grid">
 
-<select id="work_type_form">
-<option value="">Select Work Type</option>
-<option>Concrete & Masonry</option>
-<option>Masonry</option>
-<option>Plaster</option>
-<option>Paint</option>
-<option>Tiles</option>
-<option>Insulation</option>
-<option>Electrical</option>
-<option>Mechanical</option>
-</select>
+    <!-- ROW 1 -->
+    <div class="input-group col-3">
+        <label>Work Type</label>
+        <select id="work_type_form">
+            <option value="">Select Work Type</option>
+            <option>Concrete & Masonry</option>
+            <option>Masonry</option>
+            <option>Plaster</option>
+            <option>Paint</option>
+            <option>Tiles</option>
+            <option>Insulation</option>
+            <option>Electrical</option>
+            <option>Mechanical</option>
+        </select>
+    </div>
 
-<select id="subcontractor_form">
-<option value="">Select Subcontractor</option>
-</select>
+    <div class="input-group col-3">
+        <label>Subcontractor</label>
+        <select id="subcontractor_form">
+            <option value="">Select Subcontractor</option>
+        </select>
+    </div>
 
-<input id="certificate_no" placeholder="Certificate No" readonly>
-<input id="project_form" value="Sadayem" readonly>
+    <div class="input-group col-2">
+        <label>Certificate No</label>
+        <input id="certificate_no" readonly>
+    </div>
 
-<input id="contract_number" placeholder="Contract No" readonly>
-<input id="advance_remaining" placeholder="Remaining Advance" readonly>
+    <div class="input-group col-2">
+        <label>Project</label>
+        <input id="project_form" value="Sadayem" readonly>
+    </div>
 
-<input id="retention_percent_display" placeholder="Retention %" readonly>
-<input id="advance_deduction" placeholder="Advance Deduction" readonly>
+    <div class="input-group col-2">
+        <label>Contract No</label>
+        <input id="contract_number" readonly>
+    </div>
 
-<input id="work" placeholder="Work Value">
-<input id="withdrawn" placeholder="Work Withdrawn">
 
-<input id="deduction" placeholder="Deduction">
-<input id="refund" placeholder="Refund">
+    <!-- ROW 2 -->
+    <div class="input-group col-3">
+        <label>Remaining Advance</label>
+        <input id="advance_remaining" readonly>
+    </div>
 
-<input id="vat" placeholder="VAT" readonly>
-<input id="retention" placeholder="Retention" readonly>
+    <div class="input-group col-3">
+        <label>Retention %</label>
+        <input id="retention_percent_display" readonly>
+    </div>
 
-<input id="net" placeholder="Net" readonly>
+    <div class="input-group col-3">
+        <label>Advance Deduction</label>
+        <input id="advance_deduction">
+    </div>
+
+    <div class="input-group col-3">
+        <label>Work Value</label>
+        <input id="work">
+    </div>
+
+
+    <!-- ROW 3 -->
+    <div class="input-group col-3">
+        <label>Work Withdrawn</label>
+        <input id="withdrawn">
+    </div>
+
+    <div class="input-group col-3">
+        <label>Deduction</label>
+        <input id="deduction">
+    </div>
+
+    <div class="input-group col-3">
+        <label>Refund</label>
+        <input id="refund">
+    </div>
+
+    <div class="input-group col-3">
+        <label>VAT</label>
+        <input id="vat" readonly>
+    </div>
+
+
+    <!-- ROW 4 -->
+    <div class="input-group col-4">
+        <label>Retention</label>
+        <input id="retention" readonly>
+    </div>
+
+    <div class="input-group col-4">
+        <label>Net</label>
+        <input id="net" readonly>
+    </div>
+
+    <div class="col-4" style="display:flex;align-items:flex-end;">
+        <button id="saveBtn" style="width:100%;">Save Payment</button>
+    </div>
 
 </div>
-
-<button id="saveBtn">Save Payment</button>
 
 <p id="msg"></p>
 
