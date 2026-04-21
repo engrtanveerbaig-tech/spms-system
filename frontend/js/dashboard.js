@@ -61,8 +61,17 @@ const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all
     return;
 }
 
-        const data = await res.json();
-        const skeleton = document.getElementById("dashboardSkeleton");
+       const data = await res.json();
+
+// ✅ FIRST validate
+if (!Array.isArray(data)) {
+    console.error("Invalid API response:", data);
+
+    alert("Failed to load dashboard data");
+    return;
+}
+
+// ✅ THEN show UI
 const skeleton = document.getElementById("dashboardSkeleton");
 const content = document.getElementById("dashboardContent");
 
@@ -71,11 +80,6 @@ if (skeleton) skeleton.style.display = "none";
 if (content) {
     content.style.display = "block";
     content.classList.add("fade-in");
-}
-
-if (!Array.isArray(data)) {
-    console.error("Invalid API response:", data);
-    return;
 }
         console.log("DATA:", data);
 

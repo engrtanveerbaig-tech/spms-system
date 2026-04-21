@@ -56,8 +56,8 @@ function initPaymentPage() {
     document.getElementById("saveBtn").onclick = addPayment;
 
     // 🔥 ADD THESE (MISSING)
-    loadFullData(); 
     showTableSkeleton();
+    loadFullData(); 
     loadSubcontractors();         // ✅ load dropdown
 
     document.getElementById("subcontractor_form")
@@ -74,7 +74,6 @@ setTimeout(() => {
     }
 }, 200);
 
-document.getElementById("table").innerHTML = "";
 initExportButton();
 }
 
@@ -96,10 +95,16 @@ async function loadSubcontractors() {
         "Authorization": `Bearer ${localStorage.getItem("token")}`
     }
 });
-
+if (!res.ok) {
+    console.error("Subcontractor API error:", await res.text());
+    return;
+}
     const data = await res.json();
-    const table = document.getElementById("table");
-if (table) table.innerHTML = "";
+
+if (!Array.isArray(data)) {
+    console.error("Invalid API response:", data);
+    return;
+}
 
     select.innerHTML = "<option value=''>Select Subcontractor</option>";
 
@@ -293,6 +298,11 @@ if (editId) {
         body: JSON.stringify(data)
     });
 
+    if (!res.ok) {
+    alert("Save failed ❌");
+    return;
+}
+
     document.getElementById("msg").innerText = await res.text();
 
     
@@ -329,9 +339,11 @@ console.log("Payment saved, no full reload");
 if (window.updateDashboardLive) {
 
     const newRow = {
-        ...data,
-        created_at: new Date().toISOString()
-    };
+    ...data,
+    company_name: document.querySelector("#subcontractor_form option:checked")?.text || "",
+    subcontractor_name: document.querySelector("#subcontractor_form option:checked")?.text || "",
+    created_at: new Date().toISOString()
+};
 
     originalData.push(newRow);
 
@@ -349,7 +361,17 @@ const res = await fetch(`${window.API}/api/payments/all-full`, {
         "Authorization": `Bearer ${token}`
     }
 });
-    const data = await res.json();
+    if (!res.ok) {
+    console.error("Payment API error:", await res.text());
+    return;
+}
+
+const data = await res.json();
+
+if (!Array.isArray(data)) {
+    console.error("Invalid API response:", data);
+    return;
+}
 originalData.length = 0;
 originalData.push(...data);
 
@@ -552,7 +574,8 @@ function renderTable(data) {
 "</td>"+
             "<td>"+new Date(p.created_at).toLocaleDateString()+"</td>"+
             "<td>"+
-                "<button onclick='editPayment("+p.id+")'>Edit</button> "+
+                "<button onclick='editPayment("+p.id+")'>Edit</button> " +
+"<button onclick='deletePayment("+p.id+")'>Delete</button>"+
             "</td>";
 
         table.appendChild(row);
@@ -596,8 +619,10 @@ function appendRow(p) {
         "<td>"+formatNumber(p.advance_deduction || 0)+"</td>"+
         "<td>"+formatNumber(p.net_payment)+"</td>"+
         "<td>"+new Date(p.created_at).toLocaleDateString()+"</td>"+
-        "<td><button onclick='editPayment("+p.id+")'>Edit</button></td>";
-
+        "<td>" +
+"<button onclick='editPayment("+p.id+")'>Edit</button> " +
+"<button onclick='deletePayment("+p.id+")'>Delete</button>" +
+"</td>";
     table.appendChild(row);
 }
 
@@ -626,13 +651,26 @@ async function deletePayment(id) {
 
     if (!confirm("Delete?")) return;
 
-    await fetch(`${API}/api/payments/delete/${id}`, {
-    method: "DELETE",
-    headers: {
-        "Authorization": `Bearer ${localStorage.getItem("token")}`
-    }
-});
+    const res = await fetch(`${API}/api/payments/delete/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+    });
 
+    if (!res.ok) {
+        alert("Delete failed ❌");
+        return;
+    }
+
+    // ✅ REMOVE FROM ARRAY (CORRECT WAY)
+    const index = originalData.findIndex(x => x.id === id);
+    if (index !== -1) {
+        originalData.splice(index, 1);
+    }
+
+    // ✅ RE-RENDER TABLE
+    renderTable(originalData);
 }
 
 // ================= PRINT =================
@@ -1019,7 +1057,12 @@ async function onSubcontractorChange() {
         "Authorization": `Bearer ${localStorage.getItem("token")}`
     }
 });
-    const d = await res.json();
+    if (!res.ok) {
+    console.error("Subcontractor details error:", await res.text());
+    return;
+}
+
+const d = await res.json();
 
     let retentionPercent = Number(d.retention_percent || 10);
     window.currentVat = 0; // reset first
@@ -1196,6 +1239,7 @@ async function bulkDelete() {
 
     const msg = await res.text();
     alert(msg);
+    await loadFullData();
 }
 window.initPaymentPage = initPaymentPage;
 

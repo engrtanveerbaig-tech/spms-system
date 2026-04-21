@@ -153,7 +153,7 @@ if (role === "viewer" && !page.includes("dashboard")) {
 const token = localStorage.getItem("token");
 
 if (token) {
-    loadPage("./dashboard.html");
+    loadPage("dashboard.html");   // ✅ FIXED
     loadSearchData();
 } else {
     window.location.href = "login.html";
@@ -260,6 +260,12 @@ async function loadSearchData() {
     }
 });
         SEARCH_DATA = await res.json();
+if (!Array.isArray(result)) {
+    console.error("Invalid search data:", result);
+    return;
+}
+SEARCH_DATA = result;
+
         GLOBAL_DATA = SEARCH_DATA; // ✅ ADD THIS
 
         console.log("SEARCH DATA LOADED:", SEARCH_DATA.length); // ✅ HERE
