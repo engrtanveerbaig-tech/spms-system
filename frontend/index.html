@@ -17,49 +17,79 @@ body {
     display: flex;
 }
 
-/* ================= SIDEBAR ================= */
+/* ================= PREMIUM SIDEBAR ================= */
 .sidebar {
-    width: 220px;
-    background: #1f4e79;
-    color: white;
-
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 80px;
     height: 100vh;
-    box-sizing: border-box;
-    padding: 20px;
+
+    background: linear-gradient(180deg, #0f172a, #1e293b);
+    backdrop-filter: blur(20px);
+
     display: flex;
     flex-direction: column;
+    align-items: center;
+    padding: 20px 10px;
 
-    overflow: hidden; /* ✅ prevent overflow issues */
+    box-shadow: 4px 0 20px rgba(0,0,0,0.4);
 }
+/* ICON CONTAINER */
 .sidebar-content {
-    flex: 1;
-    overflow-y: auto; /* ✅ scroll only menu, not logout */
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    align-items: center;
 }
 
+/* LOGO TEXT */
 .logo {
-    font-size: 50px;
-    opacity: 0.8;
+    margin-top: auto;
+    margin-bottom: 20px;
+    font-size: 24px;
     font-weight: bold;
-    margin-bottom: 50px;
-
-}
-
-.menu-item {
-    display: block;
-    padding: 12px;
-    cursor: pointer;
-    border-radius: 6px;
-    margin-bottom: 12px;
-    font-size: 18px;
+    color: #94a3b8;
     text-align: center;
-    transition: 0.2s;
+    line-height: 1.5;
 }
 
+/* ICON BUTTON */
+.menu-item {
+    width: 48px;
+    height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 14px;
+
+    font-size: 20px;
+    cursor: pointer;
+
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+
+    transition: all 0.25s ease;
+}
+
+/* HOVER EFFECT */
 .menu-item:hover {
-    background: #163b5c;
-    transform: scale(1.05);
+    transform: translateY(-3px) scale(1.05);
+    background: linear-gradient(135deg, #3b82f6, #22c55e);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+/* ACTIVE ICON */
+.menu-item.active {
+    background: linear-gradient(135deg, #3b82f6, #22c55e);
+    box-shadow: 0 0 15px rgba(59,130,246,0.6);
 }
 
+/* ICON STYLE */
+.menu-item span {
+    pointer-events: none;
+}
 /* ================= CONTENT ================= */
 .content {
     flex: 1;
@@ -67,27 +97,26 @@ body {
     background: #f5f7fa;
 }
 
-/* ================= LOGOUT ================= */
+/* LOGOUT BUTTON */
 .logout {
-    margin-top: auto;   /* ✅ push to bottom */
-    padding: 2px;
-    background: rgb(213, 28, 28);
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+
+    background: linear-gradient(135deg,#ef4444,#b91c1c);
     border: none;
     color: white;
     cursor: pointer;
-    border-radius: 8px;
 
-    width: 80%;        /* ✅ full width */
-    
+    transition: 0.3s;
 }
 
 .logout:hover {
-    background: rgb(255, 255, 255);
-    color: black;
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.4);
 }
 
 /* ================= SEARCH MODAL ================= */
-/* ===== MODAL BACKGROUND ===== */
 .search-modal {
     position: fixed;
     inset: 0;
@@ -278,14 +307,27 @@ body {
     <!-- 🔥 SCROLLABLE AREA -->
     <div class="sidebar-content">
 
-        <div class="menu-item" onclick="loadPage('dashboard.html')">📊</div>
-       <div class="menu-item" onclick="openSearchModal()">🔍</div>
-        <div id="subMenu" class="menu-item" onclick="loadPage('subcontractor.html')">👷</div>
-        <div id="payMenu" class="menu-item" onclick="loadPage('payment.html')">💰</div>
-        <div class="menu-item" onclick="toggleTheme()">🌙</div>
-
-        
+    <div class="menu-item active" onclick="loadPage('dashboard.html')">
+        <span>📊</span>
     </div>
+
+    <div class="menu-item" onclick="openSearchModal()">
+        <span>🔍</span>
+    </div>
+
+    <div id="subMenu" class="menu-item" onclick="loadPage('subcontractor.html')">
+        <span>👷</span>
+    </div>
+
+    <div id="payMenu" class="menu-item" onclick="loadPage('payment.html')">
+        <span>💰</span>
+    </div>
+
+    <div class="menu-item" onclick="toggleTheme()">
+        <span>🌙</span>
+    </div>
+
+</div>
     <div class="logo">S<br><br>
 
     P<br><br>
