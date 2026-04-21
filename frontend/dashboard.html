@@ -69,10 +69,19 @@ body {
 }
 
 .chart {
-    background: #1e293b;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    border-radius: 14px;
     padding: 15px;
-    border-radius: 12px;
-    height: 320px;
+
+    height: 320px;   /* 🔥 give space */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* 🔥 IMPORTANT FIX FOR PERFECT CIRCLE */
+.chart canvas {
+    width: 100% !important;
+    height: 100% !important;
 }
 
 /* SECOND ROW */
@@ -309,11 +318,28 @@ button {
 
         <!-- CHARTS -->
         <div class="dashboard-custom">
-            <div class="chart big"><canvas id="trendChart"></canvas></div>
-            <div class="chart small-top"><canvas id="typeChart"></canvas></div>
-            <div class="chart right-panel"><div id="workTypeCards"></div></div>
-            <div class="chart small-bottom"><canvas id="retentionChart"></canvas></div>
-            <div class="chart big-bottom"><div id="topSubsList"></div></div>
+            <div class="chart big">
+    <div class="chart-title">📈 Subcontractor Trend</div>
+    <canvas id="trendChart"></canvas>
+</div>
+
+            <div class="chart small-top">
+                <div class="chart-title">Total Work</div>
+                <canvas id="typeChart"></canvas>
+            </div>
+
+            <div class="chart right-panel">
+<div class="chart-title">SC & PC</div>
+                <div id="workTypeCards"></div></div>
+                
+            <div class="chart small-bottom">
+    <div class="chart-title">📉 Retention Analysis</div>
+    <canvas id="retentionChart"></canvas>
+</div>
+            <div class="chart big-bottom">
+    <div class="chart-title">🏆 Top Subcontractors</div>
+    <div id="topSubsList"></div>
+</div>
         </div>
 
         <!-- TABLE -->

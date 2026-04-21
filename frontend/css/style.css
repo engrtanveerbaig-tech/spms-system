@@ -16,9 +16,26 @@ body {
 }
 
 
+
+/* HOVER */
+.sidebar a:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+/* ACTIVE */
+.sidebar a.active {
+    background: #F5F7FA;
+    color: #1f4e79;
+}
+
+/* BOTTOM ICONS */
+.sidebar .bottom {
+    margin-top: auto;
+}
+
 /* ================= CONTENT ================= */
 .content {
-    margin-left: 70px;   /* 🔥 match sidebar */
+    margin-left: 80px;   /* 🔥 match sidebar */
     padding: 20px;
 }
 
@@ -59,15 +76,18 @@ input:focus, select:focus {
 button {
     padding: 6px 12px;
     border: none;
-    border-radius: 4px;
-    background: #1f4e79;
+    background: linear-gradient(135deg,#3b82f6,#22c55e);
+    border-radius: 10px;
+    font-weight: 500;
+    transition: 0.3s;
     color: white;
     cursor: pointer;
     font-size: 13px;
 }
 
 button:hover {
-    background: #163b5c;
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(59,130,246,0.4);
 }
 
 button.delete {
@@ -108,15 +128,6 @@ table {
     width: 100%;
     border-collapse: separate;   /* 🔥 FIX STICKY ISSUE */
     border-spacing: 0;
-}
-
-/* 🔥 HEADER STICKY */
-thead th {
-    position: sticky;
-    top: 0;
-    background: #1f4e79;
-    color: white;
-    z-index: 10;
 }
 
 /* 🔥 FILTER ROW (if exists) */
@@ -161,15 +172,19 @@ td, th {
 }
 
 .card {
-    background: #1f4e79;
-    color: #F5F7FA;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    border-radius: 14px;
     padding: 20px;
-    border-radius: 8px;
-    text-align: center;
-    min-height: 120px;   /* keep all cards equal */
-    display: flex;
-    flex-direction: column;
-    justify-content: center
+
+    box-shadow: 
+        0 10px 30px rgba(0,0,0,0.4),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-4px);
 }
 
 
@@ -423,10 +438,6 @@ body.dark-mode .table-container {
     min-width: 180px;
     flex-shrink: 0;
 }
-
-.filter-actions {
-    flex-shrink: 0;
-}
 /* ================= ALL KPI IN ONE LINE ================= */
 .all-cards {
     display: grid;
@@ -647,11 +658,9 @@ body.dark-mode .mini{
 
 /* RIGHT PANEL (25% FULL HEIGHT) */
 .right-panel {
-    grid-column: 3;      /* 🔥 FIX POSITION */
-    grid-row: 1 / span 2; /* 🔥 FULL HEIGHT */
-
-    min-height: 600px;
-    height: auto;
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    gap: 12px;
 
     display: flex;
     flex-direction: column;
@@ -683,18 +692,17 @@ body.dark-mode .mini{
 /* FIX CHART SCALE */
 .chart canvas {
     width: 100% !important;
-    height: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1;   /* 🔥 FORCE PERFECT CIRCLE */
 }
 
 /* RIGHT PANEL GRID */
 .worktype-cards {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 1fr; /* 🔥 2 per row */
     gap: 12px;
 
-    /* 🔥 IMPORTANT */
-    height: 100%;
-    align-content: start;   /* prevents stretching */
+    align-content: start; /* 🔥 prevents stretching */
 }
 
 /* MOBILE */
@@ -942,6 +950,33 @@ body.dark-mode .mini{
         height: auto !important;
         min-height: 250px;
     }
+    .chart-title {
+    position: absolute;
+    top: 12px;
+    left: 15px;
+
+    font-size: 13px;
+    color: #e2e8f0;
+
+    background: rgba(0,0,0,0.4);
+    padding: 6px 12px;
+
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+
+    border: 1px solid rgba(255,255,255,0.08);
+}
+tbody tr {
+    transition: 0.2s;
+}
+
+tbody tr:hover {
+    transform: scale(1.01);
+    background: rgba(59,130,246,0.08);
+}
+.chart {
+    position: relative; /* 🔥 REQUIRED */
+}
 
     /* RIGHT PANEL FIX */
     .right-panel {
@@ -1019,4 +1054,162 @@ body.dark-mode .mini{
         opacity: 1;
         transform: translateY(0);
     }
+}
+/* ================= SUBCONTRACTOR PREMIUM ================= */
+
+/* FORM GRID IMPROVE */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+/* INPUT STYLE UPGRADE */
+.form-grid input,
+.form-grid select {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #020617;
+    border: 1px solid #334155;;
+    color: #fff;
+    transition: 0.2s;
+}
+
+.form-grid input:focus,
+.form-grid select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 12px rgba(59,130,246,0.4);
+}
+
+/* CHECKBOX FIX */
+.checkbox-row {
+    grid-column: span 2;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #cbd5e1;
+}
+
+/* BUTTON ALIGN */
+.form-actions {
+    grid-column: span 4;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.form-actions button {
+    padding: 10px 18px;
+    border-radius: 10px;
+    background: linear-gradient(135deg,#3b82f6,#22c55e);
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.form-actions button:hover {
+    transform: scale(1.05);
+}
+
+/* FILTER TITLE */
+h3 {
+    margin-top: 25px;
+}
+
+/* TABLE MODERN LOOK */
+.table-container {
+    margin-top: 15px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #0f172a;
+    padding: 10px;
+}
+
+/* TABLE */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+
+/* FILTER ROW */
+thead select {
+    width: 100%;
+    padding: 6px;
+    border-radius: 6px;
+    background: #020617;
+    color: #fff;
+    border: 1px solid #334155;
+}
+
+/* ROWS */
+td {
+    background: #020617;
+    color: #e5e7eb;
+}
+
+
+/* ACTION BUTTONS */
+td button {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+#advance_amount {
+    grid-column: span 2;
+}
+
+/* ===== PREMIUM SIDEBAR ===== */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 70px;
+    height: 100vh;
+
+    background: linear-gradient(180deg, #7c2d92, #db2777);
+    box-shadow: 6px 0 25px rgba(0,0,0,0.4);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 0;
+}
+
+/* ICON BOX */
+.sidebar a {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 8px 0;
+
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
+
+    transition: 0.3s;
+}
+
+/* HOVER */
+.sidebar a:hover {
+    transform: translateY(-4px);
+    background: rgba(255,255,255,0.2);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+/* ACTIVE */
+.sidebar a.active {
+    background: linear-gradient(135deg,#3b82f6,#22c55e);
+    box-shadow: 0 0 15px rgba(59,130,246,0.8);
+}
+.sidebar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background: radial-gradient(circle at top, rgba(255,255,255,0.15), transparent 60%);
+    pointer-events: none;
 }
