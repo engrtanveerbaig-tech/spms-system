@@ -87,11 +87,6 @@ async function loadPage(page) {
 const role = localStorage.getItem("role");
 
 if (!token) {
-    window.location.href = "login.html";
-    return;
-}
-
-if (!token) {
     alert("Please login");
     window.location.href = "login.html";
     return;
@@ -155,8 +150,14 @@ if (role === "viewer" && !page.includes("dashboard")) {
 }
 
 // ================= DEFAULT LOAD =================
-loadPage("./dashboard.html");
-loadSearchData();
+const token = localStorage.getItem("token");
+
+if (token) {
+    loadPage("./dashboard.html");
+    loadSearchData();
+} else {
+    window.location.href = "login.html";
+}
 
 // ================= LOGOUT =================
 
@@ -255,7 +256,7 @@ async function loadSearchData() {
     try {
         const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all", {
     headers: {
-        "Authorization": localStorage.getItem("token")
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
     }
 });
         SEARCH_DATA = await res.json();

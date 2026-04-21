@@ -177,138 +177,172 @@ button {
 
 <div class="main">
 
-<!-- ================= HEADER ================= -->
-<div class="header">
+    <!-- ================= SKELETON (SHOW FIRST) ================= -->
+    <div id="dashboardSkeleton">
 
-    <!-- TOP ROW -->
-    <div class="header-top">
-        <h2>Dashboard 👋</h2>
+        <!-- KPI SKELETON -->
+        <div class="dashboard-grid">
 
-        <div class="total-sar">
-            <h3>Total Project Value (SAR)</h3>
-            <p id="total_sar">0</p>
+            <!-- KPI BLOCKS -->
+            <div class="kpi skeleton">
+                <div style="height:10px; width:60%; margin-bottom:8px;" class="skeleton"></div>
+                <div style="height:18px; width:40%;" class="skeleton"></div>
+            </div>
+
+            <div class="kpi skeleton">
+                <div style="height:10px; width:60%; margin-bottom:8px;" class="skeleton"></div>
+                <div style="height:18px; width:40%;" class="skeleton"></div>
+            </div>
+
+            <div class="kpi skeleton">
+                <div style="height:10px; width:60%; margin-bottom:8px;" class="skeleton"></div>
+                <div style="height:18px; width:40%;" class="skeleton"></div>
+            </div>
+
+            <div class="kpi skeleton">
+                <div style="height:10px; width:60%; margin-bottom:8px;" class="skeleton"></div>
+                <div style="height:18px; width:40%;" class="skeleton"></div>
+            </div>
+
+            <div class="kpi skeleton">
+                <div style="height:10px; width:60%; margin-bottom:8px;" class="skeleton"></div>
+                <div style="height:18px; width:40%;" class="skeleton"></div>
+            </div>
+
+            <!-- AI BOX -->
+            <div class="ai-box skeleton">
+                <div style="height:10px; width:40%; margin-bottom:10px;" class="skeleton"></div>
+                <div style="height:8px; width:90%; margin-bottom:6px;" class="skeleton"></div>
+                <div style="height:8px; width:80%; margin-bottom:6px;" class="skeleton"></div>
+                <div style="height:8px; width:70%;" class="skeleton"></div>
+            </div>
+
+            <!-- MINI -->
+            <div class="mini skeleton"></div>
+            <div class="mini skeleton"></div>
+            <div class="mini skeleton"></div>
+            <div class="mini skeleton"></div>
+            <div class="mini skeleton"></div>
+
         </div>
-    </div>
 
-    <!-- BOTTOM ROW -->
-    <div class="header-bottom">
-        <a href="mailto:mrtanveer2017@gmail.com">
-            This Dashboard is created by Eng. Tanveer Ahmad (If you have any issue, email with screenshot),<br><p>© 2026 Eng.Tanveer Ahmad . All rights reserved.</p>
-        </a>
-    </div>
-
-</div>
-<div id="workTypeSummary" class="ai-summary-small"></div>
-<hr>
-<!-- ================= FILTERS ================= -->
-<div class="filters">
-
-    <select id="filterCompany"></select>
-    <select id="filterType"></select>
-    <select id="filterSub"></select>
-
-    <div class="filter-actions">
-        <button onclick="generateReport()">📄 Report</button>
-        <button onclick="resetDashboard()" class="reset-btn">🔄 Clear</button>
-    </div>
-
-</div>
-
-<!-- ================= KPI ================= -->
-<div class="dashboard-grid">
-
-    <!-- KPI ROW -->
-    <div class="kpi">Total Certified Amount<br><span id="total_work"></span></div>
-    <div class="kpi">Total Net Amount<br><span id="total_paid"></span></div>
-    <div class="kpi">Retention<br><span id="total_retention"></span></div>
-    <div class="kpi">Deductions<br><span id="total_deduction"></span></div>
-    <div class="kpi">Subcontractors<br><span id="total_subs"></span></div>
-    
-    <!-- AI FULL WIDTH -->
-    <div class="ai-box">
-
-    <div class="ai-header">
-        <span>🤖 AI Insights</span>
-        <div class="ai-actions">
-            <span>⋯</span>
+        <!-- CHARTS -->
+        <div class="dashboard-custom">
+            <div class="chart big skeleton"></div>
+            <div class="chart small-top skeleton"></div>
+            <div class="chart right-panel skeleton"></div>
+            <div class="chart small-bottom skeleton"></div>
+            <div class="chart big-bottom skeleton"></div>
         </div>
+
+        <!-- TABLE -->
+        <div class="table-container">
+            <div class="skeleton" style="height:200px;"></div>
+        </div>
+
     </div>
 
-    
 
-    <div class="ai-content">
-        <div id="ai_summary" class="ai-text"></div>
+    <!-- ================= REAL DASHBOARD (HIDDEN FIRST) ================= -->
+    <div id="dashboardContent" style="display:none;">
+
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-top">
+                <h2>Dashboard 👋</h2>
+
+                <div class="total-sar">
+                    <h3>Total Project Value (SAR)</h3>
+                    <p id="total_sar">0</p>
+                </div>
+            </div>
+
+            <div class="header-bottom">
+                <a href="mailto:mrtanveer2017@gmail.com">
+                    This Dashboard is created by Eng. Tanveer Ahmad (If you have any issue, email with screenshot),<br>
+                    <p>© 2026 Eng.Tanveer Ahmad . All rights reserved.</p>
+                </a>
+            </div>
+        </div>
+
+        <div id="workTypeSummary" class="ai-summary-small"></div>
+        <hr>
+
+        <!-- FILTERS -->
+        <div class="filters">
+            <select id="filterCompany"></select>
+            <select id="filterType"></select>
+            <select id="filterSub"></select>
+
+            <div class="filter-actions">
+                <button onclick="generateReport()">📄 Report</button>
+                <button onclick="resetDashboard()" class="reset-btn">🔄 Clear</button>
+            </div>
+        </div>
+
+        <!-- KPI -->
+        <div class="dashboard-grid">
+            <div class="kpi">Total Certified Amount<br><span id="total_work"></span></div>
+            <div class="kpi">Total Net Amount<br><span id="total_paid"></span></div>
+            <div class="kpi">Retention<br><span id="total_retention"></span></div>
+            <div class="kpi">Deductions<br><span id="total_deduction"></span></div>
+            <div class="kpi">Subcontractors<br><span id="total_subs"></span></div>
+
+            <div class="ai-box">
+                <div class="ai-header">
+                    <span>🤖 AI Insights</span>
+                    <div class="ai-actions"><span>⋯</span></div>
+                </div>
+                <div class="ai-content">
+                    <div id="ai_summary" class="ai-text"></div>
+                </div>
+            </div>
+
+            <div class="mini">Avg Cert: <span id="avg_cert"></span></div>
+            <div class="mini">Types</div>
+            <div class="mini">Top Sub</div>
+            <div class="mini">Retention %</div>
+            <div class="mini">Health</div>
+        </div>
+
+        <hr>
+
+        <!-- CHARTS -->
+        <div class="dashboard-custom">
+            <div class="chart big"><canvas id="trendChart"></canvas></div>
+            <div class="chart small-top"><canvas id="typeChart"></canvas></div>
+            <div class="chart right-panel"><div id="workTypeCards"></div></div>
+            <div class="chart small-bottom"><canvas id="retentionChart"></canvas></div>
+            <div class="chart big-bottom"><div id="topSubsList"></div></div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Company</th>
+                        <th>Subcontractor</th>
+                        <th>Certificates</th>
+                        <th>Work Type</th>
+                        <th>Work Value</th>
+                        <th>Deduction</th>
+                        <th>Refund</th>
+                        <th>Retention</th>
+                        <th>Net Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="summaryTable"></tbody>
+            </table>
+        </div>
+
     </div>
 
 </div>
 
-    <!-- MINI STATS -->
-    <div class="mini">Avg Cert: <span id="avg_cert"></span></div>
-    <div class="mini">Types</div>
-    <div class="mini">Top Sub</div>
-    <div class="mini">Retention %</div>
-    <div class="mini">Health</div>
-</div>
-<hr>
 
-
-<div class="dashboard-custom">
-
-    <!-- BIG LEFT -->
-    <div class="chart big">
-        <canvas id="trendChart"></canvas>
-    </div>
-
-    <!-- TOP RIGHT SMALL -->
-    <div class="chart small-top">
-        <canvas id="typeChart"></canvas>
-    </div>
-    
-    <!-- RIGHT PANEL (FULL HEIGHT) -->
-    <div class="chart right-panel">
-        <div id="workTypeCards" class="worktype-cards"></div>
-    </div>
-
-    <!-- BOTTOM LEFT SMALL -->
-    <div class="chart small-bottom">
-        <canvas id="retentionChart"></canvas>
-    </div>
-
-    <!-- BOTTOM CENTER BIG -->
-    <div class="chart big-bottom">
-        <div id="topSubsList" class="top-subs-grid"></div>
-    </div>
-
-</div>
-
-<!-- ================= TABLE ================= -->
-<div class="table-container">
-
-<table>
-<thead>
-<tr>
-<th>Company</th>
-<th>Subcontractor</th>
-<th>Certificates</th>
-<th>Work Type</th>
-<th>Work Value</th>
-<th>Deduction</th>
-<th>Refund</th>
-<th>Retention</th>
-<th>Net Amount</th>
-</tr>
-</thead>
-
-<tbody id="summaryTable"></tbody>
-
-</table>
-
-</div>
-
-</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-
-
 </body>
 </html>
+

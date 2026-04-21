@@ -43,16 +43,35 @@ async function loadDashboard() {
     if (dashboardLoaded) return;
 dashboardLoaded = true;
     try {
-        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all-full");
+        const token = localStorage.getItem("token");
 
-        // 🔥 HANDLE SERVER ERROR
+const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all-full", {
+    headers: {
+        "Authorization": `Bearer ${token}`
+    }
+});
+
         if (!res.ok) {
-            const text = await res.text();
-            console.error("Server Error:", text);
-            return;
-        }
+    const text = await res.text();
+    console.error("Server Error:", text);
+
+    alert("Session expired. Please login again.");
+    localStorage.clear();
+    window.location.href = "login.html";
+    return;
+}
 
         const data = await res.json();
+        const skeleton = document.getElementById("dashboardSkeleton");
+const skeleton = document.getElementById("dashboardSkeleton");
+const content = document.getElementById("dashboardContent");
+
+if (skeleton) skeleton.style.display = "none";
+
+if (content) {
+    content.style.display = "block";
+    content.classList.add("fade-in");
+}
 
 if (!Array.isArray(data)) {
     console.error("Invalid API response:", data);

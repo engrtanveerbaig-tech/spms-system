@@ -1011,3 +1011,64 @@ body.dark-mode .mini{
     }
 
 }
+/* ===== SKELETON BASE ===== */
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background: #1e293b;
+    border-radius: 12px;
+}
+
+.skeleton::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -150px;
+    height: 100%;
+    width: 150px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,0.08),
+        transparent
+    );
+    animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+    100% {
+        left: 100%;
+    }
+}
+
+/* ===== CARD SKELETON ===== */
+.skeleton-card {
+    height: 80px;
+    margin: 10px;
+}
+
+/* ===== CHART SKELETON ===== */
+.skeleton-chart {
+    height: 250px;
+    margin: 10px;
+}
+
+/* ===== TABLE SKELETON ===== */
+.skeleton-row {
+    height: 35px;
+    margin-bottom: 8px;
+}
+.fade-in {
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

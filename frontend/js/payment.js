@@ -1,3 +1,22 @@
+function showTableSkeleton() {
+    const table = document.getElementById("table");
+    if (!table) return;
+
+    table.innerHTML = "";
+
+    for (let i = 0; i < 8; i++) {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td colspan="15">
+                <div class="skeleton skeleton-row"></div>
+            </td>
+        `;
+
+        table.appendChild(row);
+    }
+}
+
 if (!window.selectedProject) {
     window.selectedProject = "";
 }
@@ -37,7 +56,8 @@ function initPaymentPage() {
     document.getElementById("saveBtn").onclick = addPayment;
 
     // 🔥 ADD THESE (MISSING)
-    loadFullData();   // ONLY load data for filters       // full data for filters         // ✅ load table
+    loadFullData(); 
+    showTableSkeleton();
     loadSubcontractors();         // ✅ load dropdown
 
     document.getElementById("subcontractor_form")
@@ -71,9 +91,15 @@ async function loadSubcontractors() {
         return;
     }
 
-    const res = await fetch(`${API}/api/subcontractors/by-type/${work_type}`);
+    const res = await fetch(`${API}/api/subcontractors/by-type/${work_type}`, {
+    headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+    }
+});
 
     const data = await res.json();
+    const table = document.getElementById("table");
+if (table) table.innerHTML = "";
 
     select.innerHTML = "<option value=''>Select Subcontractor</option>";
 
@@ -260,7 +286,10 @@ if (editId) {
 
     const res = await fetch(url, {
     method: method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${localStorage.getItem("token")}`
+},
         body: JSON.stringify(data)
     });
 
@@ -313,7 +342,13 @@ appendRow(newRow);
 
 // ================= LOAD =================
 async function loadFullData() {
-    const res = await fetch(`${window.API}/api/payments/all-full`);
+    const token = localStorage.getItem("token");
+
+const res = await fetch(`${window.API}/api/payments/all-full`, {
+    headers: {
+        "Authorization": `Bearer ${token}`
+    }
+});
     const data = await res.json();
 originalData.length = 0;
 originalData.push(...data);
@@ -592,7 +627,10 @@ async function deletePayment(id) {
     if (!confirm("Delete?")) return;
 
     await fetch(`${API}/api/payments/delete/${id}`, {
-    method: "DELETE"
+    method: "DELETE",
+    headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+    }
 });
 
 }
@@ -976,7 +1014,11 @@ async function onSubcontractorChange() {
     const id = document.getElementById("subcontractor_form").value;
     if (!id) return;
 
-    const res = await fetch(`${API}/api/subcontractors/${id}`);
+    const res = await fetch(`${API}/api/subcontractors/${id}`, {
+    headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+    }
+});
     const d = await res.json();
 
     let retentionPercent = Number(d.retention_percent || 10);
@@ -1139,7 +1181,10 @@ async function bulkDelete() {
 
     const res = await fetch(`${API}/api/payments/bulk-delete`, {
     method: "DELETE",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${localStorage.getItem("token")}`
+},
     body: JSON.stringify({
         subcontractor_id: record.subcontractor_id,
         work_type: work,
