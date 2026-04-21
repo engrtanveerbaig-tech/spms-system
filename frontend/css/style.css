@@ -1,333 +1,207 @@
-/* =====================================================
-   🔥 SPMS FINAL GLOBAL UI SYSTEM (PRODUCTION READY)
-   ===================================================== */
+/* ================= ROOT SYSTEM ================= */
+:root{
+    --bg:#f1f5f9;
+    --card:#ffffff;
+    --text:#0f172a;
+    --muted:#64748b;
+    --border:#e2e8f0;
 
-/* ================= ROOT ================= */
-:root {
-    --primary: #7c1d6f;
-    --secondary: #ec4899;
-
-    --dark-bg: #020617;
-    --card-bg: rgba(255,255,255,0.06);
-
-    --text: #0f172a;
-    --text-light: #64748b;
-
-    --radius: 16px;
-    --glass: blur(14px);
+    --primary:#7c1d6f;
+    --secondary:#ec4899;
 }
 
-/* ================= RESET ================= */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* DARK MODE */
+body.dark-mode{
+    --bg:#020617;
+    --card:#0f172a;
+    --text:#e2e8f0;
+    --muted:#94a3b8;
+    --border:#1e293b;
 }
 
-body {
-    font-family: "Segoe UI", sans-serif;
-    background: #f1f5f9;
-    display: flex;
+/* ================= BASE ================= */
+body{
+    margin:0;
+    font-family:'Segoe UI', sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    transition:0.3s;
 }
 
-/* ================= DARK MODE ================= */
-body.dark-mode {
-    background: var(--dark-bg);
-    color: white;
+/* ================= LAYOUT ================= */
+.container{
+    padding:20px;
 }
 
-/* =====================================================
-   🔥 SIDEBAR
-   ===================================================== */
-.sidebar {
-    width: 80px;
-    height: 100vh;
-    background: linear-gradient(180deg,#7c1d6f,#ec4899);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 1000;
+.card{
+    background:var(--card);
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:20px;
+    border:1px solid var(--border);
+    box-shadow:0 10px 30px rgba(0,0,0,0.05);
 }
 
-.menu-item {
-    width: 50px;
-    height: 50px;
-    margin: 12px auto;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    cursor: pointer;
-    transition: 0.3s;
+/* ================= TEXT ================= */
+h1,h2,h3{
+    margin:0 0 10px;
 }
 
-.menu-item:hover {
-    background: rgba(255,255,255,0.2);
-    transform: scale(1.1);
+small{
+    color:var(--muted);
 }
 
-.menu-item.active {
-    background: linear-gradient(135deg,#00f2fe,#4facfe);
+/* ================= INPUT ================= */
+input,select{
+    width:100%;
+    padding:10px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:var(--card);
+    color:var(--text);
+    outline:none;
 }
 
-.menu-item.search-active {
-    background: linear-gradient(135deg,#22c55e,#3b82f6);
-    box-shadow: 0 0 15px rgba(59,130,246,0.6);
+/* 🔥 FIX WHITE DROPDOWN */
+select{
+    appearance:none;
 }
 
-/* LOGO */
-.logo {
-    text-align: center;
-    color: white;
-    font-weight: bold;
-    letter-spacing: 4px;
-    margin-bottom: 10px;
+/* PLACEHOLDER */
+input::placeholder{
+    color:var(--muted);
 }
 
-/* LOGOUT */
-.logout {
-    width: 80%;
-    margin: 10px auto;
-    padding: 8px;
-    border: none;
-    border-radius: 10px;
-    background: #ef4444;
-    color: white;
+/* ================= BUTTON ================= */
+button{
+    padding:10px 14px;
+    border:none;
+    border-radius:10px;
+    background:linear-gradient(135deg,var(--primary),var(--secondary));
+    color:white;
+    cursor:pointer;
+    transition:0.3s;
 }
 
-/* =====================================================
-   🔥 CONTENT
-   ===================================================== */
-.content {
-    margin-left: 80px;
-    width: calc(100% - 80px);
+button:hover{
+    transform:translateY(-2px);
+    opacity:0.9;
 }
 
-/* =====================================================
-   🔥 CARDS / CONTAINER
-   ===================================================== */
-.card,
-.container {
-    background: white;
-    margin: 20px;
-    padding: 20px;
-    border-radius: var(--radius);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+/* ================= GRID ================= */
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:12px;
 }
 
-/* DARK MODE FIX */
-body.dark-mode .card,
-body.dark-mode .container {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: var(--glass);
-}
-
-/* =====================================================
-   🔥 FORM GRID
-   ===================================================== */
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
-    gap: 12px;
-}
-
-/* INPUT GROUP */
-.input-group {
-    position: relative;
-}
-
-/* INPUTS */
-input, select {
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    border: 1px solid #ddd;
-    background: white;
-}
-
-/* DARK INPUT FIX */
-body.dark-mode input,
-body.dark-mode select {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.2);
-    color: white;
-}
-
-/* =====================================================
-   🔥 DROPDOWN FIX (CRITICAL)
-   ===================================================== */
-select {
-    max-height: 40px;
-    overflow: hidden;
-    appearance: none;
-}
-
-/* =====================================================
-   🔥 BUTTONS
-   ===================================================== */
-button {
-    background: linear-gradient(135deg,#ec4899,#7c1d6f);
-    border: none;
-    padding: 10px 14px;
-    color: white;
-    border-radius: 12px;
-    cursor: pointer;
-}
-
-/* =====================================================
-   🔥 TABLE
-   ===================================================== */
-.table-container {
-    max-height: 500px;
-    overflow: auto;
+/* ================= TABLE ================= */
+.table-container{
+    max-height:500px;
+    overflow:auto;
+    border-radius:12px;
+    border:1px solid var(--border);
 }
 
 /* TABLE */
-table {
-    width: 100%;
-    border-collapse: collapse;
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--card);
 }
 
 /* CELLS */
-th, td {
-    padding: 10px;
-    text-align: center;
-    font-size: 13px;
+th,td{
+    padding:10px;
+    text-align:center;
+    color:var(--text);
 }
 
-/* FILTER ROW */
-thead tr:first-child th {
-    background: #020617;
-    position: sticky;
-    top: 0;
-    z-index: 5;
+/* 🔥 FILTER ROW FIX */
+thead tr:first-child th{
+    background:#0f172a;
+    color:white;
+    position:sticky;
+    top:0;
+    z-index:10;
 }
 
-/* HEADER ROW */
-thead tr:nth-child(2) th {
-    background: #1f4e79;
-    color: white;
-    position: sticky;
-    top: 40px;
-    z-index: 4;
-}
-
-/* FILTER INPUTS */
-thead select {
-    width: 100%;
-    padding: 6px;
-    font-size: 12px;
+/* 🔥 HEADER ROW */
+thead tr:nth-child(2) th{
+    background:#1f4e79;
+    color:white;
+    position:sticky;
+    top:40px;
+    z-index:9;
 }
 
 /* ROW HOVER */
-tbody tr:hover {
-    background: rgba(59,130,246,0.08);
-    transform: scale(1.01);
+tbody tr:hover{
+    background:rgba(59,130,246,0.08);
 }
 
-/* DARK TABLE */
-body.dark-mode th {
-    background: #1e293b !important;
+/* ================= DASHBOARD ================= */
+.dashboard-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:12px;
 }
 
-body.dark-mode thead tr:first-child th {
-    background: #020617 !important;
+/* KPI CARD */
+.kpi{
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    color:white;
+    padding:18px;
+    border-radius:14px;
 }
 
-/* =====================================================
-   🔥 DASHBOARD GRID
-   ===================================================== */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
-    gap: 15px;
+/* MINI */
+.mini{
+    background:var(--card);
+    border-radius:10px;
+    padding:10px;
 }
 
-/* KPI */
-.kpi {
-    background: #0f172a;
-    color: white;
-    padding: 15px;
-    border-radius: 12px;
-    animation: fadeUp 0.6s ease;
+/* CHART */
+.chart{
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    border-radius:14px;
+    padding:15px;
 }
 
-/* =====================================================
-   🔥 CHARTS
-   ===================================================== */
-.dashboard-custom {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 12px;
+/* ================= FILTERS ================= */
+.filters{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin:15px 0;
 }
 
-.chart {
-    background: #0f172a;
-    border-radius: 12px;
-    padding: 10px;
-    height: 260px;
+/* ================= SIDEBAR FIX ================= */
+.sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    width:80px;
+    height:100vh;
+    background:linear-gradient(180deg,#7c1d6f,#db2777);
 }
 
-.chart canvas {
-    width: 100% !important;
-    height: 100% !important;
+.content{
+    margin-left:80px;
+    padding:20px;
 }
 
-/* =====================================================
-   🔥 SEARCH MODAL
-   ===================================================== */
-.search-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-    backdrop-filter: blur(8px);
-}
-
-.search-box {
-    width: 400px;
-    padding: 20px;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.2);
-}
-
-body.dark-mode .search-box {
-    background: rgba(0,0,0,0.4);
-}
-
-.search-box input {
-    background: rgba(255,255,255,0.1);
-    border: none;
-    color: white;
-}
-
-/* =====================================================
-   🔥 ANIMATIONS
-   ===================================================== */
-@keyframes fadeUp {
-    from {opacity:0; transform:translateY(10px);}
-    to {opacity:1; transform:translateY(0);}
-}
-
-/* =====================================================
-   🔥 RESPONSIVE
-   ===================================================== */
-@media (max-width: 900px) {
-
-    .dashboard-custom {
-        grid-template-columns: 1fr;
+/* ================= RESPONSIVE ================= */
+@media(max-width:900px){
+    .dashboard-grid{
+        grid-template-columns:1fr;
     }
-
-    .content {
-        margin-left: 60px;
-    }
+}
+.filters{
+    position:sticky;
+    top:0;
+    background:var(--bg);
+    z-index:20;
+    padding:10px 0;
 }
