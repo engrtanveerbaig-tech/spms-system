@@ -30,8 +30,7 @@ body{
 
 /* ================= LAYOUT ================= */
 .container{
-    padding:20px;
-    max-width:1400px;
+    max-width:1200px;
     margin:auto;
 }
 
@@ -193,7 +192,7 @@ tbody tr:hover{
 
 .content{
     margin-left:80px;
-    width:calc(100% - 80px);
+    padding:20px;
 }
 
 /* ================= RESPONSIVE ================= */
@@ -210,22 +209,34 @@ tbody tr:hover{
     padding:10px 0;
 }
 .input-group{
-    display:flex;
-    flex-direction:column;
-    justify-content:flex-start;
+    position:relative;
 }
 
+/* LABEL */
 .input-group label{
-    font-size:12px;
+    position:absolute;
+    top:50%;
+    left:12px;
+    transform:translateY(-50%);
+    font-size:13px;
     color:var(--muted);
-    margin-top:6px;
+    background:var(--card);
+    padding:0 4px;
+    pointer-events:none;
+    transition:0.25s;
 }
 
+/* INPUT FIELD */
 .input-group input,
 .input-group select{
-    height:42px;
-    min-height:42px;
-    box-sizing:border-box;
+    height:50px;
+    padding:16px 12px 6px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:var(--card);
+    color:var(--text);
+    font-size:14px;
+    transition:all 0.25s ease;
 }
 @media(max-width:1200px){
     .col-3{grid-column:span 6;}
@@ -286,29 +297,6 @@ tbody tr:hover{
     position:relative;
 }
 
-/* INPUT STYLE */
-.input-group input,
-.input-group select{
-    height:48px;
-    padding:14px 12px 6px;
-    border-radius:12px;
-    border:1px solid var(--border);
-    background:var(--card);
-    color:var(--text);
-}
-
-/* FLOAT LABEL */
-.input-group label{
-    position:absolute;
-    top:50%;
-    left:12px;
-    transform:translateY(-50%);
-    font-size:13px;
-    color:var(--muted);
-    pointer-events:none;
-    transition:0.2s;
-}
-
 /* ACTIVE FLOAT */
 .input-group input:focus + label,
 .input-group input:not(:placeholder-shown) + label,
@@ -317,6 +305,20 @@ tbody tr:hover{
     top:6px;
     font-size:11px;
     color:var(--primary);
+}
+/* PLACEHOLDER (LIGHT) */
+.input-group input::placeholder{
+    color:transparent;
+}
+/* FOCUS EFFECT (🔥 THIS MAKES IT PREMIUM) */
+.input-group input:focus,
+.input-group select:focus{
+    border-color:var(--primary);
+    box-shadow:0 0 0 3px rgba(236,72,153,0.15);
+}
+.input-group input:hover,
+.input-group select:hover{
+    border-color:#c084fc;
 }
 
 .checkbox-box{

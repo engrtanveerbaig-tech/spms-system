@@ -34,7 +34,6 @@ body{
 .form-grid{
     align-items: start;
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
     gap:12px;
 }
 
@@ -126,23 +125,25 @@ tbody tr:hover{
 </head>
 <body>
 
+<div class="content">
+
 <div class="container">
 
+<!-- ================= FORM ================= -->
 <div class="card premium-card">
 
 <h2 class="section-title">📋 Subcontractor (SC) Record</h2>
 
-<!-- ===== GRID ===== -->
-<div class="form-grid premium-grid">
+<div class="premium-grid">
 
-<!-- LEFT COLUMN -->
+<!-- LEFT -->
 <div class="form-section">
 
 <h4 class="form-section-title">Project Details</h4>
 
 <div class="input-group">
-<select id="project">
-<option value=""> </option>
+<select id="project" required>
+<option value="" disabled selected></option>
 <option>Sadayem</option>
 <option>Makkah</option>
 <option>Madinah</option>
@@ -151,8 +152,8 @@ tbody tr:hover{
 </div>
 
 <div class="input-group">
-<select id="work_type">
-<option value=""> </option>
+<select id="work_type" required>
+<option value="" disabled selected></option>
 <option>Concrete & Masonry</option>
 <option>Masonry</option>
 <option>Plaster</option>
@@ -166,7 +167,7 @@ tbody tr:hover{
 </div>
 
 <div class="input-group">
-<select id="retention_percent">
+<select id="retention_percent" required>
 <option value="10">10%</option>
 <option value="5">5%</option>
 <option value="0">0%</option>
@@ -175,7 +176,7 @@ tbody tr:hover{
 </div>
 
 <div class="input-group">
-<select id="vat_percent">
+<select id="vat_percent" required>
 <option value="15">15%</option>
 <option value="0">0%</option>
 </select>
@@ -184,7 +185,7 @@ tbody tr:hover{
 
 </div>
 
-<!-- RIGHT COLUMN -->
+<!-- RIGHT -->
 <div class="form-section">
 
 <h4 class="form-section-title">Contract Details</h4>
@@ -257,6 +258,7 @@ tbody tr:hover{
 </div>
 
 </div>
+
 </div>
 </div>
 
