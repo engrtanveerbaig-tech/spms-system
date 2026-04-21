@@ -243,3 +243,120 @@ tbody tr:hover{
         grid-column:span 12;
     }
 }
+
+/* ================= PREMIUM FORM ================= */
+
+.premium-card{
+    padding:30px;
+    border-radius:18px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.08);
+}
+
+/* GRID */
+.premium-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:25px;
+}
+
+/* SECTIONS */
+.form-section{
+    background:rgba(255,255,255,0.03);
+    padding:20px;
+    border-radius:14px;
+    border:1px solid var(--border);
+}
+
+.form-section.full{
+    grid-column:1 / -1;
+}
+
+.form-section-title{
+    margin-bottom:15px;
+    font-size:14px;
+    color:var(--muted);
+    font-weight:600;
+}
+
+/* ROW */
+.form-row{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:15px;
+}
+
+/* INPUT GROUP */
+.input-group{
+    position:relative;
+}
+
+/* INPUT STYLE */
+.input-group input,
+.input-group select{
+    height:48px;
+    padding:14px 12px 6px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:var(--card);
+    color:var(--text);
+}
+
+/* FLOAT LABEL */
+.input-group label{
+    position:absolute;
+    top:50%;
+    left:12px;
+    transform:translateY(-50%);
+    font-size:13px;
+    color:var(--muted);
+    pointer-events:none;
+    transition:0.2s;
+}
+
+/* ACTIVE FLOAT */
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label,
+.input-group select:focus + label,
+.input-group select:not([value=""]) + label{
+    top:6px;
+    font-size:11px;
+    color:var(--primary);
+}
+
+/* CHECKBOX BOX */
+.checkbox-box{
+    display:flex;
+    align-items:center;
+    height:48px;
+}
+
+.checkbox-box label{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    cursor:pointer;
+    font-size:14px;
+}
+
+/* CHECKBOX SIZE */
+.checkbox-box input{
+    width:18px;
+    height:18px;
+}
+
+/* BUTTON */
+.form-actions{
+    grid-column:1 / -1;
+    margin-top:10px;
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+    .premium-grid{
+        grid-template-columns:1fr;
+    }
+
+    .form-row{
+        grid-template-columns:1fr;
+    }
+}
