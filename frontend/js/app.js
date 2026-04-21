@@ -11,9 +11,11 @@ const MAINTENANCE_MODE = false; // 🔥 change true/false
 let selectedSubcontractorId = null;
 const savedTheme = localStorage.getItem("theme");
 
-if (savedTheme === "dark") {
-    document.body.classList.add("dark");
-}
+document.addEventListener("DOMContentLoaded", () => {
+    if (savedTheme === "light") {
+        document.body.classList.add("light-mode");
+    }
+});
 let SELECTED_SEARCH = null;
 let CURRENT_SEARCH_TYPE = "company";
 
@@ -24,10 +26,10 @@ document.addEventListener("click", function(e) {
     const box = document.querySelector(".search-box");
 
     if (modal && modal.style.display !== "none") {
-        if (box && !box.contains(e.target) && e.target.innerText !== "🔍") {
-            modal.style.display = "none";
-        }
+    if (!box.contains(e.target)) {
+        modal.style.display = "none";
     }
+}
 
     // CLOSE SUGGESTIONS
     if (!e.target.closest(".search-container")) {
@@ -95,11 +97,13 @@ async function loadPage(page) {
 document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("active"));
 
 if (page.includes("dashboard")) {
-    document.querySelectorAll(".menu-item")[0].classList.add("active");
+    document.querySelector(".menu-item[onclick*='dashboard']").classList.add("active");
 }
+
 if (page.includes("subcontractor")) {
     document.getElementById("subMenu").classList.add("active");
 }
+
 if (page.includes("payment")) {
     document.getElementById("payMenu").classList.add("active");
 }
@@ -124,6 +128,10 @@ if (role === "viewer" && !page.includes("dashboard")) {
         const res = await fetch(page);
         const html = await res.text();
         container.innerHTML = html;
+        container.style.opacity = 0;
+setTimeout(() => {
+    container.style.opacity = 1;
+}, 50);
 
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
@@ -452,12 +460,12 @@ window.toggleTheme = function () {
 
     const body = document.body;
 
-    if (body.classList.contains("dark-mode")) {
-        body.classList.remove("dark-mode");
-        localStorage.setItem("theme", "light");
-    } else {
-        body.classList.add("dark-mode");
+    if (body.classList.contains("light-mode")) {
+        body.classList.remove("light-mode");
         localStorage.setItem("theme", "dark");
+    } else {
+        body.classList.add("light-mode");
+        localStorage.setItem("theme", "light");
     }
 };
 
