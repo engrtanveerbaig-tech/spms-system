@@ -31,6 +31,8 @@ body{
 /* ================= LAYOUT ================= */
 .container{
     padding:20px;
+    max-width:1400px;
+    margin:auto;
 }
 
 .card{
@@ -91,9 +93,14 @@ button:hover{
 /* ================= GRID ================= */
 .form-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    grid-template-columns:repeat(12,1fr);
     gap:12px;
 }
+.col-2{grid-column:span 2;}
+.col-3{grid-column:span 3;}
+.col-4{grid-column:span 4;}
+.col-6{grid-column:span 6;}
+.col-12{grid-column:span 12;}
 
 /* ================= TABLE ================= */
 .table-container{
@@ -189,7 +196,7 @@ tbody tr:hover{
 
 .content{
     margin-left:80px;
-    padding:20px;
+    width:calc(100% - 80px);
 }
 
 /* ================= RESPONSIVE ================= */
@@ -204,4 +211,32 @@ tbody tr:hover{
     background:var(--bg);
     z-index:20;
     padding:10px 0;
+}
+.input-group{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+}
+
+.input-group label{
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:4px;
+}
+
+.input-group input,
+.input-group select{
+    height:42px;
+}
+@media(max-width:1200px){
+    .col-3{grid-column:span 6;}
+    .col-4{grid-column:span 6;}
+}
+
+@media(max-width:768px){
+    .col-3,
+    .col-4,
+    .col-6{
+        grid-column:span 12;
+    }
 }
