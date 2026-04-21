@@ -5,52 +5,151 @@
 
 <style>
 body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
     height: 100vh;
+    display: flex;
+}
+
+/* LEFT PANEL */
+.left-panel {
+    width: 50%;
+    background: linear-gradient(135deg, #7c1d6f, #ec4899);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px;
+    position: relative;
+}
+
+.left-panel h1 {
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+.left-panel p {
+    font-size: 15px;
+    line-height: 1.7;
+    opacity: 0.9;
+    max-width: 400px;
+}
+
+/* DECORATION */
+.left-panel::before {
+    content: "";
+    position: absolute;
+    width: 250px;
+    height: 250px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 30px;
+    top: 50px;
+    left: 50px;
+    transform: rotate(45deg);
+}
+
+/* RIGHT PANEL */
+.right-panel {
+    width: 50%;
+    background: #f8fafc;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #0f172a;
-    font-family: Arial;
 }
 
+/* LOGIN BOX */
 .login-box {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(15px);
-    padding: 30px;
-    border-radius: 16px;
     width: 320px;
-    text-align: center;
 }
 
-input {
+.login-box h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #7c1d6f;
+}
+
+/* INPUT */
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group input {
     width: 100%;
     padding: 12px;
-    margin: 10px 0;
-    border-radius: 10px;
     border: none;
+    border-bottom: 2px solid #ccc;
+    outline: none;
+    font-size: 14px;
+    background: transparent;
 }
 
+.input-group input:focus {
+    border-color: #ec4899;
+}
+
+/* BUTTON */
 button {
     width: 100%;
     padding: 12px;
-    background: linear-gradient(135deg,#3b82f6,#22c55e);
+    margin-top: 10px;
     border: none;
+    border-radius: 20px;
+    background: linear-gradient(135deg,#ec4899,#7c1d6f);
     color: white;
-    border-radius: 10px;
     cursor: pointer;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+/* FOOTER TEXT */
+.footer-text {
+    margin-top: 15px;
+    font-size: 12px;
+    text-align: center;
+    color: #888;
 }
 </style>
 </head>
 
 <body>
 
-<div class="login-box">
-    <h2 style="color:white;">SPMS Login</h2>
+<!-- LEFT SIDE -->
+<div class="left-panel">
+    <h1>SPMS System</h1>
 
-    <input id="username" placeholder="Username">
-    <input id="password" type="password" placeholder="Password">
+    <p>
+        Subcontractor Payment Management System (SPMS) is a powerful platform designed 
+        to manage project payments, subcontractor records, and financial tracking in real time. 
+        It helps organizations streamline workflows, monitor cash flow, and maintain accurate 
+        records with efficiency and transparency.
+    </p>
+</div>
 
-    <button onclick="login()">Login</button>
+<!-- RIGHT SIDE -->
+<div class="right-panel">
+
+    <div class="login-box">
+        <h2>Login</h2>
+
+        <div class="input-group">
+            <input id="username" placeholder="Username">
+        </div>
+
+        <div class="input-group">
+            <input id="password" type="password" placeholder="Password">
+        </div>
+
+        <button onclick="login()">Login</button>
+
+        <div class="footer-text">
+            © 2026 Eng. Tanveer Ahmad
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -75,16 +174,13 @@ async function login() {
             return;
         }
 
-        // ✅ SAVE AUTH DATA
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", data.role);
         localStorage.setItem("username", data.username);
 
-        // ✅ REDIRECT
         window.location.href = "index.html";
 
     } catch (err) {
-        console.error("Login error:", err);
         alert("Server not reachable");
     }
 }
