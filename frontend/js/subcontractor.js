@@ -29,16 +29,23 @@ async function load() {
 
     console.log("STEP 2 → Loading API...");
 
-    const res = await fetch(`${API}/api/subcontractors/all`);
+    const res = await fetch(`${API}/api/subcontractors/all`, {
+    headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+    }
+});
 
     const data = await res.json();
 
-    console.log("STEP 2 → DATA RECEIVED:", data);
+if (!Array.isArray(data)) {
+    console.error("Invalid API response:", data);
+    return;
+}
 
-    fullData = data;
+fullData = data;
 
-    populateFilters(fullData);
-    render(fullData);
+populateFilters(fullData);
+render(fullData);
 }
 
 // RENDER
@@ -161,10 +168,13 @@ async function save() {
     }
 
     const res = await fetch(url, {
-        method,
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(data)
-    });
+    method,
+    headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+    },
+    body: JSON.stringify(data)
+});
 
     document.getElementById("msg").innerText = await res.text();
 
@@ -181,7 +191,11 @@ async function save() {
 // EDIT
 async function edit(id) {
 
-    const res = await fetch(`${API}/api/subcontractors/${id}`);
+    const res = await fetch(`${API}/api/subcontractors/${id}`, {
+    headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+    }
+});
     const d = await res.json();
 
     editId = id;
@@ -210,8 +224,11 @@ async function del(id) {
     if (!confirm("Delete?")) return;
 
     await fetch(`${API}/api/subcontractors/delete/${id}`, {
-        method: "DELETE"
-    });
+    method: "DELETE",
+    headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+    }
+});
 
     load();
 }

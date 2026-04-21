@@ -1,3 +1,11 @@
+// =======================================================
+// 🔍 GLOBAL SEARCH SYSTEM (FINAL)
+// =======================================================
+
+let SEARCH_DATA = [];
+let GLOBAL_DATA = [];
+let FILTERED_DATA = [];
+
 // ================= MAINTENANCE MODE =================
 const MAINTENANCE_MODE = false; // 🔥 change true/false
 let selectedSubcontractorId = null;
@@ -159,16 +167,6 @@ if (token) {
     window.location.href = "login.html";
 }
 
-// ================= LOGOUT =================
-
-
-// =======================================================
-// 🔍 GLOBAL SEARCH SYSTEM (FINAL)
-// =======================================================
-
-let GLOBAL_DATA = [];
-let FILTERED_DATA = [];
-
 // ================= HANDLE SEARCH =================
 function handleSearchInput() {
 
@@ -249,7 +247,7 @@ function selectSuggestion(value, type) {
 // ================= GLOBAL SEARCH MODAL =================
 
 // store full data
-let SEARCH_DATA = [];
+
 
 async function loadSearchData() {
     if (SEARCH_DATA.length > 0) return; // ✅ cache
@@ -508,4 +506,8 @@ if (label) {
     }
 
     closeSearchModal();
+}
+function logout() {
+    localStorage.clear();
+    window.location.href = "login.html";
 }
