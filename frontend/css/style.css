@@ -1213,3 +1213,199 @@ td button {
     background: radial-gradient(circle at top, rgba(255,255,255,0.15), transparent 60%);
     pointer-events: none;
 }
+/* =====================================================
+   🔥 FINAL OVERRIDE (NO CLASS CHANGE SAFE MODE)
+   ===================================================== */
+
+/* ================= HEADER STICKY ================= */
+.header {
+    position: sticky !important;
+    top: 0;
+    z-index: 1000;
+    background: inherit;
+}
+
+/* ================= FILTER BAR STICKY ================= */
+.filters {
+    position: sticky !important;
+    top: 70px; /* adjust based on header height */
+    z-index: 999;
+
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+
+    border-radius: 12px;
+    padding: 10px;
+}
+
+/* DARK MODE FIX */
+body.dark-mode .filters {
+    background: rgba(15,23,42,0.9);
+}
+
+/* ================= TABLE SCROLL FIX ================= */
+.table-container {
+    max-height: calc(100vh - 320px) !important;
+    overflow-y: auto !important;
+    position: relative;
+}
+
+/* ================= STICKY FILTER ROW ================= */
+.table-container thead tr:first-child th {
+    position: sticky !important;
+    top: 0;
+    z-index: 10;
+
+    background: #020617;
+}
+
+/* ================= STICKY HEADER ROW ================= */
+.table-container thead tr:nth-child(2) th {
+    position: sticky !important;
+    top: 42px; /* height of filter row */
+    z-index: 9;
+
+    background: #1f4e79;
+    color: #fff;
+}
+
+/* SHADOW FOR DEPTH */
+.table-container thead th {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* ================= DASHBOARD GRID FIX ================= */
+.dashboard-custom {
+    display: grid !important;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 16px;
+    align-items: stretch;
+}
+
+/* LEFT BIG CHART */
+.chart.big {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+/* SMALL TOP */
+.chart.small-top {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+/* RIGHT PANEL */
+.chart.right-panel {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* SMALL BOTTOM */
+.chart.small-bottom {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+/* BIG BOTTOM */
+.chart.big-bottom {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+/* ================= CHART SIZE FIX ================= */
+.chart {
+    height: 280px !important;
+}
+
+/* FIX CANVAS */
+.chart canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* ================= KPI GRID ALIGN ================= */
+.dashboard-grid {
+    display: grid !important;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+}
+
+/* AI FULL WIDTH */
+.ai-box {
+    grid-column: span 5;
+}
+
+/* ================= KPI ANIMATION ================= */
+.kpi span {
+    animation: fadeUp 0.6s ease;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ================= TABLE ROW HOVER ================= */
+tbody tr {
+    transition: 0.2s;
+}
+
+tbody tr:hover {
+    background: rgba(59,130,246,0.08);
+    transform: scale(1.01);
+}
+
+/* ================= SEARCH MODAL FIX ================= */
+.search-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.search-box {
+    width: 420px;
+    max-width: 90%;
+    padding: 20px;
+
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(14px);
+
+    border-radius: 16px;
+}
+
+/* ================= SIDEBAR FIX ================= */
+.sidebar {
+    z-index: 1500;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 1000px) {
+
+    .dashboard-custom {
+        grid-template-columns: 1fr !important;
+    }
+
+    .chart {
+        grid-column: 1 !important;
+        grid-row: auto !important;
+        height: auto !important;
+    }
+
+    .filters {
+        top: 60px;
+    }
+}
