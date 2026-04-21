@@ -12,7 +12,6 @@
 /* ================= BASE ================= */
 body{
     font-family:'Segoe UI';
-    background:#f1f5f9;
     margin:0;
     transition:0.3s;
 }
@@ -24,7 +23,8 @@ body.dark-mode{
 
 /* ================= HEADER ================= */
 .header{
-    background:rgba(255,255,255,0.7);
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
     backdrop-filter:blur(12px);
     padding:20px;
     border-radius:16px;
@@ -154,7 +154,6 @@ body.dark-mode .header{
 /* ================= TABLE ================= */
 .table-container{
     margin-top:20px;
-    background:white;
     padding:15px;
     border-radius:14px;
     overflow:auto;
@@ -183,7 +182,7 @@ th{
 
 /* ROW */
 tbody tr:hover{
-    background:#e2e8f0;
+    background: var(--card-bg);
 }
 
 body.dark-mode tbody tr:hover{

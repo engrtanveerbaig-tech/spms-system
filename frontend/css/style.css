@@ -1,5 +1,5 @@
 /* =====================================================
-   🔥 SPMS FULL UI SYSTEM (FINAL CLEAN VERSION)
+   🔥 SPMS FINAL GLOBAL UI SYSTEM (PRODUCTION READY)
    ===================================================== */
 
 /* ================= ROOT ================= */
@@ -42,30 +42,24 @@ body.dark-mode {
 .sidebar {
     width: 80px;
     height: 100vh;
-
     background: linear-gradient(180deg,#7c1d6f,#ec4899);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-
     position: fixed;
     left: 0;
     top: 0;
-
     z-index: 1000;
 }
 
-/* ICONS */
 .menu-item {
     width: 50px;
     height: 50px;
     margin: 12px auto;
-
     border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-
     color: white;
     cursor: pointer;
     transition: 0.3s;
@@ -78,6 +72,11 @@ body.dark-mode {
 
 .menu-item.active {
     background: linear-gradient(135deg,#00f2fe,#4facfe);
+}
+
+.menu-item.search-active {
+    background: linear-gradient(135deg,#22c55e,#3b82f6);
+    box-shadow: 0 0 15px rgba(59,130,246,0.6);
 }
 
 /* LOGO */
@@ -94,7 +93,6 @@ body.dark-mode {
     width: 80%;
     margin: 10px auto;
     padding: 8px;
-
     border: none;
     border-radius: 10px;
     background: #ef4444;
@@ -110,33 +108,18 @@ body.dark-mode {
 }
 
 /* =====================================================
-   🔥 HEADER (AUTO FROM H2 ETC)
-   ===================================================== */
-.container h2,
-.container h3 {
-    position: sticky;
-    top: 0;
-
-    background: inherit;
-    z-index: 50;
-
-    padding: 10px 0;
-}
-
-/* =====================================================
-   🔥 CARDS
+   🔥 CARDS / CONTAINER
    ===================================================== */
 .card,
 .container {
     background: white;
     margin: 20px;
     padding: 20px;
-
     border-radius: var(--radius);
     box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 }
 
-/* DARK */
+/* DARK MODE FIX */
 body.dark-mode .card,
 body.dark-mode .container {
     background: rgba(255,255,255,0.05);
@@ -157,14 +140,30 @@ body.dark-mode .container {
     position: relative;
 }
 
+/* INPUTS */
 input, select {
     width: 100%;
     padding: 12px;
-
     border-radius: 10px;
     border: 1px solid #ddd;
+    background: white;
+}
 
-    background: transparent;
+/* DARK INPUT FIX */
+body.dark-mode input,
+body.dark-mode select {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+}
+
+/* =====================================================
+   🔥 DROPDOWN FIX (CRITICAL)
+   ===================================================== */
+select {
+    max-height: 40px;
+    overflow: hidden;
+    appearance: none;
 }
 
 /* =====================================================
@@ -174,7 +173,6 @@ button {
     background: linear-gradient(135deg,#ec4899,#7c1d6f);
     border: none;
     padding: 10px 14px;
-
     color: white;
     border-radius: 12px;
     cursor: pointer;
@@ -188,44 +186,56 @@ button {
     overflow: auto;
 }
 
-/* TABLE STYLE */
+/* TABLE */
 table {
     width: 100%;
     border-collapse: collapse;
 }
 
+/* CELLS */
 th, td {
     padding: 10px;
     text-align: center;
-}
-
-/* HEADER */
-thead tr:nth-child(2) th {
-    background: #1f4e79;
-    color: white;
+    font-size: 13px;
 }
 
 /* FILTER ROW */
 thead tr:first-child th {
-    background: #0f172a;
-}
-
-/* STICKY */
-thead tr:first-child th {
+    background: #020617;
     position: sticky;
     top: 0;
     z-index: 5;
 }
 
+/* HEADER ROW */
 thead tr:nth-child(2) th {
+    background: #1f4e79;
+    color: white;
     position: sticky;
     top: 40px;
     z-index: 4;
 }
 
+/* FILTER INPUTS */
+thead select {
+    width: 100%;
+    padding: 6px;
+    font-size: 12px;
+}
+
 /* ROW HOVER */
 tbody tr:hover {
-    background: #e2e8f0;
+    background: rgba(59,130,246,0.08);
+    transform: scale(1.01);
+}
+
+/* DARK TABLE */
+body.dark-mode th {
+    background: #1e293b !important;
+}
+
+body.dark-mode thead tr:first-child th {
+    background: #020617 !important;
 }
 
 /* =====================================================
@@ -233,8 +243,8 @@ tbody tr:hover {
    ===================================================== */
 .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(5,1fr);
-    gap: 10px;
+    grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+    gap: 15px;
 }
 
 /* KPI */
@@ -243,10 +253,11 @@ tbody tr:hover {
     color: white;
     padding: 15px;
     border-radius: 12px;
+    animation: fadeUp 0.6s ease;
 }
 
 /* =====================================================
-   🔥 CHART GRID
+   🔥 CHARTS
    ===================================================== */
 .dashboard-custom {
     display: grid;
@@ -254,7 +265,6 @@ tbody tr:hover {
     gap: 12px;
 }
 
-/* CHART BOX */
 .chart {
     background: #0f172a;
     border-radius: 12px;
@@ -274,30 +284,44 @@ tbody tr:hover {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.5);
-
     display: none;
     align-items: center;
     justify-content: center;
-
     z-index: 2000;
+    backdrop-filter: blur(8px);
 }
 
 .search-box {
     width: 400px;
     padding: 20px;
-
-    background: white;
     border-radius: 12px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+body.dark-mode .search-box {
+    background: rgba(0,0,0,0.4);
+}
+
+.search-box input {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: white;
+}
+
+/* =====================================================
+   🔥 ANIMATIONS
+   ===================================================== */
+@keyframes fadeUp {
+    from {opacity:0; transform:translateY(10px);}
+    to {opacity:1; transform:translateY(0);}
 }
 
 /* =====================================================
    🔥 RESPONSIVE
    ===================================================== */
 @media (max-width: 900px) {
-
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
 
     .dashboard-custom {
         grid-template-columns: 1fr;
@@ -306,120 +330,4 @@ tbody tr:hover {
     .content {
         margin-left: 60px;
     }
-}
-/* ===== DARK MODE FULL SYSTEM ===== */
-
-body.dark-mode .sidebar {
-    background: linear-gradient(180deg,#020617,#0f172a);
-}
-
-body.dark-mode .content {
-    background: #020617;
-}
-
-body.dark-mode .card,
-body.dark-mode .container {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(14px);
-}
-
-body.dark-mode input,
-body.dark-mode select {
-    border: 1px solid rgba(255,255,255,0.2);
-    color: white;
-}
-
-body.dark-mode table {
-    color: white;
-}
-
-body.dark-mode tbody tr:hover {
-    background: rgba(255,255,255,0.08);
-}
-/* ===== SEARCH MODAL PREMIUM ===== */
-
-.search-modal {
-    backdrop-filter: blur(8px);
-}
-
-.search-box {
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.2);
-}
-
-/* DARK */
-body.dark-mode .search-box {
-    background: rgba(0,0,0,0.4);
-}
-
-/* INPUT */
-.search-box input {
-    background: rgba(255,255,255,0.1);
-    border: none;
-    color: white;
-}
-
-.search-box input::placeholder {
-    color: rgba(255,255,255,0.6);
-}
-/* ===== SEARCH ACTIVE BUTTON ===== */
-
-.menu-item.search-active {
-    background: linear-gradient(135deg,#22c55e,#3b82f6);
-    box-shadow: 0 0 15px rgba(59,130,246,0.6);
-}
-/* ===== GLOBAL TRANSITIONS ===== */
-
-* {
-    transition: all 0.25s ease;
-}
-/* ===== CARD HOVER ===== */
-
-.card:hover,
-.container:hover {
-    transform: translateY(-3px);
-}
-
-/* ===== GLOBAL TYPOGRAPHY ===== */
-
-h1 { font-size: 26px; font-weight: 600; }
-h2 { font-size: 22px; font-weight: 600; }
-h3 { font-size: 18px; font-weight: 500; }
-
-/* ===== DARK MODE FULL FIX ===== */
-
-body.dark-mode input,
-body.dark-mode select {
-    background: transparent;
-    color: white;
-}
-
-body.dark-mode th {
-    background: #1e293b !important;
-}
-
-body.dark-mode thead tr:first-child th {
-    background: #020617 !important;
-}
-
-/* ===== TABLE POLISH ===== */
-
-tbody tr {
-    transition: 0.2s;
-}
-
-tbody tr:hover {
-    transform: scale(1.01);
-}
-
-/* ===== KPI ANIMATION ===== */
-
-.kpi {
-    animation: fadeUp 0.6s ease;
-}
-
-@keyframes fadeUp {
-    from {opacity:0; transform:translateY(10px);}
-    to {opacity:1; transform:translateY(0);}
 }
