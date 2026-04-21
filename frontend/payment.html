@@ -4,6 +4,108 @@
 <title>Dashboard</title>
 <!-- ================= STYLE ================= -->
  <link rel="stylesheet" href="./css/style.css">
+ <style>
+
+/* ================= BASE ================= */
+body{
+    font-family: 'Segoe UI';
+    margin:0;
+    background:#f1f5f9;
+}
+
+/* ================= CONTAINER ================= */
+.container{
+    background:white;
+    margin:20px;
+    padding:20px;
+    border-radius:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* ================= HEADINGS ================= */
+.container h2,
+.container h3{
+    position:sticky;
+    top:0;
+    background:white;
+    z-index:20;
+    padding:10px 0;
+}
+
+/* ================= FORM ================= */
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:12px;
+}
+
+input,select{
+    width:100%;
+    padding:10px;
+    border-radius:10px;
+    border:1px solid #ddd;
+}
+
+/* ================= BUTTON ================= */
+button{
+    margin-top:10px;
+    padding:10px 14px;
+    border:none;
+    border-radius:10px;
+    background:linear-gradient(135deg,#7c1d6f,#ec4899);
+    color:white;
+    cursor:pointer;
+}
+
+/* ================= TABLE ================= */
+.table-container{
+    max-height:500px;
+    overflow:auto;
+    border-radius:12px;
+}
+
+/* TABLE */
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+/* CELLS */
+th,td{
+    padding:10px;
+    text-align:center;
+}
+
+/* FILTER ROW */
+thead tr:first-child th{
+    background:#0f172a;
+    position:sticky;
+    top:0;
+    z-index:10;
+}
+
+/* HEADER ROW */
+thead tr:nth-child(2) th{
+    background:#1f4e79;
+    color:white;
+    position:sticky;
+    top:40px;
+    z-index:9;
+}
+
+/* BODY */
+tbody tr:hover{
+    background:#e2e8f0;
+}
+
+/* FOOTER */
+tfoot td{
+    font-weight:bold;
+    background:#f8fafc;
+}
+
+</style>
+</head>
 </head>
 <body>
 <!-- ================= FORM ================= -->

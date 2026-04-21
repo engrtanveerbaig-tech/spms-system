@@ -10,174 +10,219 @@
 <style>
 
 /* ================= BASE ================= */
-body {
-    margin: 0;
-    font-family: 'Segoe UI';
+body{
+    font-family:'Segoe UI';
+    background:#f1f5f9;
+    margin:0;
+    transition:0.3s;
 }
 
-.main {
-    padding: 20px;
+body.dark-mode{
+    background:#020617;
+    color:white;
 }
 
-
-
-.total-sar {
-    background: #1e293b;
-    padding: 15px 25px;
-    border-radius: 12px;
+/* ================= HEADER ================= */
+.header{
+    background:rgba(255,255,255,0.7);
+    backdrop-filter:blur(12px);
+    padding:20px;
+    border-radius:16px;
+    margin-bottom:20px;
 }
 
-/* ================= KPI CARDS ================= */
-.cards {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
-    margin-top: 20px;
+body.dark-mode .header{
+    background:rgba(255,255,255,0.05);
 }
 
-.card {
-    background: #1e293b;
-    padding: 20px;
-    border-radius: 14px;
+/* ================= KPI GRID ================= */
+.dashboard-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:12px;
 }
 
+/* KPI CARD */
+.kpi{
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    color:white;
+    padding:18px;
+    border-radius:14px;
+    font-size:14px;
 
-.card h3 {
-    color: #94a3b8;
-    font-size: 13px;
+    transition:0.3s;
 }
 
-.card p {
-    font-size: 22px;
-    font-weight: bold;
+.kpi span{
+    display:block;
+    font-size:20px;
+    font-weight:bold;
+    margin-top:6px;
 }
 
-/* ================= ADVANCED KPI ================= */
-.cards-advanced {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin-top: 15px;
+/* HOVER */
+.kpi:hover{
+    transform:translateY(-5px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.3);
+}
+
+/* ================= MINI ================= */
+.mini{
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(10px);
+    padding:10px;
+    border-radius:10px;
+}
+
+/* ================= AI BOX ================= */
+.ai-box{
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(14px);
+    border-radius:14px;
+    padding:15px;
+    grid-column:span 2;
+}
+
+.ai-header{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:10px;
+}
+
+/* ================= FILTERS ================= */
+.filters{
+    display:flex;
+    gap:10px;
+    margin:20px 0;
+    flex-wrap:wrap;
+}
+
+.filters select{
+    padding:8px;
+    border-radius:10px;
+    border:1px solid #ddd;
 }
 
 /* ================= CHART GRID ================= */
-.chart-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 15px;
-    margin-top: 20px;
+.dashboard-custom{
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr;
+    gap:15px;
 }
 
-.chart {
-    background: linear-gradient(135deg, #0f172a, #1e293b);
-    border-radius: 14px;
-    padding: 15px;
+/* CHART */
+.chart{
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    border-radius:14px;
+    padding:15px;
+    height:300px;
 
-    height: 320px;   /* 🔥 give space */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-/* 🔥 IMPORTANT FIX FOR PERFECT CIRCLE */
-.chart canvas {
-    width: 100% !important;
-    height: 100% !important;
+    position:relative;
 }
 
-/* SECOND ROW */
-.chart-grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 15px;
-    margin-top: 20px;
+.chart-title{
+    position:absolute;
+    top:10px;
+    left:15px;
+    font-size:13px;
+    color:#94a3b8;
+}
+
+/* CANVAS FIX */
+.chart canvas{
+    width:100%!important;
+    height:100%!important;
+}
+
+/* ================= TOP SUBS ================= */
+.top-card{
+    background:rgba(255,255,255,0.05);
+    margin:6px 0;
+    padding:10px;
+    border-radius:10px;
+}
+
+.top-card.big{
+    background:linear-gradient(135deg,#3b82f6,#22c55e);
+    color:white;
+}
+
+.top-rank{
+    font-weight:bold;
 }
 
 /* ================= TABLE ================= */
-.table-container {
-    margin-top: 25px;
-    background: #F5F7FA;
-    color: #334155;
-    padding: 15px;
-    border-radius: 12px;
-    overflow-x: auto;
+.table-container{
+    margin-top:20px;
+    background:white;
+    padding:15px;
+    border-radius:14px;
+    overflow:auto;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
+body.dark-mode .table-container{
+    background:rgba(255,255,255,0.05);
 }
 
-th {
-    color: #94a3b8;
-    padding: 12px;
-    text-align: left;
+/* TABLE */
+table{
+    width:100%;
+    border-collapse:collapse;
 }
 
-td {
-    padding: 10px;
-    border-top: 1px solid #334155;
+th,td{
+    padding:10px;
+    text-align:left;
 }
 
-button {
-    background: #3b82f6;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-}
-.header {
-    margin-bottom: 20px;
-    background: #F5F7FA;
+/* HEADER */
+th{
+    background:#1f4e79;
+    color:white;
 }
 
-/* TOP LINE (Dashboard + SAR) */
-.header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-/* TITLE */
-.header-top h2 {
-    margin: 0;
+/* ROW */
+tbody tr:hover{
+    background:#e2e8f0;
 }
 
-/* BOTTOM MESSAGE */
-.header-bottom {
-    margin-top: 8px;
-    font-size: 13px;
+body.dark-mode tbody tr:hover{
+    background:rgba(255,255,255,0.08);
 }
 
-.header-bottom a {
-    color: #3b82f6;
-    text-decoration: none;
+/* ================= SKELETON ================= */
+.skeleton{
+    background:linear-gradient(90deg,#eee,#ddd,#eee);
+    animation:shimmer 1.5s infinite;
 }
 
-.header-bottom a:hover {
-    text-decoration: underline;
+@keyframes shimmer{
+    0%{background-position:-200px 0;}
+    100%{background-position:200px 0;}
 }
 
-/* SAR BOX */
-.total-sar {
-    background: #1f2a44;
-    padding: 15px 20px;
-    border-radius: 10px;
-    color: white;
-    min-width: 180px;
-    text-align: center;
+/* ================= ANIMATION ================= */
+.fade-in{
+    animation:fadeIn 0.5s ease;
 }
 
-.total-sar h3 {
-    margin: 0;
-    font-size: 14px;
-    color: #cbd5e1;
+@keyframes fadeIn{
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
 }
 
-.total-sar p {
-    font-size: 20px;
-    margin: 5px 0 0;
+/* ================= RESPONSIVE ================= */
+@media(max-width:900px){
+
+.dashboard-grid{
+    grid-template-columns:1fr;
 }
 
+.dashboard-custom{
+    grid-template-columns:1fr;
+}
+
+}
 
 </style>
 </head>

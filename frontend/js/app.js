@@ -27,8 +27,8 @@ document.addEventListener("click", function(e) {
 
     if (modal && modal.style.display !== "none") {
     if (!box.contains(e.target)) {
-        modal.style.display = "none";
-    }
+    closeSearchModal(); // ✅ use function instead
+}
 }
 
     // CLOSE SUGGESTIONS
@@ -299,6 +299,9 @@ async function openSearchModal() {
 
     document.getElementById("searchModal").style.display = "flex";
 
+    // ✅ ADD THIS LINE HERE
+    const btn = document.querySelector('[onclick*="openSearchModal"]');
+    if (btn) btn.classList.add("search-active");
     if (SEARCH_DATA.length === 0) {
         await loadSearchData();   // 🔥 WAIT FOR DATA
     }
@@ -309,6 +312,10 @@ async function openSearchModal() {
 // close modal
 function closeSearchModal() {
     document.getElementById("searchModal").style.display = "none";
+
+    // ✅ REMOVE ACTIVE STATE
+    const btn = document.querySelector('[onclick*="openSearchModal"]');
+    if (btn) btn.classList.remove("search-active");
 }
 
 // ================= SUGGESTION =================
@@ -460,12 +467,12 @@ window.toggleTheme = function () {
 
     const body = document.body;
 
-    if (body.classList.contains("light-mode")) {
-        body.classList.remove("light-mode");
-        localStorage.setItem("theme", "dark");
-    } else {
-        body.classList.add("light-mode");
+    if (body.classList.contains("dark-mode")) {
+        body.classList.remove("dark-mode");
         localStorage.setItem("theme", "light");
+    } else {
+        body.classList.add("dark-mode");
+        localStorage.setItem("theme", "dark");
     }
 };
 
