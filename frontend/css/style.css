@@ -30,7 +30,7 @@ body{
 
 /* ================= LAYOUT ================= */
 .container{
-    max-width:1200px;
+    max-width:1400px;
     margin:auto;
     border-radius:16px;
     padding:25px;
@@ -43,7 +43,9 @@ body{
     gap:16px;
     align-items:end;
 }
-
+.form-grid .input-group{
+    position:static; /* VERY IMPORTANT */
+}
 /* COLUMN SYSTEM */
 .col-2{grid-column: span 2;}
 .col-3{grid-column: span 3;}
@@ -57,7 +59,7 @@ body{
     justify-content:flex-end;
 }
 
-.input-group label{
+.premium-card .input-group label{
     font-size:12px;
     margin-bottom:6px;
     color:var(--muted);
@@ -244,13 +246,14 @@ tbody tr:hover{
     z-index:20;
     padding:10px 0;
 }
-.input-group{
+.premium-card .input-group{
     position:relative;
 }
-
+.premium-card .input-group label{
+    position:absolute;
+}
 /* LABEL */
 .input-group label{
-    position:absolute;
     top:50%;
     left:12px;
     transform:translateY(-50%);
@@ -265,9 +268,9 @@ tbody tr:hover{
 /* INPUT FIELD */
 .input-group input,
 .input-group select{
-    height:50px;
-    padding:16px 12px 6px;
-    border-radius:12px;
+    height:42px;
+    padding:10px 12px;
+    border-radius:10px;
     border:1px solid var(--border);
     background:var(--card);
     color:var(--text);
@@ -328,32 +331,27 @@ tbody tr:hover{
     gap:15px;
 }
 
-/* INPUT GROUP */
-.input-group{
-    position:relative;
-}
-
 /* ACTIVE FLOAT */
-.input-group input:focus + label,
-.input-group input:not(:placeholder-shown) + label,
-.input-group select:focus + label,
-.input-group select:valid + label{
+.premium-card .input-group input:focus + label,
+.premium-card .input-group input:not(:placeholder-shown) + label,
+.premium-card .input-group select:focus + label,
+.premium-card .input-group select:valid + label{
     top:6px;
     font-size:11px;
     color:var(--primary);
 }
 /* PLACEHOLDER (LIGHT) */
-.input-group input::placeholder{
+.premium-card .input-group input::placeholder{
     color:transparent;
 }
 /* FOCUS EFFECT (🔥 THIS MAKES IT PREMIUM) */
-.input-group input:focus,
-.input-group select:focus{
+.premium-card .input-group input:focus,
+.premium-card .input-group select:focus{
     border-color:var(--primary);
     box-shadow:0 0 0 3px rgba(236,72,153,0.15);
 }
-.input-group input:hover,
-.input-group select:hover{
+.premium-card .input-group input:hover,
+.premium-card .input-group select:hover{
     border-color:#c084fc;
 }
 
