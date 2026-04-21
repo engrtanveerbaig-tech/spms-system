@@ -128,122 +128,136 @@ tbody tr:hover{
 
 <div class="container">
 
-<!-- ================= FORM CARD ================= -->
-<div class="card">
+<div class="card premium-card">
 
 <h2 class="section-title">📋 Subcontractor (SC) Record</h2>
 
-<div class="form-grid">
+<!-- ===== GRID ===== -->
+<div class="form-grid premium-grid">
 
-<!-- PROJECT -->
-<div class="input-group col-3">
-    <select id="project">
-        <option value="">Select Project</option>
-        <option>Sadayem</option>
-        <option>Makkah</option>
-        <option>Madinah</option>
-    </select>
-    <label>Project</label>
+<!-- LEFT COLUMN -->
+<div class="form-section">
+
+<h4 class="form-section-title">Project Details</h4>
+
+<div class="input-group">
+<select id="project">
+<option value=""> </option>
+<option>Sadayem</option>
+<option>Makkah</option>
+<option>Madinah</option>
+</select>
+<label>Project</label>
 </div>
 
-<!-- WORK TYPE -->
-<div class="input-group col-3">
-    <select id="work_type">
-        <option value="">Select Work Type</option>
-        <option>Concrete & Masonry</option>
-        <option>Masonry</option>
-        <option>Plaster</option>
-        <option>Paint</option>
-        <option>Tiles</option>
-        <option>Insulation</option>
-        <option>Electrical</option>
-        <option>Mechanical</option>
-    </select>
-    <label>Work Type</label>
+<div class="input-group">
+<select id="work_type">
+<option value=""> </option>
+<option>Concrete & Masonry</option>
+<option>Masonry</option>
+<option>Plaster</option>
+<option>Paint</option>
+<option>Tiles</option>
+<option>Insulation</option>
+<option>Electrical</option>
+<option>Mechanical</option>
+</select>
+<label>Work Type</label>
 </div>
 
-<!-- RETENTION -->
-<div class="input-group col-3">
-    <select id="retention_percent">
-        <option value="10">Retention 10%</option>
-        <option value="5">Retention 5%</option>
-        <option value="0">Retention 0%</option>
-    </select>
-    <label>Retention</label>
+<div class="input-group">
+<select id="retention_percent">
+<option value="10">10%</option>
+<option value="5">5%</option>
+<option value="0">0%</option>
+</select>
+<label>Retention</label>
 </div>
 
-<!-- VAT -->
-<div class="input-group col-3">
-    <select id="vat_percent">
-        <option value="15">VAT 15%</option>
-        <option value="0">VAT 0%</option>
-    </select>
-    <label>VAT</label>
+<div class="input-group">
+<select id="vat_percent">
+<option value="15">15%</option>
+<option value="0">0%</option>
+</select>
+<label>VAT</label>
 </div>
 
-<!-- CHECKBOX -->
-<div class="input-group col-3 checkbox-fix">
-    <label class="checkbox-label">
-        <input type="checkbox" id="has_advance">
-        <span>Has Advance Payment</span>
-    </label>
 </div>
 
-<!-- ADVANCE -->
-<div class="input-group col-3">
-    <input id="advance_amount" placeholder=" ">
-    <label>Advance Amount</label>
+<!-- RIGHT COLUMN -->
+<div class="form-section">
+
+<h4 class="form-section-title">Contract Details</h4>
+
+<div class="checkbox-box">
+<label>
+<input type="checkbox" id="has_advance">
+<span>Has Advance Payment</span>
+</label>
 </div>
 
-<!-- CONTRACT -->
-<div class="input-group col-3">
-    <input id="contract_no" placeholder=" ">
-    <label>Contract No</label>
+<div class="input-group">
+<input id="advance_amount" placeholder=" ">
+<label>Advance Amount</label>
 </div>
 
-<!-- COMPANY -->
-<div class="input-group col-3">
-    <input id="company" placeholder=" ">
-    <label>Company Name</label>
+<div class="input-group">
+<input id="contract_no" placeholder=" ">
+<label>Contract No</label>
 </div>
 
-<!-- CR -->
-<div class="input-group col-3">
-    <input id="cr" placeholder=" ">
-    <label>CR</label>
+<div class="input-group">
+<input id="company" placeholder=" ">
+<label>Company Name</label>
 </div>
 
-<!-- VAT NUMBER -->
-<div class="input-group col-3">
-    <input id="vat_number" placeholder=" ">
-    <label>VAT Number</label>
+<div class="input-group">
+<input id="cr" placeholder=" ">
+<label>CR</label>
 </div>
 
-<!-- SUB NAME -->
-<div class="input-group col-3">
-    <input id="subcontractor_name" placeholder=" ">
-    <label>Subcontractor Name</label>
+<div class="input-group">
+<input id="vat_number" placeholder=" ">
+<label>VAT Number</label>
 </div>
 
-<!-- PHONE -->
-<div class="input-group col-3">
-    <input id="phone" placeholder=" ">
-    <label>Phone</label>
 </div>
 
-<!-- EMAIL -->
-<div class="input-group col-3">
-    <input type="email" id="email" placeholder=" ">
-    <label>Email</label>
+<!-- FULL WIDTH -->
+<div class="form-section full">
+
+<h4 class="form-section-title">Contact Details</h4>
+
+<div class="form-row">
+
+<div class="input-group">
+<input id="subcontractor_name" placeholder=" ">
+<label>Subcontractor Name</label>
 </div>
 
-<small id="email_error" style="color:red; display:none;">Invalid email</small>
+<div class="input-group">
+<input id="phone" placeholder=" ">
+<label>Phone</label>
+</div>
+
+<div class="input-group">
+<input type="email" id="email" placeholder=" ">
+<label>Email</label>
+</div>
+
+</div>
+
+</div>
 
 <!-- BUTTON -->
-<div class="form-actions col-12">
-    <button id="mainBtn" onclick="save()">➕ Add Subcontractor</button>
+<div class="form-actions">
+<button id="mainBtn" onclick="save()">➕ Add Subcontractor</button>
 </div>
 
+</div>
+
+</div>
+</div>
 </div>
 
 <p id="msg"></p>

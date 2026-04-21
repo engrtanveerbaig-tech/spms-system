@@ -92,11 +92,7 @@ button:hover{
 }
 
 /* ================= GRID ================= */
-.form-grid{
-    display:grid;
-    grid-template-columns:repeat(12,1fr);
-    gap:12px;
-}
+
 .col-2{grid-column:span 2;}
 .col-3{grid-column:span 3;}
 .col-4{grid-column:span 4;}
@@ -261,7 +257,7 @@ tbody tr:hover{
 
 /* SECTIONS */
 .form-section{
-    background:rgba(255,255,255,0.03);
+    background:var(--card);
     padding:20px;
     border-radius:14px;
     border:1px solid var(--border);
@@ -317,17 +313,18 @@ tbody tr:hover{
 .input-group input:focus + label,
 .input-group input:not(:placeholder-shown) + label,
 .input-group select:focus + label,
-.input-group select:not([value=""]) + label{
+.input-group select:valid + label{
     top:6px;
     font-size:11px;
     color:var(--primary);
 }
 
-/* CHECKBOX BOX */
 .checkbox-box{
     display:flex;
     align-items:center;
+    justify-content:flex-start;
     height:48px;
+    margin-bottom:10px;
 }
 
 .checkbox-box label{
