@@ -23,15 +23,18 @@ body.dark-mode{
 
 /* ================= HEADER ================= */
 .header{
-    background:rgba(255,255,255,0.06);
-    backdrop-filter:blur(14px);
-    border:1px solid rgba(255,255,255,0.1);
+    background:linear-gradient(135deg,#ffffff,#f1f5f9);
+    border-radius:18px;
+    padding:25px;
 
-    padding:20px;
-    border-radius:16px;
-    margin-bottom:20px;
+    box-shadow:
+        0 10px 30px rgba(0,0,0,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.6);
+}
 
-    box-shadow:0 10px 30px rgba(0,0,0,0.25);
+/* DARK MODE */
+body.dark-mode .header{
+    background:linear-gradient(135deg,#0f172a,#1e293b);
 }
 .header-top{
      display:flex;
@@ -109,10 +112,28 @@ body.dark-mode .header{
     background:linear-gradient(135deg,#0f172a,#1e293b);
     color:white;
     padding:18px;
-    border-radius:14px;
+    border-radius:16px;
     font-size:14px;
 
-    transition:0.3s;
+    position:relative;
+    overflow:hidden;
+}
+
+/* GLOSS EFFECT */
+.kpi::before{
+    content:'';
+    position:absolute;
+    top:0;
+    left:-50%;
+    width:200%;
+    height:100%;
+    background:linear-gradient(
+        120deg,
+        transparent,
+        rgba(255,255,255,0.15),
+        transparent
+    );
+    transform:skewX(-20deg);
 }
 
 .kpi span{
@@ -153,40 +174,47 @@ body.dark-mode .header{
 
 /* ================= FILTERS ================= */
 .filters{
-    background:rgba(255,255,255,0.04);
-    border-bottom:1px solid rgba(0,0,0,0.1);
-    backdrop-filter:blur(10px);
-    padding:12px 15px;
-    border-radius:12px;
+    background:transparent;
+    border:none;
+    padding:8px 0;
+    border-radius:0;
     display:flex;
     align-items:center;
-    gap:10px;
-    margin:20px 0;
-    flex-wrap:nowrap; /* 🔥 KEY FIX */
+    gap:12px;
+    margin:15px 0;
+    flex-wrap:nowrap;
 }
+
 .filters h6{
     margin:0;
     font-size:13px;
     font-weight:600;
-    color:#94a3b8;
-    letter-spacing:0.5px;
-    min-width:60px;
+    color:#64748b;
 }
 
+/* SELECT CLEAN STYLE */
 .filters select{
     background:transparent;
     border:none;
-    border-bottom:1px solid rgba(0,0,0,0.2);
-    border-radius:0;
-    padding:6px 4px;
-    min-width:180px;
+    border-bottom:1px solid #cbd5e1;
+    padding:6px 2px;
+    min-width:170px;
     font-size:13px;
+    outline:none;
 }
 
 /* DARK MODE */
 body.dark-mode .filters select{
-    border-bottom:1px solid rgba(255,255,255,0.2);
+    border-bottom:1px solid #475569;
     color:#e2e8f0;
+}
+
+/* BUTTONS */
+.filter-actions button{
+    border:none;
+    padding:7px 14px;
+    border-radius:8px;
+    font-size:12px;
 }
 .filter-actions{
     display:flex;
@@ -263,7 +291,8 @@ body.dark-mode .filters select{
     top:10px;
     left:15px;
     font-size:13px;
-    color:#94a3b8;
+    font-weight:600;
+    color:#cbd5f5;
 }
 
 /* CANVAS FIX */
@@ -314,8 +343,9 @@ th,td{
 
 /* HEADER */
 th{
-    background:#1f4e79;
+    background:linear-gradient(135deg,#1f4e79,#2563eb);
     color:white;
+    font-size:13px;
 }
 
 /* ROW */

@@ -748,198 +748,122 @@ async function generatePDF() {
 
     const data = applyFilterData();
 
-    // wait charts render
-    await new Promise(r => setTimeout(r, 800));
+    // ============================
+    // BUILD HTML CONTENT
+    // ============================
+    let content = document.createElement("div");
 
-    // ================================
-    // 🔷 CAPTURE CHARTS
-    // ================================
-    function getChartImage(id) {
-    const canvas = document.getElementById(id);
-    if (!canvas) return "";
-    return canvas.toDataURL("image/png");
-}
+    content.innerHTML = `
+        <div style="font-family:Arial; padding:20px;">
 
-    
+            <!-- COVER -->
+            <div style="text-align:center; margin-top:80px;">
+                <img src="assets/logo2.png" width="200"><br><br>
 
-    // ================================
-    // 🔷 BUILD HTML (PREMIUM)
-    // ================================
-    let html = `
-<html>
-<head>
-<style>
+                <h2>NAM-153VILLAS-040624</h2>
+                <p>Subcontractors | Payment Certificates Report</p>
 
-body {
-    font-family: Arial;
-    background:#fff;
-    color:#000;
-    padding:20px;
-}
+                <br><br>
 
-h1,h2 {
-    text-align:center;
-    margin:10px 0;
-}
+                <p><strong>Prepared by:</strong> Eng. Tanveer Ahmad</p>
+                <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+            </div>
 
-/* COMMON */
-.box {
-    padding: 8px;
-    background: transparent;
-    border: none;        /* ❌ REMOVE BORDER */
-    box-shadow: none;    /* ❌ REMOVE SHADOW */
-}
+            <div style="page-break-after:always;"></div>
 
-/* IMAGE */
-.box img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
+            <!-- SUMMARY -->
+            <h3 style="text-align:center;">Summary</h3>
 
-.chart-box img {
-    width:100%;
-    height:180px;
-    object-fit:contain;
-}
+            <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+                <tr>
+                    <th>Work</th>
+                    <th>Withdrawn</th>
+                    <th>Deduction</th>
+                    <th>Refund</th>
+                    <th>Retention</th>
+                    <th>Advance</th>
+                    <th>Net</th>
+                </tr>
 
-/* ===== TABLE ===== */
-table {
-    width:100%;
-    border-collapse:collapse;
-    margin-top:20px;
-}
+                <tr>
+                    <td>${format(sum(data,"total_work"))}</td>
+                    <td>${format(sum(data,"total_withdrawn"))}</td>
+                    <td>${format(sum(data,"total_deduction"))}</td>
+                    <td>${format(sum(data,"total_refund"))}</td>
+                    <td>${format(sum(data,"total_retention"))}</td>
+                    <td>${format(sum(data,"total_advance"))}</td>
+                    <td>${format(sum(data,"total_net"))}</td>
+                </tr>
+            </table>
 
-th, td {
-    border:1px solid #dadada;
-    padding:5px;
-    font-size:11px;
-    text-align:center;
-}
+            <!-- DETAILS -->
+            <h3 style="text-align:center; margin-top:20px;">Details</h3>
 
-th {
-    background:#f0f0f0;
-    font-weight:bold;
-}
+            <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+                <tr>
+                    <th>Company</th>
+                    <th>Subcontractor</th>
+                    <th>Type</th>
+                    <th>Cert</th>
+                    <th>Work</th>
+                    <th>Withdrawn</th>
+                    <th>Deduction</th>
+                    <th>Refund</th>
+                    <th>Retention</th>
+                    <th>Advance</th>
+                    <th>Net</th>
+                </tr>
 
-.report-footer {
-page-break-inside: avoid;
+                ${data.map(x => `
+                    <tr>
+                        <td>${x.company}</td>
+                        <td>${x.subcontractor}</td>
+                        <td>${x.work_type}</td>
+                        <td>${x.cert_count}</td>
+                        <td>${format(x.total_work)}</td>
+                        <td>${format(x.total_withdrawn)}</td>
+                        <td>${format(x.total_deduction)}</td>
+                        <td>${format(x.total_refund)}</td>
+                        <td>${format(x.total_retention)}</td>
+                        <td>${format(x.total_advance)}</td>
+                        <td>${format(x.total_net)}</td>
+                    </tr>
+                `).join("")}
+            </table>
 
-    margin-top: 40px;
-    text-align: center;
-    font-size: 12px;
-    color: #555;
-}
+            <!-- FOOTER -->
+            <div style="
+                position: fixed;
+                bottom: 10px;
+                left: 0;
+                right: 0;
+                text-align:center;
+                font-size:12px;
+                color:#555;
+            ">
+                Page <span class="page"></span>
+                | Prepared by Eng. Tanveer Ahmad
+                | SPMS Dashboard
+            </div>
 
-@media print {
-    @page {
-        margin: 20mm;
-    }
+        </div>
+    `;
 
-    body {
-        margin: 0;
-    }
-}
-}
+    // ============================
+    // PDF OPTIONS
+    // ============================
+    const opt = {
+        margin: 10,
+        filename: 'SPMS_Report.pdf',
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
 
-</style>
-</head>
-
-<body>
-
-<!-- COVER -->
-<div style="text-align:center; margin-top:100px;">
-    <img src="assets/logo2.png" width="250"><br><br>
-
-    <h1>NAM-153VILLAS-040624</h1>
-    <p>Subcontractors | Payment Certificates Report</p>
-
-    <br><br>
-
-    <p>Prepared by: Eng. Tanveer Ahmad</p>
-    <p>Date: ${new Date().toLocaleDateString()}</p>
-</div>
-
-<div style="page-break-after:always;"></div>
-
-
-
-<!-- SUMMARY -->
-<h2>Summary</h2>
-
-<table>
-<tr>
-    <th>Work Value</th>
-    <th>Withdrawn</th>
-    <th>Deduction</th>
-    <th>Refund</th>
-    <th>Retention</th>
-    <th>Advance</th>
-    <th>Net</th>
-</tr>
-<tr>
-    <td>${format(sum(data,"total_work"))}</td>
-    <td>${format(sum(data,"total_withdrawn"))}</td>
-    <td>${format(sum(data,"total_deduction"))}</td>
-    <td>${format(sum(data,"total_refund"))}</td>
-    <td>${format(sum(data,"total_retention"))}</td>
-    <td>${format(sum(data,"total_advance"))}</td>
-    <td>${format(sum(data,"total_net"))}</td>
-
-</tr>
-</table>
-
-<!-- DETAILS -->
-<h2>Details</h2>
-
-<table>
-<tr>
-    <th>Company</th>
-    <th>Subcontractor</th>
-    <th>Work Type</th>
-    <th>Certificates</th>
-    <th>Work Value</th>
-    <th>Withdrawn</th>
-    <th>Deduction</th>
-    <th>Refund</th>
-    <th>Retention</th>
-    <th>Advance</th>
-    <th>Net</th>
-</tr>
-
-${data.map(x => `
-<tr>
-    <td>${x.company}</td>
-    <td>${x.subcontractor}</td>
-    <td>${x.work_type}</td>
-    <td>${x.cert_count}</td>
-    <td>${format(x.total_work)}</td>
-    <td>${format(x.total_withdrawn)}</td>
-    <td>${format(x.total_deduction)}</td>
-    <td>${format(x.total_refund)}</td>
-    <td>${format(x.total_retention)}</td>
-    <td>${format(x.total_advance)}</td>
-    <td>${format(x.total_net)}</td>
-</tr>
-`).join("")}
-
-
-
-</table>
-
-<div style="margin-top:20px;"></div>
-
-<div class="report-footer">
-    Prepared by Eng. Tanveer Ahmad | SPMS Dashboard | Confidential
-</div>
-
-</body>
-</html>
-`;
-
-    const win = window.open("", "", "width=1200,height=800");
-    win.document.write(html);
-    win.document.close();
+    // ============================
+    // GENERATE PDF
+    // ============================
+    html2pdf().set(opt).from(content).save();
 }
 
 window.applyGlobalFilter = function(filteredData) {
