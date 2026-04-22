@@ -308,7 +308,7 @@ GLOBAL_DATA = SEARCH_DATA;
 }
 
 // open modal
-async function openSearchModal() {
+window.openSearchModal = async function() {
 
     document.getElementById("searchModal").style.display = "flex";
 
@@ -323,7 +323,7 @@ async function openSearchModal() {
 }
 
 // close modal
-function closeSearchModal() {
+window.closeSearchModal = function() {
     document.getElementById("searchModal").style.display = "none";
 
     // ✅ REMOVE ACTIVE STATE
@@ -489,7 +489,7 @@ window.toggleTheme = function () {
     }
 };
 
-function setSearchType(type) {
+window.setSearchType = function(type) {
     CURRENT_SEARCH_TYPE = type;
 
     document.getElementById("btnCompany").classList.remove("active");
