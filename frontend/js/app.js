@@ -79,11 +79,13 @@ if (!token) {
 async function loadScript(src) {
     return new Promise((resolve, reject) => {
 
-        // ❌ remove existing check completely (temporary fix)
-        // because it may skip broken script
+        if (document.querySelector(`script[src^="${src}"]`)) {
+            resolve();
+            return;
+        }
 
         const s = document.createElement("script");
-        s.src = src + "?v=" + Date.now();
+        s.src = src + "?v=" + Date.now(); // 🔥 MUST ADD
 
         s.onload = () => {
             console.log("Loaded:", src);
@@ -163,18 +165,17 @@ setTimeout(() => {
     await loadScript("js/fonts/arabic-font.js");
 
     try {
-    try {
     await loadScript("js/dashboard.js");
 } catch (e) {
     console.error("Dashboard JS failed to load", e);
 }
-} catch (e) {
-    console.error("Dashboard JS failed to load", e);
-}
 
-    if (window.loadDashboard) {
-        window.loadDashboard();
-    }
+    if (typeof window.loadDashboard === "function") {
+    window.loadDashboard();
+} else {
+    console.error("Dashboard function not available");
+    container.innerHTML = "<h2>Dashboard failed to load</h2>";
+}
 }
 
         if (page.includes("subcontractor")) {
@@ -224,16 +225,16 @@ function handleSearchInput() {
     }
 
     let results = GLOBAL_DATA.filter(item => {
-        if (type === "company") {
-            return (item.company_name || "").toLowerCase().includes(input);
-        } else {
-            return (item.subcontractor_name || "").toLowerCase().includes(input);
-        }
-    });
+    if (type === "company") {
+        return normalize(item.company_name).includes(input);
+    } else {
+        return normalize(item.subcontractor_name).includes(input);
+    }
+});
 
     // remove duplicates
     const unique = [...new Map(results.map(item => {
-    const key = CURRENT_SEARCH_TYPE === "company"
+    const key = type === "company"
         ? normalize(item.company_name)
         : normalize(item.subcontractor_name);
 
