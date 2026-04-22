@@ -746,124 +746,74 @@ function fixArabic(text) {
 // =====================================================
 async function generatePDF() {
 
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("p", "mm", "a4");
+
     const data = applyFilterData();
 
-    // ============================
-    // BUILD HTML CONTENT
-    // ============================
-    let content = document.createElement("div");
+    // ================= HEADER =================
+    doc.setFontSize(16);
+    doc.text("NAM-153VILLAS-040624", 105, 15, { align: "center" });
 
-    content.innerHTML = `
-        <div style="font-family:Arial; padding:20px;">
+    doc.setFontSize(11);
+    doc.text("Subcontractors | Payment Certificates Report", 105, 22, { align: "center" });
 
-            <!-- COVER -->
-            <div style="text-align:center; margin-top:80px;">
-                <img src="assets/logo2.png" width="200"><br><br>
+    doc.text(`Prepared by: Eng. Tanveer Ahmad`, 14, 30);
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 36);
 
-                <h2>NAM-153VILLAS-040624</h2>
-                <p>Subcontractors | Payment Certificates Report</p>
+    // ================= TABLE =================
+    const tableData = data.map(x => [
+        x.company,
+        x.subcontractor,
+        x.work_type,
+        x.cert_count,
+        format(x.total_work),
+        format(x.total_withdrawn),
+        format(x.total_deduction),
+        format(x.total_refund),
+        format(x.total_retention),
+        format(x.total_advance),
+        format(x.total_net)
+    ]);
 
-                <br><br>
+    doc.autoTable({
+        startY: 45,
+        head: [[
+            "Company", "Subcontractor", "Type", "Cert",
+            "Work", "Withdrawn", "Deduction", "Refund",
+            "Retention", "Advance", "Net"
+        ]],
+        body: tableData,
 
-                <p><strong>Prepared by:</strong> Eng. Tanveer Ahmad</p>
-                <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-            </div>
+        styles: {
+            fontSize: 7,
+            cellPadding: 2
+        },
 
-            <div style="page-break-after:always;"></div>
+        headStyles: {
+            fillColor: [37, 99, 235]
+        },
 
-            <!-- SUMMARY -->
-            <h3 style="text-align:center;">Summary</h3>
+        margin: { top: 45, bottom: 15 },
 
-            <table style="width:100%; border-collapse:collapse; margin-top:10px;">
-                <tr>
-                    <th>Work</th>
-                    <th>Withdrawn</th>
-                    <th>Deduction</th>
-                    <th>Refund</th>
-                    <th>Retention</th>
-                    <th>Advance</th>
-                    <th>Net</th>
-                </tr>
+        didDrawPage: function (data) {
 
-                <tr>
-                    <td>${format(sum(data,"total_work"))}</td>
-                    <td>${format(sum(data,"total_withdrawn"))}</td>
-                    <td>${format(sum(data,"total_deduction"))}</td>
-                    <td>${format(sum(data,"total_refund"))}</td>
-                    <td>${format(sum(data,"total_retention"))}</td>
-                    <td>${format(sum(data,"total_advance"))}</td>
-                    <td>${format(sum(data,"total_net"))}</td>
-                </tr>
-            </table>
+            // ✅ FOOTER EVERY PAGE
+            const pageSize = doc.internal.pageSize;
+            const pageHeight = pageSize.height;
 
-            <!-- DETAILS -->
-            <h3 style="text-align:center; margin-top:20px;">Details</h3>
+            doc.setFontSize(9);
 
-            <table style="width:100%; border-collapse:collapse; margin-top:10px;">
-                <tr>
-                    <th>Company</th>
-                    <th>Subcontractor</th>
-                    <th>Type</th>
-                    <th>Cert</th>
-                    <th>Work</th>
-                    <th>Withdrawn</th>
-                    <th>Deduction</th>
-                    <th>Refund</th>
-                    <th>Retention</th>
-                    <th>Advance</th>
-                    <th>Net</th>
-                </tr>
+            doc.text(
+                `Page ${doc.internal.getNumberOfPages()} | Prepared by Eng. Tanveer Ahmad | SPMS Dashboard`,
+                pageSize.width / 2,
+                pageHeight - 8,
+                { align: "center" }
+            );
+        }
+    });
 
-                ${data.map(x => `
-                    <tr>
-                        <td>${x.company}</td>
-                        <td>${x.subcontractor}</td>
-                        <td>${x.work_type}</td>
-                        <td>${x.cert_count}</td>
-                        <td>${format(x.total_work)}</td>
-                        <td>${format(x.total_withdrawn)}</td>
-                        <td>${format(x.total_deduction)}</td>
-                        <td>${format(x.total_refund)}</td>
-                        <td>${format(x.total_retention)}</td>
-                        <td>${format(x.total_advance)}</td>
-                        <td>${format(x.total_net)}</td>
-                    </tr>
-                `).join("")}
-            </table>
-
-            <!-- FOOTER -->
-            <div style="
-                position: fixed;
-                bottom: 10px;
-                left: 0;
-                right: 0;
-                text-align:center;
-                font-size:12px;
-                color:#555;
-            ">
-                Page <span class="page"></span>
-                | Prepared by Eng. Tanveer Ahmad
-                | SPMS Dashboard
-            </div>
-
-        </div>
-    `;
-
-    // ============================
-    // PDF OPTIONS
-    // ============================
-    const opt = {
-        margin: 10,
-        filename: 'SPMS_Report.pdf',
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    // ============================
-    // GENERATE PDF
-    // ============================
-    html2pdf().set(opt).from(content).save();
+    doc.save("SPMS_Report.pdf");
 }
 
 window.applyGlobalFilter = function(filteredData) {
