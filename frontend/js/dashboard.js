@@ -782,41 +782,47 @@ if (!jsPDF) {
     ]);
 
     doc.autoTable({
-        startY: 45,
-        head: [[
-            "Company", "Subcontractor", "Type", "Cert",
-            "Work", "Withdrawn", "Deduction", "Refund",
-            "Retention", "Advance", "Net"
-        ]],
-        body: tableData,
+    head: [[
+        "Company",
+        "Subcontractor",
+        "Work Type",
+        "Cert",
+        "Work Value",
+        "Withdrawn",
+        "Deduction",
+        "Refund",
+        "Retention",
+        "Advance",
+        "Net"
+    ]],
 
-        styles: {
-            fontSize: 7,
-            cellPadding: 2
-        },
+    body: tableData,
 
-        headStyles: {
-            fillColor: [37, 99, 235]
-        },
+    startY: 45,
 
-        margin: { top: 45, bottom: 15 },
+    styles: {
+        fontSize: 8
+    },
 
-        didDrawPage: function (data) {
+    headStyles: {
+        fillColor: [37, 99, 235]
+    },
 
-            // ✅ FOOTER EVERY PAGE
-            const pageSize = doc.internal.pageSize;
-            const pageHeight = pageSize.height;
+    didDrawPage: function (data) {
 
-            doc.setFontSize(9);
+        const pageNumber = doc.internal.getNumberOfPages();
 
-            doc.text(
-                `Page ${doc.internal.getNumberOfPages()} | Prepared by Eng. Tanveer Ahmad | SPMS Dashboard`,
-                pageSize.width / 2,
-                pageHeight - 8,
-                { align: "center" }
-            );
-        }
-    });
+        doc.setFontSize(9);
+        doc.setTextColor(100);
+
+        doc.text(
+            `Page ${pageNumber} | Prepared by Eng. Tanveer Ahmad | SPMS Dashboard`,
+            doc.internal.pageSize.width / 2,
+            doc.internal.pageSize.height - 10,
+            { align: "center" }
+        );
+    }
+});
 
     doc.save("SPMS_Report.pdf");
 }
