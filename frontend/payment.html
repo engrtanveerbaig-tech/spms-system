@@ -75,7 +75,7 @@ th,td{
 
 /* FILTER ROW */
 thead tr:first-child th{
-    background:#0f172a;
+    background:rgba(163, 154, 154, 0.08);
     position:sticky;
     top:0;
     z-index:10;
@@ -135,21 +135,22 @@ tfoot td{
         </select>
     </div>
 
-    <div class="input-group col-2">
-        <label>Certificate No</label>
-        <input id="certificate_no" readonly>
-    </div>
-
-    <div class="input-group col-2">
+    <div class="input-group col-3">
         <label>Project</label>
         <input id="project_form" value="Sadayem" readonly>
     </div>
 
-    <div class="input-group col-2">
+    <div class="input-group col-3">
+        <label>Certificate No</label>
+        <input id="certificate_no" readonly>
+    </div>
+
+    
+
+    <div class="input-group col-3">
         <label>Contract No</label>
         <input id="contract_number" readonly>
     </div>
-
 
     <!-- ROW 2 -->
     <div class="input-group col-3">
@@ -164,24 +165,33 @@ tfoot td{
 
     <div class="input-group col-3">
         <label>Advance Deduction</label>
-        <input id="advance_deduction">
+        <input id="advance_deduction" readonly>
     </div>
-
-    <div class="input-group col-3">
-        <label>Work Value</label>
-        <input id="work">
-    </div>
-
 
     <!-- ROW 3 -->
     <div class="input-group col-3">
-        <label>Work Withdrawn</label>
-        <input id="withdrawn">
+        <label>VAT</label>
+        <input id="vat" readonly>
     </div>
 
     <div class="input-group col-3">
+        <label>Retention</label>
+        <input id="retention" readonly>
+    </div>
+
+    <div class="input-group col-3">
+        <label>Net</label>
+        <input id="net" readonly>
+    </div>
+
+    <div class="input-group col-6">
         <label>Deduction</label>
         <input id="deduction">
+    </div>
+
+    <div class="input-group col-3">
+        <label>Work Withdrawn</label>
+        <input id="withdrawn">
     </div>
 
     <div class="input-group col-3">
@@ -189,24 +199,12 @@ tfoot td{
         <input id="refund">
     </div>
 
-    <div class="input-group col-3">
-        <label>VAT</label>
-        <input id="vat" readonly>
+    <div class="input-group col-6">
+        <label>Work Value</label>
+        <input id="work">
     </div>
 
-
-    <!-- ROW 4 -->
-    <div class="input-group col-4">
-        <label>Retention</label>
-        <input id="retention" readonly>
-    </div>
-
-    <div class="input-group col-4">
-        <label>Net</label>
-        <input id="net" readonly>
-    </div>
-
-    <div class="col-4" style="display:flex;align-items:flex-end;">
+    <div class="col-6" style="display:flex;align-items:flex-end;">
         <button id="saveBtn" style="width:100%;">Save Payment</button>
     </div>
 

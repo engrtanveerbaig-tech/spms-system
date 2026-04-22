@@ -101,7 +101,7 @@ th,td{
 
 /* FILTER ROW */
 thead tr:first-child th{
-    background:#0f172a;
+    background: rgba(163, 154, 154, 0.08);
     position:sticky;
     top:0;
     z-index:10;
@@ -139,7 +139,7 @@ tbody tr:hover{
 <!-- LEFT -->
 <div class="form-section">
 
-<h4 class="form-section-title">Project Details</h4>
+<h4 class="form-section-title">Account Opening Detail</h4>
 
 <div class="input-group">
 <select id="project" required>
@@ -183,13 +183,6 @@ tbody tr:hover{
 <label>VAT</label>
 </div>
 
-</div>
-
-<!-- RIGHT -->
-<div class="form-section">
-
-<h4 class="form-section-title">Contract Details</h4>
-
 <div class="checkbox-box">
 <label>
 <input type="checkbox" id="has_advance">
@@ -202,6 +195,15 @@ tbody tr:hover{
 <label>Advance Amount</label>
 </div>
 
+</div>
+
+<!-- RIGHT -->
+<div class="form-section">
+
+<h4 class="form-section-title">Contract Details</h4>
+
+
+
 <div class="input-group">
 <input id="contract_no" placeholder=" ">
 <label>Contract No</label>
@@ -210,6 +212,11 @@ tbody tr:hover{
 <div class="input-group">
 <input id="company" placeholder=" ">
 <label>Company Name</label>
+</div>
+
+<div class="input-group">
+<input type="email" id="email" placeholder=" ">
+<label>Email</label>
 </div>
 
 <div class="input-group">
@@ -227,7 +234,7 @@ tbody tr:hover{
 <!-- FULL WIDTH -->
 <div class="form-section full">
 
-<h4 class="form-section-title">Contact Details</h4>
+<h4 class="form-section-title">Site Supervisor Detail</h4>
 
 <div class="form-row">
 
@@ -241,10 +248,7 @@ tbody tr:hover{
 <label>Phone</label>
 </div>
 
-<div class="input-group">
-<input type="email" id="email" placeholder=" ">
-<label>Email</label>
-</div>
+
 
 </div>
 
