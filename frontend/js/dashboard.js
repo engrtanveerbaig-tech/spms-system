@@ -752,7 +752,7 @@ if (!jsPDF) {
     alert("jsPDF not loaded!");
     return;
 }
-    const doc = new jsPDF("p", "mm", "a4");
+    const doc = new jsPDF("l", "mm", "a4"); // 🔥 landscape
 
     const data = applyFilterData();
 
@@ -766,10 +766,18 @@ if (!jsPDF) {
     doc.text(`Prepared by: Eng. Tanveer Ahmad`, 14, 30);
     doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 36);
 
+    // ================= TOTALS =================
+const totalWork = sum(data, "total_work");
+const totalWithdrawn = sum(data, "total_withdrawn");
+const totalDeduction = sum(data, "total_deduction");
+const totalRefund = sum(data, "total_refund");
+const totalRetention = sum(data, "total_retention");
+const totalAdvance = sum(data, "total_advance");
+const totalNet = sum(data, "total_net");
     // ================= TABLE =================
     const tableData = data.map(x => [
-        x.company,
-        x.subcontractor,
+        fixArabic(x.company || ""),
+fixArabic(x.subcontractor || ""),
         x.work_type,
         x.cert_count,
         format(x.total_work),
@@ -796,7 +804,19 @@ if (!jsPDF) {
         "Net"
     ]],
 
-    body: tableData,
+   body: [
+    ...tableData,
+    [
+        "TOTAL", "", "", "",
+        format(totalWork),
+        format(totalWithdrawn),
+        format(totalDeduction),
+        format(totalRefund),
+        format(totalRetention),
+        format(totalAdvance),
+        format(totalNet)
+    ]
+],
 
     startY: 45,
 
@@ -824,7 +844,10 @@ if (!jsPDF) {
     }
 });
 
-    doc.save("SPMS_Report.pdf");
+    const pdfBlob = doc.output("blob");
+const url = URL.createObjectURL(pdfBlob);
+
+window.open(url);
 }
 
 window.applyGlobalFilter = function(filteredData) {
@@ -882,7 +905,7 @@ window.resetDashboard = function() {
 
 
 window.loadDashboard = loadDashboard;
-window.generateReport = generatePDF;
+window.generateReport = generatePDFPreview;
 })();
 //setInterval(() => {
 //
@@ -908,3 +931,126 @@ ORIGINAL_DATA = [...RAW_DATA];
     buildAggregation();
     renderAll();
 };
+
+function buildPDF() {
+    const jsPDF = window.jspdf?.jsPDF;
+    if (!jsPDF) {
+        alert("jsPDF not loaded!");
+        return null;
+    }
+
+    const doc = new jsPDF("l", "mm", "a4");
+
+    const data = applyFilterData();
+
+    // HEADER
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    doc.setFontSize(16);
+    doc.text("NAM-153VILLAS-040624", pageWidth / 2, 15, { align: "center" });
+
+    doc.setFontSize(11);
+    doc.text("Subcontractors | Payment Certificates Report", pageWidth / 2, 22, { align: "center" });
+
+    doc.text(`Prepared by: Eng. Tanveer Ahmad`, 14, 30);
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 36);
+
+    // TOTALS
+    const totalWork = sum(data, "total_work");
+    const totalWithdrawn = sum(data, "total_withdrawn");
+    const totalDeduction = sum(data, "total_deduction");
+    const totalRefund = sum(data, "total_refund");
+    const totalRetention = sum(data, "total_retention");
+    const totalAdvance = sum(data, "total_advance");
+    const totalNet = sum(data, "total_net");
+
+    const tableData = data.map(x => [
+        x.company,
+        x.subcontractor,
+        x.work_type,
+        x.cert_count,
+        format(x.total_work),
+        format(x.total_withdrawn),
+        format(x.total_deduction),
+        format(x.total_refund),
+        format(x.total_retention),
+        format(x.total_advance),
+        format(x.total_net)
+    ]);
+
+    doc.autoTable({
+        head: [[
+            "Company","Subcontractor","Work Type","Cert",
+            "Work Value","Withdrawn","Deduction","Refund",
+            "Retention","Advance","Net"
+        ]],
+
+        body: [
+            ...tableData,
+            [
+                "TOTAL","","","",
+                format(totalWork),
+                format(totalWithdrawn),
+                format(totalDeduction),
+                format(totalRefund),
+                format(totalRetention),
+                format(totalAdvance),
+                format(totalNet)
+            ]
+        ],
+
+        startY: 45,
+
+        didParseCell: function (data) {
+    if (data.row.index === tableData.length) {
+        data.cell.styles.fillColor = [220, 220, 220];
+        data.cell.styles.fontStyle = "bold";
+    }
+},
+
+        didDrawPage: function () {
+
+    const pageNumber = doc.internal.getNumberOfPages();
+
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+
+    doc.text(
+        `Page ${pageNumber} | Prepared by Eng. Tanveer Ahmad | SPMS Dashboard`,
+        pageWidth / 2,
+        doc.internal.pageSize.height - 8,
+        { align: "center" }
+    );
+}
+    });
+
+    return doc;
+}
+function generatePDFPreview() {
+    const doc = buildPDF();
+    if (!doc) return;
+
+    const blob = doc.output("blob");
+    const url = URL.createObjectURL(blob);
+
+    window.open(url);
+}
+function downloadPDF() {
+    const doc = buildPDF();
+    if (!doc) return;
+
+    doc.save("SPMS_Report.pdf");
+}
+function printPDF() {
+    const doc = buildPDF();
+    if (!doc) return;
+
+    const blob = doc.output("blob");
+    const url = URL.createObjectURL(blob);
+
+    const win = window.open(url);
+
+    win.onload = function () {
+        win.print();
+    };
+}

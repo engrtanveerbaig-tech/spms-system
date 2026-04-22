@@ -300,6 +300,25 @@ body.dark-mode .filters select{
     width:100%!important;
     height:100%!important;
 }
+.pdf-actions{
+    display:flex;
+    gap:10px;
+    margin:10px 0;
+}
+
+.pdf-actions button{
+    border:none;
+    padding:8px 14px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:12px;
+    background:linear-gradient(135deg,#334155,#1e293b);
+    color:white;
+}
+
+.pdf-actions button:hover{
+    transform:translateY(-2px);
+}
 
 /* ================= TOP SUBS ================= */
 .top-card{
@@ -502,6 +521,11 @@ body.dark-mode tbody tr:hover{
                 <button onclick="resetDashboard()" class="reset-btn">🔄 Clear</button>
             </div>
         </div>
+        <div class="pdf-actions">
+    <button onclick="generatePDFPreview()">👁 Preview</button>
+    <button onclick="downloadPDF()">⬇ Download</button>
+    <button onclick="printPDF()">🖨 Print</button>
+</div>
 
         <!-- KPI -->
         <!-- KPI -->
