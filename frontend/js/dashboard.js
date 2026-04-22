@@ -1,4 +1,12 @@
+function fixArabic(text) {
+    if (!text) return "";
 
+    return text
+        .split(" ")
+        .map(word => word.split("").reverse().join(""))
+        .reverse()
+        .join(" ");
+}
 // =====================================================
 // GLOBAL STATE
 // =====================================================
@@ -804,11 +812,13 @@ function buildPDF() {
 
     const doc = new jsPDF("l", "mm", "a4");
 
-    // ✅ LOAD FONT (AFTER doc creation)
-    doc.addFont("Tajawal-Regular.ttf", "Tajawal", "normal");
-    doc.setFont("Tajawal");
+if (window.loadArabicFont) {
+    window.loadArabicFont(doc);
+    doc.setFont("Amiri");
+}
 
-    doc.setR2L(true); // ✅ Arabic support
+// 🔥 CRITICAL (Arabic direction fix)
+doc.setR2L(true);
 
     const data = applyFilterData();
 

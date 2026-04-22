@@ -39,7 +39,7 @@ document.addEventListener("click", function(e) {
     }
 
     // CLOSE MODAL
-    if (modal && modal.style.display !== "none" && box) {
+    if (modal && modal.style.display === "flex" && box) {
         if (!box.contains(e.target)) {
             closeSearchModal();
         }
@@ -160,9 +160,17 @@ setTimeout(() => {
 
     console.log("Chart after load:", typeof Chart);
 
-    await loadScript("js/fonts/tajawal.js");
+    await loadScript("js/fonts/arabic-font.js");
 
+    try {
+    try {
     await loadScript("js/dashboard.js");
+} catch (e) {
+    console.error("Dashboard JS failed to load", e);
+}
+} catch (e) {
+    console.error("Dashboard JS failed to load", e);
+}
 
     if (window.loadDashboard) {
         window.loadDashboard();
@@ -206,7 +214,7 @@ if (token) {
 // ================= HANDLE SEARCH =================
 function handleSearchInput() {
 
-    const input = document.getElementById("globalSearch").value.toLowerCase();
+    const input = normalize(document.getElementById("globalSearch").value);
     const type = document.getElementById("searchType").value;
     const box = document.getElementById("searchSuggestions");
 
@@ -309,12 +317,12 @@ SEARCH_DATA = result.map(x => ({
     subcontractor_name: x.subcontractor_name || x.sub_name || "Unknown",
     company_name: x.company_name || "N/A",
     work_type: x.work_type || "Other",
-    work_value: x.work_value || 0,
-    net_payment: x.net_payment || 0,
-    retention_amount: x.retention_amount || 0,
-    deduction: x.deduction || 0,
-    advance_deduction: x.advance_deduction || 0,
-    refund: x.refund || 0
+    work_value: Number(x.work_value || 0),
+net_payment: Number(x.net_payment || 0),
+retention_amount: Number(x.retention_amount || 0),
+deduction: Number(x.deduction || 0),
+advance_deduction: Number(x.advance_deduction || 0),
+refund: Number(x.refund || 0)
 }));
 
 GLOBAL_DATA = SEARCH_DATA;
@@ -447,34 +455,6 @@ function handlePopupSearch() {
 
     box.style.display = "block";
 }
-window.resetDashboard = function() {
-
-    RAW_DATA = [...ORIGINAL_DATA];
-
-    FILTER_STATE = {
-        company: "",
-        type: "",
-        subcontractor: ""
-    };
-
-    buildAggregation();
-    initFilters();
-    renderAll();
-
-    // 🔥 CLEAR SEARCH
-    const input = document.getElementById("popupSearchInput");
-    if (input) input.value = "";
-
-    SELECTED_SEARCH = null;
-
-// ✅ ADD HERE
-const label = document.getElementById("activeFilter");
-if (label) label.innerText = "";
-
-    // ✅ CLOSE MODAL (IMPORTANT UX)
-    const modal = document.getElementById("searchModal");
-    if (modal) modal.style.display = "none";
-};
 // ================= SELECT =================
 function selectPopupSuggestion(company, subcontractor) {
 
@@ -577,11 +557,12 @@ if (label) {
 
 
     // 🚨 IMPORTANT FIX
-    if (window.applyGlobalFilter && typeof window.applyGlobalFilter === "function") {
+    if (typeof window.applyGlobalFilter === "function") {
         window.applyGlobalFilter(filtered);
     } else {
         console.error("applyGlobalFilter NOT FOUND");
     }
+
 
     closeSearchModal();
 }
