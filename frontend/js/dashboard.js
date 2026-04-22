@@ -736,10 +736,6 @@ async function loadImageBase64(url) {
         reader.readAsDataURL(blob);
     });
 }
-function fixArabic(text) {
-    return text.split("").reverse().join("");
-}
-
 
 // =====================================================
 // PDF EXPORT (ADVANCED)
@@ -831,8 +827,8 @@ function buildPDF() {
     const totalNet = sum(data, "total_net");
 
     const tableData = data.map(x => [
-    fixArabic(x.company || ""),
-    fixArabic(x.subcontractor || ""),
+    x.company || "",
+x.subcontractor || "",
         x.work_type,
         x.cert_count,
         format(x.total_work),
