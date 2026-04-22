@@ -23,12 +23,12 @@ document.addEventListener("click", function(e) {
 
     // CLOSE MODAL
     const modal = document.getElementById("searchModal");
-    const box = document.querySelector(".search-box");
+const box = document.querySelector(".search-box");
 
-    if (modal && modal.style.display !== "none") {
+if (modal && modal.style.display !== "none" && box) {
     if (!box.contains(e.target)) {
-    closeSearchModal(); // ✅ use function instead
-}
+        closeSearchModal();
+    }
 }
 
     // CLOSE SUGGESTIONS
