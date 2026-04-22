@@ -746,7 +746,12 @@ function fixArabic(text) {
 // =====================================================
 async function generatePDF() {
 
-    const { jsPDF } = window.jspdf;
+    const jsPDF = window.jspdf?.jsPDF;
+
+if (!jsPDF) {
+    alert("jsPDF not loaded!");
+    return;
+}
     const doc = new jsPDF("p", "mm", "a4");
 
     const data = applyFilterData();
