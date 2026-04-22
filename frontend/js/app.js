@@ -21,21 +21,21 @@ let CURRENT_SEARCH_TYPE = "company";
 
 document.addEventListener("click", function(e) {
 
-    // CLOSE MODAL
     const modal = document.getElementById("searchModal");
-const box = document.querySelector(".search-box");
+    const box = document.querySelector(".search-box");
 
-if (modal && modal.style.display !== "none" && box) {
-    if (!box.contains(e.target)) {
-        closeSearchModal();
+    // ❌ IGNORE CLICK ON SEARCH ICON
+    if (e.target.closest('[onclick*="openSearchModal"]')) {
+        return;
     }
-}
 
-    // CLOSE SUGGESTIONS
-    if (!e.target.closest(".search-container")) {
-        const sug = document.getElementById("searchSuggestions");
-        if (sug) sug.style.display = "none";
+    // CLOSE MODAL
+    if (modal && modal.style.display !== "none" && box) {
+        if (!box.contains(e.target)) {
+            closeSearchModal();
+        }
     }
+
 });
 
 
