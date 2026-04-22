@@ -18,24 +18,22 @@ body {
 }
 
 /* ================= PREMIUM SIDEBAR ================= */
-.sidebar {
+.sidebar{
     position: fixed;
     top: 0;
     left: 0;
     width: 80px;
     height: 100vh;
 
-    /* 🔥 SAME AS LOGIN */
     background: linear-gradient(180deg, #7c1d6f, #db2777);
 
     display: flex;
     flex-direction: column;
-    align-items: center;
+    justify-content: space-between; /* 🔥 KEY FIX */
+
     padding: 20px 10px;
 
-    /* 🔥 PREMIUM SHADOW */
     box-shadow: 6px 0 25px rgba(0,0,0,0.4);
-    z-index: 10;
 }
 /* ICON CONTAINER */
 .sidebar-content {
@@ -46,14 +44,22 @@ body {
 }
 
 /* LOGO TEXT */
-.logo {
-    margin-top: auto;
-    margin-bottom: 20px;
-    font-size: 24px;
+.logo{
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+
+    font-size: 14px;
     font-weight: bold;
-    color: #94a3b8;
-    text-align: center;
-    line-height: 1.5;
+    letter-spacing: 6px;
+
+    color: rgba(255,255,255,0.6);
+}
+.logout-icon{
+    background: rgba(239,68,68,0.2);
+}
+
+.logout-icon:hover{
+    background: linear-gradient(135deg,#ef4444,#dc2626);
 }
 
 /* ICON BUTTON */
@@ -190,9 +196,11 @@ body {
 
     outline: none;
 }
-.sidebar-bottom {
-    margin-top: auto;
-    width: 100%;
+.sidebar-bottom{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
 }
 .search-box input::placeholder {
     color: rgba(255,255,255,0.6);
@@ -425,35 +433,24 @@ body.dark-mode #popupSuggestions{
 <div class="sidebar">
 
     
+<div class="sidebar-content">
 
-    <!-- 🔥 SCROLLABLE AREA -->
-    <div class="sidebar-content">
-
-    <div class="menu-item active" onclick="loadPage('dashboard.html')">
-        <span>📊</span>
-    </div>
-
-    <div class="menu-item" onclick="openSearchModal()">
-        <span>🔍</span>
-    </div>
-
-    <div id="subMenu" class="menu-item" onclick="loadPage('subcontractor.html')">
-        <span>👷</span>
-    </div>
-
-    <div id="payMenu" class="menu-item" onclick="loadPage('payment.html')">
-        <span>💰</span>
-    </div>
-
-    <div class="menu-item" onclick="toggleTheme()">
-        <span>🌙</span>
-    </div>
+    <div class="menu-item active" onclick="loadPage('dashboard.html')">📊</div>
+    <div class="menu-item" onclick="openSearchModal()">🔍</div>
+    <div id="subMenu" class="menu-item" onclick="loadPage('subcontractor.html')">👷</div>
+    <div id="payMenu" class="menu-item" onclick="loadPage('payment.html')">💰</div>
+    <div class="menu-item" onclick="toggleTheme()">🌙</div>
 
 </div>
-    <div class="logo">S<br>P<br>S</div>
 
-<div class="logout-btn" onclick="logout()">🚪 Logout</div>
+<!-- 🔥 BOTTOM SECTION -->
+<div class="sidebar-bottom">
 
+    <div class="logo">SPMS</div>
+
+    <div class="menu-item logout-icon" onclick="logout()">🚪</div>
+
+</div>
 </div>
 
 <!-- MAIN PANEL -->

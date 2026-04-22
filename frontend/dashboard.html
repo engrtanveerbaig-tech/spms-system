@@ -72,23 +72,15 @@ body.dark-mode{
     box-shadow:0 5px 12px rgba(0,0,0,0.2);
 }
 .main{
-    margin-left:80px; /* exact sidebar width */
+    margin-left:25px; /* exact sidebar width */
     padding:20px 25px;
 }
 .main-content{
     padding:25px 30px;
 }
-.sidebar{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:space-between;
-    padding:20px 0;
-}
 
 /* LOGO TEXT */
 .sidebar::after{
-    content:"SPMS";
     writing-mode:vertical-rl;
     transform:rotate(180deg);
     font-weight:bold;
@@ -162,6 +154,7 @@ body.dark-mode .header{
 /* ================= FILTERS ================= */
 .filters{
     background:rgba(255,255,255,0.04);
+    border-bottom:1px solid rgba(0,0,0,0.1);
     backdrop-filter:blur(10px);
     padding:12px 15px;
     border-radius:12px;
@@ -170,6 +163,14 @@ body.dark-mode .header{
     gap:10px;
     margin:20px 0;
     flex-wrap:nowrap; /* 🔥 KEY FIX */
+}
+.filters h6{
+    margin:0;
+    font-size:13px;
+    font-weight:600;
+    color:#94a3b8;
+    letter-spacing:0.5px;
+    min-width:60px;
 }
 
 .filters select{
@@ -459,11 +460,9 @@ body.dark-mode tbody tr:hover{
             </div>
         </div>
 
-        <div id="workTypeSummary" class="ai-summary-small"></div>
-        <hr>
-
         <!-- FILTERS -->
         <div class="filters">
+            <h6>🔎 Filters</h6>
             <select id="filterCompany"></select>
             <select id="filterType"></select>
             <select id="filterSub"></select>
@@ -493,6 +492,8 @@ body.dark-mode tbody tr:hover{
     </div>
     <div id="ai_summary"></div>
 </div>
+<div id="workTypeSummary" class="ai-summary-small"></div>
+<hr>
 
 <!-- MINI GRID -->
 <div class="mini-grid">
