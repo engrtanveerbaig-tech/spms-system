@@ -160,6 +160,8 @@ setTimeout(() => {
 
     console.log("Chart after load:", typeof Chart);
 
+    await loadScript("js/fonts/tajawal.js");
+
     await loadScript("js/dashboard.js");
 
     if (window.loadDashboard) {

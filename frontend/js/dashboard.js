@@ -795,6 +795,7 @@ window.resetDashboard = function() {
 };
 // =====================================================
 function buildPDF() {
+
     const jsPDF = window.jspdf?.jsPDF;
     if (!jsPDF) {
         alert("jsPDF not loaded!");
@@ -803,11 +804,17 @@ function buildPDF() {
 
     const doc = new jsPDF("l", "mm", "a4");
 
+    // ✅ LOAD FONT (AFTER doc creation)
+    doc.addFont("Tajawal-Regular.ttf", "Tajawal", "normal");
+    doc.setFont("Tajawal");
+
+    doc.setR2L(true); // ✅ Arabic support
+
     const data = applyFilterData();
 
-    // HEADER
     const pageWidth = doc.internal.pageSize.getWidth();
 
+    // ================= HEADER (ONLY FIRST PAGE) =================
     doc.setFontSize(16);
     doc.text("NAM-153VILLAS-040624", pageWidth / 2, 15, { align: "center" });
 
@@ -817,7 +824,7 @@ function buildPDF() {
     doc.text(`Prepared by: Eng. Tanveer Ahmad`, 14, 30);
     doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 36);
 
-    // TOTALS
+    // ================= TOTALS =================
     const totalWork = sum(data, "total_work");
     const totalWithdrawn = sum(data, "total_withdrawn");
     const totalDeduction = sum(data, "total_deduction");
@@ -827,8 +834,8 @@ function buildPDF() {
     const totalNet = sum(data, "total_net");
 
     const tableData = data.map(x => [
-    x.company || "",
-x.subcontractor || "",
+        x.company || "",
+        x.subcontractor || "",
         x.work_type,
         x.cert_count,
         format(x.total_work),
@@ -841,10 +848,8 @@ x.subcontractor || "",
     ]);
 
     doc.autoTable({
-    margin: { top: 40, left: 6, right: 6, bottom: 12 },
-tableWidth: "auto",
-styles: { fontSize: 8 },
-    tableWidth: "auto",
+        margin: { top: 40, left: 6, right: 6, bottom: 12 },
+
         head: [[
             "Company","Subcontractor","Work Type","Cert",
             "Work Value","Withdrawn","Deduction","Refund",
@@ -868,27 +873,29 @@ styles: { fontSize: 8 },
         startY: 45,
 
         didParseCell: function (data) {
-    if (data.row.index === tableData.length) {
-        data.cell.styles.fillColor = [220, 220, 220];
-        data.cell.styles.fontStyle = "bold";
-    }
-},
+            if (data.row.index === tableData.length) {
+                data.cell.styles.fillColor = [220, 220, 220];
+                data.cell.styles.fontStyle = "bold";
+            }
+        },
 
-        didDrawPage: function () {
+        // ✅ FIX HEADER SPACE ISSUE
+        didDrawPage: function (data) {
 
-    const pageNumber = doc.internal.getNumberOfPages();
-    const pageHeight = doc.internal.pageSize.height;
+            const pageNumber = doc.internal.getNumberOfPages();
+            const pageHeight = doc.internal.pageSize.height;
 
-    doc.setFontSize(9);
-    doc.setTextColor(120);
+            doc.setFontSize(9);
+            doc.setTextColor(120);
 
-    doc.text(
-        `Page ${pageNumber} | Prepared by Eng. Tanveer Ahmad | SPMS Dashboard`,
-        pageWidth / 2,
-        pageHeight - 8,
-        { align: "center" }
-    );
-}
+            // 🔥 FOOTER ONLY
+            doc.text(
+                `Page ${pageNumber} | Prepared by Eng. Tanveer Ahmad | SPMS Dashboard`,
+                pageWidth / 2,
+                pageHeight - 8,
+                { align: "center" }
+            );
+        }
     });
 
     return doc;
