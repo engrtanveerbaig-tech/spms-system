@@ -225,7 +225,64 @@ body {
 
     box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
+/* ================= PREMIUM SEARCH HIGHLIGHT ================= */
+.highlight {
+    position: relative;
+    display: inline-block;
 
+    padding: 2px 6px;
+    border-radius: 6px;
+
+    font-weight: 600;
+    color: #0f172a;
+
+    /* 🔥 GRADIENT GOLD */
+    background: linear-gradient(135deg, #fde68a, #f59e0b);
+
+    /* 🔥 SOFT GLOW */
+    box-shadow:
+        0 2px 6px rgba(245,158,11,0.4),
+        0 0 10px rgba(251,191,36,0.5);
+
+    /* 🔥 GLASS EFFECT */
+    backdrop-filter: blur(4px);
+
+    /* 🔥 SMOOTH ANIMATION */
+    animation: highlightFade 0.3s ease;
+}
+
+/* ✨ ENTRY ANIMATION */
+@keyframes highlightFade {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* 🔥 HOVER BOOST */
+.highlight:hover {
+    background: linear-gradient(135deg, #facc15, #f97316);
+    box-shadow:
+        0 4px 12px rgba(245,158,11,0.6),
+        0 0 14px rgba(251,191,36,0.8);
+
+    transform: scale(1.05);
+}
+
+/* 🌙 DARK MODE SUPPORT */
+body.dark-mode .highlight {
+    color: #020617;
+
+    background: linear-gradient(135deg, #facc15, #f97316);
+
+    box-shadow:
+        0 2px 8px rgba(251,191,36,0.6),
+        0 0 12px rgba(249,115,22,0.6);
+}
 
 #popupSuggestions div {
     padding: 10px 16px;

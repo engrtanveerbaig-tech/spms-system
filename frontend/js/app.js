@@ -1,3 +1,10 @@
+function normalize(text) {
+    return (text || "")
+        .toString()
+        .trim()
+        .replace(/\s+/g, " ")   // remove extra spaces
+        .toLowerCase();
+}
 // =======================================================
 // 🔍 GLOBAL SEARCH SYSTEM (FINAL)
 // =======================================================
@@ -210,9 +217,12 @@ function handleSearchInput() {
 
     // remove duplicates
     const unique = [...new Map(results.map(item => {
-        const key = type === "company" ? item.company_name : item.subcontractor_name;
-        return [key, item];
-    })).values()];
+    const key = CURRENT_SEARCH_TYPE === "company"
+        ? normalize(item.company_name)
+        : normalize(item.subcontractor_name);
+
+    return [key, item];
+})).values()];
 
     renderSuggestions(unique, type);
 }
@@ -254,9 +264,9 @@ function selectSuggestion(value, type) {
 
     FILTERED_DATA = GLOBAL_DATA.filter(item => {
         if (type === "company") {
-            return item.company_name === value;
+            return normalize(item.company_name) === normalize(value);
         } else {
-            return item.subcontractor_name === value;
+            return normalize(item.subcontractor_name) === normalize(value);
         }
     });
 
@@ -369,11 +379,12 @@ function handlePopupSearch() {
     // 🎯 FILTER BASED ON TYPE
     const results = SEARCH_DATA.filter(x => {
 
-        const company = (x.company_name || "").toLowerCase();
-        const subcontractor = (x.subcontractor_name || "").toLowerCase();
+  const company = normalize(x.company_name);
+const subcontractor = normalize(x.subcontractor_name);
+const inputNorm = normalize(input);
 
         if (CURRENT_SEARCH_TYPE === "company") {
-            return company.includes(input);
+            return company.includes(inputNorm);
         }
 
         if (CURRENT_SEARCH_TYPE === "subcontractor") {
@@ -527,9 +538,8 @@ window.confirmSearch = function() {
 
     if (CURRENT_SEARCH_TYPE === "company") {
     filtered = SEARCH_DATA.filter(x =>
-    (x.company_name || "")
-        .toLowerCase()
-        .includes((SELECTED_SEARCH.company || "").toLowerCase())
+    normalize(x.company_name)
+    .includes(normalize(SELECTED_SEARCH.company))
 );
 }
 
@@ -537,9 +547,8 @@ window.confirmSearch = function() {
 
     filtered = SEARCH_DATA.filter(x => {
 
-        const name = (x.subcontractor_name || "").toLowerCase();
-        const input = (SELECTED_SEARCH.subcontractor || "").toLowerCase();
-
+    const name = normalize(x.subcontractor_name);
+const input = normalize(SELECTED_SEARCH.subcontractor);
         // 🔥 match by ID OR name
         return (
             (SELECTED_SEARCH.id && x.subcontractor_id == SELECTED_SEARCH.id)
