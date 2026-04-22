@@ -185,7 +185,7 @@ function buildAggregation() {
 
     RAW_DATA.forEach(p => {
 
-        const id = p.subcontractor_id || "unknown";
+        const id = `${p.subcontractor_id}_${p.work_type}`;
 
         if (!map[id]) {
             map[id] = {
@@ -193,6 +193,7 @@ function buildAggregation() {
                 subcontractor: p.subcontractor_name || p.sub_name || "Unknown",
                 work_type: p.work_type || "Other",
                 total_work: 0,
+                total_withdrawn: 0,
                 total_net: 0,
                 total_retention: 0,
                 total_advance: 0,
@@ -205,6 +206,9 @@ function buildAggregation() {
         map[id].total_work += parseFloat(p.work_value) || 0;
 map[id].total_net += parseFloat(p.net_payment) || 0;
 map[id].total_retention += parseFloat(p.retention_amount) || 0;
+map[id].total_withdrawn += parseFloat(
+    p.withdrawn || p.work_withdrawn || 0
+);
 map[id].total_advance += parseFloat(p.advance_deduction) || 0;
 map[id].total_deduction += parseFloat(p.deduction) || 0;
 map[id].total_refund += parseFloat(p.refund) || 0;
@@ -318,7 +322,11 @@ function renderKPIs(data) {
     const totalNet = sum(data, "total_net");
     const totalRetention = sum(data, "total_retention");
     const totalDeduction = sum(data, "total_deduction");
+    const totalWithdrawn = sum(data, "total_withdrawn");
+const totalRefund = sum(data, "total_refund");
 
+document.getElementById("total_withdrawn").innerText = format(totalWithdrawn);
+document.getElementById("total_refund").innerText = format(totalRefund);
     document.getElementById("total_work").innerText = format(totalWork);
     document.getElementById("total_paid").innerText = format(totalNet);
     document.getElementById("total_retention").innerText = format(totalRetention);
@@ -685,12 +693,18 @@ function renderTable(data) {
         <tr>
             <td>${x.company}</td>
             <td>${x.subcontractor}</td>
-            <td>${x.cert_count}</td>
+
+            <!-- ✅ ORDER FIXED -->
             <td>${x.work_type}</td>
+            <td>${x.cert_count}</td>
+
+            <!-- ✅ VALUES -->
             <td>${format(x.total_work)}</td>
+            <td>${format(x.total_withdrawn)}</td>
             <td>${format(x.total_deduction)}</td>
             <td>${format(x.total_refund)}</td>
             <td>${format(x.total_retention)}</td>
+            <td>${format(x.total_advance)}</td>
             <td>${format(x.total_net)}</td>
         </tr>`;
     });
@@ -832,16 +846,23 @@ th {
 
 <table>
 <tr>
-    <th>Advance</th>
+    <th>Work Value</th>
+    <th>Withdrawn</th>
+    <th>Deduction</th>
+    <th>Refund</th>
     <th>Retention</th>
+    <th>Advance</th>
     <th>Net</th>
-    <th>Total Work</th>
 </tr>
 <tr>
-    <td>${format(sum(data,"total_advance"))}</td>
-    <td>${format(sum(data,"total_retention"))}</td>
-    <td>${format(sum(data,"total_net"))}</td>
     <td>${format(sum(data,"total_work"))}</td>
+    <td>${format(sum(data,"total_withdrawn"))}</td>
+    <td>${format(sum(data,"total_deduction"))}</td>
+    <td>${format(sum(data,"total_refund"))}</td>
+    <td>${format(sum(data,"total_retention"))}</td>
+    <td>${format(sum(data,"total_advance"))}</td>
+    <td>${format(sum(data,"total_net"))}</td>
+
 </tr>
 </table>
 
@@ -850,28 +871,32 @@ th {
 
 <table>
 <tr>
-    <th>Net</th>
-    <th>Retention</th>
-    <th>Refund</th>
-    <th>Deduction</th>
-    <th>Work</th>
-    <th>Type</th>
-    <th>Cert</th>
-    <th>Subcontractor</th>
     <th>Company</th>
+    <th>Subcontractor</th>
+    <th>Work Type</th>
+    <th>Certificates</th>
+    <th>Work Value</th>
+    <th>Withdrawn</th>
+    <th>Deduction</th>
+    <th>Refund</th>
+    <th>Retention</th>
+    <th>Advance</th>
+    <th>Net</th>
 </tr>
 
 ${data.map(x => `
 <tr>
-    <td>${format(x.total_net)}</td>
-    <td>${format(x.total_retention)}</td>
-    <td>${format(x.total_refund)}</td>
-    <td>${format(x.total_deduction)}</td>
-    <td>${format(x.total_work)}</td>
+    <td>${x.company}</td>
+    <td>${x.subcontractor}</td>
     <td>${x.work_type}</td>
     <td>${x.cert_count}</td>
-    <td>${x.subcontractor}</td>
-    <td>${x.company}</td>
+    <td>${format(x.total_work)}</td>
+    <td>${format(x.total_withdrawn)}</td>
+    <td>${format(x.total_deduction)}</td>
+    <td>${format(x.total_refund)}</td>
+    <td>${format(x.total_retention)}</td>
+    <td>${format(x.total_advance)}</td>
+    <td>${format(x.total_net)}</td>
 </tr>
 `).join("")}
 
