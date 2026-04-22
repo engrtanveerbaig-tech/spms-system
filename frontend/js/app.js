@@ -527,23 +527,26 @@ window.confirmSearch = function() {
 
     if (CURRENT_SEARCH_TYPE === "company") {
     filtered = SEARCH_DATA.filter(x =>
-        x.company_name === SELECTED_SEARCH.company
-    );
+    (x.company_name || "")
+        .toLowerCase()
+        .includes((SELECTED_SEARCH.company || "").toLowerCase())
+);
 }
 
    if (CURRENT_SEARCH_TYPE === "subcontractor") {
 
-    if (SELECTED_SEARCH.id) {
-        filtered = SEARCH_DATA.filter(x =>
-            x.subcontractor_id == SELECTED_SEARCH.id
+    filtered = SEARCH_DATA.filter(x => {
+
+        const name = (x.subcontractor_name || "").toLowerCase();
+        const input = (SELECTED_SEARCH.subcontractor || "").toLowerCase();
+
+        // 🔥 match by ID OR name
+        return (
+            (SELECTED_SEARCH.id && x.subcontractor_id == SELECTED_SEARCH.id)
+            ||
+            name.includes(input)
         );
-    } else {
-        // 🔥 fallback for typing
-        filtered = SEARCH_DATA.filter(x =>
-            (x.subcontractor_name || "").toLowerCase()
-                .includes(SELECTED_SEARCH.subcontractor.toLowerCase())
-        );
-    }
+    });
 }
 
     console.log("Filtered Result:", filtered.length);
