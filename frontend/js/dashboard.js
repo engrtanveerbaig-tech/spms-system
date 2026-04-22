@@ -426,27 +426,23 @@ function createTopSubsList(data) {
         grouped[name] += Number(item.total_net || 0);
     });
 
-    const top5 = Object.entries(grouped)
+    const top = Object.entries(grouped)
         .map(([company, total]) => ({ company, total }))
         .sort((a, b) => b.total - a.total)
-        .slice(0, 5);
+        .slice(0, 6);
 
-    let html = "";
+    container.innerHTML = "";
 
-    top5.forEach((x, i) => {
+    top.forEach((x, i) => {
 
-        const sizeClass = i === 0 ? "big" : "small";
-
-        html += `
-            <div class="top-card ${sizeClass}">
-                <div class="top-rank">#${i + 1}</div>
-                <div class="top-name">${x.company}</div>
-                <div class="top-value">${x.total.toLocaleString()} SAR</div>
+        container.innerHTML += `
+            <div class="top-sub-card">
+                <div class="top-sub-name">${x.company}</div>
+                <div class="top-sub-value">${format(x.total)}</div>
+                <div class="top-sub-currency">SAR</div>
             </div>
         `;
     });
-
-    container.innerHTML = html;
 }
 
 // =====================================================
@@ -458,27 +454,34 @@ function createTypeChart(data) {
     const group = groupBy(data, "work_type", "total_net");
 
     window.typeChart = new Chart(ctx, {
-        type: "doughnut",
+        type: "pie",
         data: {
             labels: Object.keys(group),
             datasets: [{
     data: Object.values(group),
     backgroundColor: [
-        "#3b82f6",
-        "#10b981",
-        "#f59e0b",
-        "#ef4444",
-        "#8b5cf6"
-    ],
-    borderColor: "transparent",   // ✅ ADD THIS
-    borderWidth: 0,           // 🔥 slightly thicker = premium look
-    hoverOffset: 8            // 🔥 smooth hover pop
+    "#7ea6e0",  // blue
+    "#f28b82",  // red
+    "#c5e1a5",  // green
+    "#ffd180",  // orange
+    "#b39ddb",  // purple
+    "#80cbc4"   // teal
+],
+    borderColor: "#ffffff",
+borderWidth: 1,          // 🔥 slightly thicker = premium look
+    hoverOffset: 6            // 🔥 smooth hover pop
 }]
         },
         options: {
-            cutout: "70%", // 🔥 premium donut
             plugins: {
-                legend: { display: false },
+                legend: {
+    display: true,
+    position: "right",
+    labels: {
+        color: "#333",
+        font: { size: 11 }
+    }
+},
                 tooltip: {
     enabled: true,
     mode: 'index',
@@ -670,12 +673,12 @@ function renderWorkTypeCards(data) {
 
     Object.keys(grouped).forEach(type => {
         html += `
-            <div class="work-card-premium">
-                <div class="card-top">${type}</div>
-                <div class="card-main">${grouped[type].certs.size}</div>
-                <div class="card-bottom">${grouped[type].subs.size} Subs</div>
-            </div>
-        `;
+    <div class="work-card-premium">
+        <div class="card-top">${type}</div>
+        <div class="card-main">${grouped[type].certs.size}</div>
+        <div class="card-bottom">${grouped[type].subs.size} Subs</div>
+    </div>
+`;
     });
 
     container.innerHTML = html;

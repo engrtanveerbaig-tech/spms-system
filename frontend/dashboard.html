@@ -80,7 +80,7 @@ body.dark-mode .header{
     backdrop-filter:blur(14px);
     border-radius:14px;
     padding:15px;
-    grid-column:span 2;
+    grid-column:1 / -1;
 }
 
 .ai-header{
@@ -101,8 +101,12 @@ body.dark-mode .header{
     padding:8px;
     border-radius:10px;
     border:1px solid #ddd;
+    min-width:200px;
 }
-
+.filter-actions{
+    display:flex;
+    gap:10px;
+}
 /* ================= CHART GRID ================= */
 .dashboard-custom{
     display:grid;
@@ -118,6 +122,53 @@ body.dark-mode .header{
     height:300px;
 
     position:relative;
+}
+.chart.small{
+    min-height:220px;
+    height:auto;
+    display:flex;
+    flex-direction:column;
+}
+#topSubs{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+    margin-top:10px;
+}
+#topSubsList{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+    margin-top:10px;
+}
+.top-sub-card{
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    border-radius:14px;
+    padding:12px;
+    color:white;
+    transition:0.3s;
+}
+
+.top-sub-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
+
+.top-sub-name{
+    font-size:12px;
+    color:#94a3b8;
+}
+
+.top-sub-value{
+    font-size:16px;
+    font-weight:bold;
+    color:#22c55e;
+    margin-top:4px;
+}
+
+.top-sub-currency{
+    font-size:11px;
+    color:#94a3b8;
 }
 
 .chart-title{
@@ -221,6 +272,10 @@ body.dark-mode tbody tr:hover{
     grid-template-columns:1fr;
 }
 
+}
+.chart.right-panel{
+    display:flex;
+    flex-direction:column;
 }
 
 </style>
@@ -334,31 +389,33 @@ body.dark-mode tbody tr:hover{
         </div>
 
         <!-- KPI -->
-        <div class="dashboard-grid">
-            <div class="kpi">💰 Total Certified Amount<br><span id="total_work"></span></div>
-<div class="kpi">📊 Total Net Amount<br><span id="total_paid"></span></div>
-<div class="kpi">🔒 Retention<br><span id="total_retention"></span></div>
-<div class="kpi">⚠️ Deductions<br><span id="total_deduction"></span></div>
-<div class="kpi">📤 Work Withdrawn<br><span id="total_withdrawn">0</span></div>
-<div class="kpi">💸 Refund<br><span id="total_refund">0</span></div>
-<div class="kpi">👷 Subcontractors<br><span id="total_subs"></span></div>
+        <!-- KPI -->
+<div class="dashboard-grid">
+    <div class="kpi">💰 Total Certified Amount<br><span id="total_work"></span></div>
+    <div class="kpi">📊 Total Net Amount<br><span id="total_paid"></span></div>
+    <div class="kpi">🔒 Retention<br><span id="total_retention"></span></div>
+    <div class="kpi">⚠️ Deductions<br><span id="total_deduction"></span></div>
+    <div class="kpi">📤 Work Withdrawn<br><span id="total_withdrawn"></span></div>
+    <div class="kpi">💸 Refund<br><span id="total_refund"></span></div>
+</div>
 
-            <div class="ai-box">
-                <div class="ai-header">
-                    <span>🤖 AI Insights</span>
-                    <div class="ai-actions"><span>⋯</span></div>
-                </div>
-                <div class="ai-content">
-                    <div id="ai_summary" class="ai-text"></div>
-                </div>
-            </div>
+<!-- AI FULL WIDTH -->
+<div class="ai-box">
+    <div class="ai-header">
+        <span>🤖 AI Insights</span>
+        <div class="ai-actions"><span>⋯</span></div>
+    </div>
+    <div id="ai_summary"></div>
+</div>
 
-            <div class="mini">📈 Avg Cert: <span id="avg_cert"></span></div>
-<div class="mini">📦 Types</div>
-<div class="mini">🏆 Top Sub</div>
-<div class="mini">📉 Retention %</div>
-<div class="mini">❤️ Health</div>
-        </div>
+<!-- MINI GRID -->
+<div class="mini-grid">
+    <div class="mini">👷 Subcontractors: <span id="total_subs"></span></div>
+    <div class="mini">📈 Avg Cert: <span id="avg_cert"></span></div>
+    <div class="mini">📦 Types</div>
+    <div class="mini">🏆 Top Sub</div>
+    <div class="mini">📉 Retention %</div>
+</div>
 
         <hr>
 
@@ -370,12 +427,12 @@ body.dark-mode tbody tr:hover{
 </div>
 
             <div class="chart small-top">
-                <div class="chart-title">Total Work</div>
+                <div class="chart-title">📊 Work Distribution</div>
                 <canvas id="typeChart"></canvas>
             </div>
 
             <div class="chart right-panel">
-<div class="chart-title">SC & PC</div>
+<div class="chart-title">📦 SC & PC Overview</div>
                 <div id="workTypeCards"></div></div>
                 
             <div class="chart small-bottom">
@@ -394,14 +451,16 @@ body.dark-mode tbody tr:hover{
                 <thead>
                     <tr>
                         <th>Company</th>
-                        <th>Subcontractor</th>
-                        <th>Certificates</th>
-                        <th>Work Type</th>
-                        <th>Work Value</th>
-                        <th>Deduction</th>
-                        <th>Refund</th>
-                        <th>Retention</th>
-                        <th>Net Amount</th>
+                <th>Subcontractor</th>
+                <th>Work Type</th>
+                <th>Certificates</th>
+                <th>W.Value</th>
+                <th>Withdrawn</th>
+                <th>Deduction</th>
+                <th>Refund</th>
+                <th>Retention</th>
+                <th>Advance</th>
+                <th>Net</th>
                     </tr>
                 </thead>
                 <tbody id="summaryTable"></tbody>

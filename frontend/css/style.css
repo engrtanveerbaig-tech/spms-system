@@ -155,8 +155,8 @@ th,td{
 }
 
 /* 🔥 FILTER ROW FIX */
-thead tr:first-child th{
-    background:#0f172a;
+thead th{
+    background:#1f4e79;
     color:white;
     position:sticky;
     top:0;
@@ -180,7 +180,7 @@ tbody tr:hover{
 /* ================= DASHBOARD ================= */
 .dashboard-grid{
     display:grid;
-    grid-template-columns:repeat(5,1fr);
+    grid-template-columns:repeat(6,1fr);
     gap:12px;
 }
 
@@ -205,14 +205,21 @@ tbody tr:hover{
     border-radius:14px;
     padding:15px;
 }
+.chart{
+    overflow:hidden;
+}
+.dashboard-grid{
+    align-items:start;
+}
 
 /* ================= FILTERS ================= */
 .filters{
     display:flex;
     gap:10px;
-    flex-wrap:wrap;
-    margin:15px 0;
+    align-items:center;
+    flex-wrap:nowrap;
 }
+
 
 /* ================= SIDEBAR FIX ================= */
 .sidebar{
@@ -381,4 +388,61 @@ tbody tr:hover{
     .form-row{
         grid-template-columns:1fr;
     }
+}
+.mini-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:10px;
+    margin-top:10px;
+}
+#workTypeCards{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+    padding-top:10px;
+}
+.work-card-premium{
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    border-radius:14px;
+    padding:12px;
+    color:white;
+    position:relative;
+    overflow:hidden;
+    transition:0.3s;
+}
+
+.work-card-premium:hover{
+    transform:translateY(-4px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
+
+/* TOP LABEL */
+.card-top{
+    font-size:12px;
+    color:#94a3b8;
+    margin-bottom:6px;
+}
+
+/* MAIN VALUE */
+.card-main{
+    font-size:18px;
+    font-weight:bold;
+    color:#22c55e;
+}
+
+/* SUB TEXT */
+.card-bottom{
+    font-size:12px;
+    color:#cbd5f5;
+}
+
+/* GRADIENT TOP BORDER */
+.work-card-premium::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:3px;
+    background:linear-gradient(90deg,#3b82f6,#22c55e,#f59e0b);
 }
