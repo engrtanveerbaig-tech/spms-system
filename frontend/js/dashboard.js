@@ -744,111 +744,7 @@ function fixArabic(text) {
 // =====================================================
 // PDF EXPORT (ADVANCED)
 // =====================================================
-async function generatePDF() {
 
-    const jsPDF = window.jspdf?.jsPDF;
-
-if (!jsPDF) {
-    alert("jsPDF not loaded!");
-    return;
-}
-    const doc = new jsPDF("l", "mm", "a4"); // 🔥 landscape
-
-    const data = applyFilterData();
-
-    // ================= HEADER =================
-    doc.setFontSize(16);
-    doc.text("NAM-153VILLAS-040624", 105, 15, { align: "center" });
-
-    doc.setFontSize(11);
-    doc.text("Subcontractors | Payment Certificates Report", 105, 22, { align: "center" });
-
-    doc.text(`Prepared by: Eng. Tanveer Ahmad`, 14, 30);
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 36);
-
-    // ================= TOTALS =================
-const totalWork = sum(data, "total_work");
-const totalWithdrawn = sum(data, "total_withdrawn");
-const totalDeduction = sum(data, "total_deduction");
-const totalRefund = sum(data, "total_refund");
-const totalRetention = sum(data, "total_retention");
-const totalAdvance = sum(data, "total_advance");
-const totalNet = sum(data, "total_net");
-    // ================= TABLE =================
-    const tableData = data.map(x => [
-        fixArabic(x.company || ""),
-fixArabic(x.subcontractor || ""),
-        x.work_type,
-        x.cert_count,
-        format(x.total_work),
-        format(x.total_withdrawn),
-        format(x.total_deduction),
-        format(x.total_refund),
-        format(x.total_retention),
-        format(x.total_advance),
-        format(x.total_net)
-    ]);
-
-    doc.autoTable({
-    head: [[
-        "Company",
-        "Subcontractor",
-        "Work Type",
-        "Cert",
-        "Work Value",
-        "Withdrawn",
-        "Deduction",
-        "Refund",
-        "Retention",
-        "Advance",
-        "Net"
-    ]],
-
-   body: [
-    ...tableData,
-    [
-        "TOTAL", "", "", "",
-        format(totalWork),
-        format(totalWithdrawn),
-        format(totalDeduction),
-        format(totalRefund),
-        format(totalRetention),
-        format(totalAdvance),
-        format(totalNet)
-    ]
-],
-
-    startY: 45,
-
-    styles: {
-        fontSize: 8
-    },
-
-    headStyles: {
-        fillColor: [37, 99, 235]
-    },
-
-    didDrawPage: function (data) {
-
-        const pageNumber = doc.internal.getNumberOfPages();
-
-        doc.setFontSize(9);
-        doc.setTextColor(100);
-
-        doc.text(
-            `Page ${pageNumber} | Prepared by Eng. Tanveer Ahmad | SPMS Dashboard`,
-            doc.internal.pageSize.width / 2,
-            doc.internal.pageSize.height - 10,
-            { align: "center" }
-        );
-    }
-});
-
-    const pdfBlob = doc.output("blob");
-const url = URL.createObjectURL(pdfBlob);
-
-window.open(url);
-}
 
 window.applyGlobalFilter = function(filteredData) {
 
@@ -902,36 +798,6 @@ window.resetDashboard = function() {
     renderAll();
 };
 // =====================================================
-
-
-window.loadDashboard = loadDashboard;
-window.generateReport = generatePDFPreview;
-})();
-//setInterval(() => {
-//
-    // ❌ do not refresh if user is filtering
-  //  if (CURRENT_DATA.length > 0) return;
-
-    //console.log("🔄 Auto refreshing dashboard...");
-    //loadDashboard();
-
-//}, 500000);
-// ===============================
-// 🔥 LIVE UPDATE FROM PAYMENT PAGE
-// ===============================
-window.updateDashboardLive = function(newPayment) {
-
-    console.log("Live update received:", newPayment);
-
-    // ✅ PUSH into RAW DATA
-    RAW_DATA = [...RAW_DATA, newPayment];
-ORIGINAL_DATA = [...RAW_DATA];
-
-    // ✅ REBUILD EVERYTHING
-    buildAggregation();
-    renderAll();
-};
-
 function buildPDF() {
     const jsPDF = window.jspdf?.jsPDF;
     if (!jsPDF) {
@@ -965,8 +831,8 @@ function buildPDF() {
     const totalNet = sum(data, "total_net");
 
     const tableData = data.map(x => [
-        x.company,
-        x.subcontractor,
+    fixArabic(x.company || ""),
+    fixArabic(x.subcontractor || ""),
         x.work_type,
         x.cert_count,
         format(x.total_work),
@@ -979,6 +845,10 @@ function buildPDF() {
     ]);
 
     doc.autoTable({
+    margin: { top: 40, left: 6, right: 6, bottom: 12 },
+tableWidth: "auto",
+styles: { fontSize: 8 },
+    tableWidth: "auto",
         head: [[
             "Company","Subcontractor","Work Type","Cert",
             "Work Value","Withdrawn","Deduction","Refund",
@@ -1011,6 +881,7 @@ function buildPDF() {
         didDrawPage: function () {
 
     const pageNumber = doc.internal.getNumberOfPages();
+    const pageHeight = doc.internal.pageSize.height;
 
     doc.setFontSize(9);
     doc.setTextColor(120);
@@ -1018,7 +889,7 @@ function buildPDF() {
     doc.text(
         `Page ${pageNumber} | Prepared by Eng. Tanveer Ahmad | SPMS Dashboard`,
         pageWidth / 2,
-        doc.internal.pageSize.height - 8,
+        pageHeight - 8,
         { align: "center" }
     );
 }
@@ -1054,3 +925,38 @@ function printPDF() {
         win.print();
     };
 }
+// =====================================================
+// EXPORT FUNCTIONS (FINAL POSITION)
+// =====================================================
+window.loadDashboard = loadDashboard;
+window.generateReport = generatePDFPreview;
+window.downloadPDF = downloadPDF;
+window.printPDF = printPDF;
+window.resetDashboard = resetDashboard;
+window.applyGlobalFilter = applyGlobalFilter;
+})();
+//setInterval(() => {
+//
+    // ❌ do not refresh if user is filtering
+  //  if (CURRENT_DATA.length > 0) return;
+
+    //console.log("🔄 Auto refreshing dashboard...");
+    //loadDashboard();
+
+//}, 500000);
+// ===============================
+// 🔥 LIVE UPDATE FROM PAYMENT PAGE
+// ===============================
+window.updateDashboardLive = function(newPayment) {
+
+    console.log("Live update received:", newPayment);
+
+    // ✅ PUSH into RAW DATA
+    RAW_DATA = [...RAW_DATA, newPayment];
+ORIGINAL_DATA = [...RAW_DATA];
+
+    // ✅ REBUILD EVERYTHING
+    buildAggregation();
+    renderAll();
+};
+
