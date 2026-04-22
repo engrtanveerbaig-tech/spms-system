@@ -503,7 +503,7 @@ function setSearchType(type) {
 }
 
 // ================= BUTTON ACTION =================
-function confirmSearch() {
+window.confirmSearch = function() {
 
     if (!SELECTED_SEARCH) {
     const input = document.getElementById("popupSearchInput").value.trim();
