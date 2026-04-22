@@ -1,8 +1,10 @@
 function normalize(text) {
     return (text || "")
         .toString()
+        .normalize("NFKD")   // 🔥 Arabic fix
+        .replace(/[^\w\s\u0600-\u06FF]/g, "") // keep Arabic
         .trim()
-        .replace(/\s+/g, " ")   // remove extra spaces
+        .replace(/\s+/g, " ")
         .toLowerCase();
 }
 // =======================================================
@@ -283,7 +285,7 @@ function selectSuggestion(value, type) {
 async function loadSearchData() {
     if (SEARCH_DATA.length > 0) return; // ✅ cache
     try {
-        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all", {
+        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all-full", {
     headers: {
         "Authorization": `Bearer ${localStorage.getItem("token")}`
     }
@@ -359,9 +361,8 @@ function handlePopupSearch() {
 
     if (!inputEl || !box) return;
 
-    const input = inputEl.value.toLowerCase().trim();
-
-    console.log("Typing:", input);
+    const input = inputEl.value.trim();
+    const inputNorm = normalize(input);
 
     // 🔥 WAIT FOR DATA
     if (!SEARCH_DATA || SEARCH_DATA.length === 0) {
@@ -371,69 +372,67 @@ function handlePopupSearch() {
     }
 
     // ❌ EMPTY INPUT
-    if (!input) {
+    if (!inputNorm) {
         box.style.display = "none";
         return;
     }
 
-    // 🎯 FILTER BASED ON TYPE
     const results = SEARCH_DATA.filter(x => {
 
-  const company = normalize(x.company_name);
-const subcontractor = normalize(x.subcontractor_name);
-const inputNorm = normalize(input);
+        const company = normalize(x.company_name);
+        const subcontractor = normalize(x.subcontractor_name);
 
         if (CURRENT_SEARCH_TYPE === "company") {
             return company.includes(inputNorm);
         }
 
         if (CURRENT_SEARCH_TYPE === "subcontractor") {
-            return subcontractor.includes(input);
+            return subcontractor.includes(inputNorm);
         }
 
         return false;
     });
 
-    // ❌ NO RESULT
-    if (results.length === 0) {
+    console.log("DATA:", SEARCH_DATA.length);
+    console.log("RESULTS:", results.length);
+
+    // ✅ REMOVE DUPLICATES
+    const unique = [...new Map(results.map(r => [
+        normalize(
+            CURRENT_SEARCH_TYPE === "company"
+            ? r.company_name
+            : r.subcontractor_name
+        ),
+        r
+    ])).values()];
+
+    if (unique.length === 0) {
         box.innerHTML = "<div>No results found</div>";
         box.style.display = "block";
         return;
     }
 
-    // ✅ CLEAR OLD RESULTS
     box.innerHTML = "";
 
-    // 🔥 LIMIT RESULTS
-    results.slice(0, 10).forEach(r => {
+    unique.slice(0, 10).forEach(r => {
 
         const div = document.createElement("div");
 
-        let text = "";
+        const text =
+    CURRENT_SEARCH_TYPE === "company"
+    ? `${r.company_name} (${r.subcontractor_name})`
+    : `${r.subcontractor_name} — ${r.company_name}`;
 
-        if (CURRENT_SEARCH_TYPE === "company") {
-            text = r.company_name || "No Company";
-        } else {
-            text = r.subcontractor_name || "No Subcontractor";
-        }
+        div.innerHTML = highlightText(text, inputNorm);
 
-        // ✅ 🔥 APPLY HIGHLIGHT HERE
-        div.innerHTML = highlightText(text, input);
-
-        // 🖱 CLICK SELECT
         div.onclick = () => {
-
             SELECTED_SEARCH = {
                 id: r.subcontractor_id,
                 company: (r.company_name || "").trim(),
                 subcontractor: (r.subcontractor_name || "").trim()
             };
 
-            document.getElementById("popupSearchInput").value =
-                CURRENT_SEARCH_TYPE === "company"
-                ? r.company_name
-                : r.subcontractor_name;
-
+            inputEl.value = text;
             box.style.display = "none";
         };
 
@@ -548,12 +547,12 @@ window.confirmSearch = function() {
     filtered = SEARCH_DATA.filter(x => {
 
     const name = normalize(x.subcontractor_name);
-const input = normalize(SELECTED_SEARCH.subcontractor);
+const inputNorm = normalize(SELECTED_SEARCH.subcontractor);
         // 🔥 match by ID OR name
         return (
             (SELECTED_SEARCH.id && x.subcontractor_id == SELECTED_SEARCH.id)
             ||
-            name.includes(input)
+            name.includes(inputNorm)
         );
     });
 }
