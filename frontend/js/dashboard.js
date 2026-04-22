@@ -822,6 +822,26 @@ th {
     font-weight:bold;
 }
 
+@media print {
+    @page {
+        margin: 20mm;
+    }
+
+    body {
+        margin: 0;
+    }
+
+    .report-footer {
+        position: fixed;
+        bottom: 10px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 12px;
+        color: #555;
+    }
+}
+
 </style>
 </head>
 
@@ -903,7 +923,14 @@ ${data.map(x => `
 </tr>
 `).join("")}
 
+
+
 </table>
+
+<!-- ✅ CUSTOM FOOTER -->
+<div class="report-footer">
+    Prepared by Eng. Tanveer Ahmad | SPMS Dashboard | Confidential
+</div>
 
 </body>
 </html>
