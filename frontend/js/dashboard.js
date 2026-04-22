@@ -896,7 +896,15 @@ window.applyGlobalFilter = function(filteredData) {
     }
 
     // 🔥 STEP 1: SET RAW DATA TO FILTERED
-    RAW_DATA = [...filteredData];
+    RAW_DATA = filteredData.map(x => ({
+    ...x,
+    work_value: Number(x.work_value || 0),
+    net_payment: Number(x.net_payment || 0),
+    retention_amount: Number(x.retention_amount || 0),
+    deduction: Number(x.deduction || 0),
+    advance_deduction: Number(x.advance_deduction || 0),
+    refund: Number(x.refund || 0)
+}));
 
     // 🔥 STEP 2: CLEAR CURRENT DATA (IMPORTANT)
     CURRENT_DATA = [];

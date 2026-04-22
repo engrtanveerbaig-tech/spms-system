@@ -285,7 +285,20 @@ if (!Array.isArray(result)) {
     return;
 }
 
-SEARCH_DATA = result;
+SEARCH_DATA = result.map(x => ({
+    ...x,
+    subcontractor_id: x.subcontractor_id || x.sub_id || 0,
+    subcontractor_name: x.subcontractor_name || x.sub_name || "Unknown",
+    company_name: x.company_name || "N/A",
+    work_type: x.work_type || "Other",
+    work_value: x.work_value || 0,
+    net_payment: x.net_payment || 0,
+    retention_amount: x.retention_amount || 0,
+    deduction: x.deduction || 0,
+    advance_deduction: x.advance_deduction || 0,
+    refund: x.refund || 0
+}));
+
 GLOBAL_DATA = SEARCH_DATA;
 
         console.log("SEARCH DATA LOADED:", SEARCH_DATA.length); // ✅ HERE
@@ -493,9 +506,20 @@ function setSearchType(type) {
 function confirmSearch() {
 
     if (!SELECTED_SEARCH) {
-        alert("Please select from list");
+    const input = document.getElementById("popupSearchInput").value.trim();
+
+    if (!input) {
+        alert("Please type or select");
         return;
     }
+
+    // fallback search
+    SELECTED_SEARCH = {
+    id: null, // 🔥 important
+    company: input,
+    subcontractor: input
+};
+}
 
     console.log("Selected:", SELECTED_SEARCH);
 
@@ -508,9 +532,18 @@ function confirmSearch() {
 }
 
    if (CURRENT_SEARCH_TYPE === "subcontractor") {
-    filtered = SEARCH_DATA.filter(x =>
-        x.subcontractor_id == SELECTED_SEARCH.id   // ✅ FIX
-    );
+
+    if (SELECTED_SEARCH.id) {
+        filtered = SEARCH_DATA.filter(x =>
+            x.subcontractor_id == SELECTED_SEARCH.id
+        );
+    } else {
+        // 🔥 fallback for typing
+        filtered = SEARCH_DATA.filter(x =>
+            (x.subcontractor_name || "").toLowerCase()
+                .includes(SELECTED_SEARCH.subcontractor.toLowerCase())
+        );
+    }
 }
 
     console.log("Filtered Result:", filtered.length);
