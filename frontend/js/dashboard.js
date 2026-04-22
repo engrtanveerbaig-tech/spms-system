@@ -478,7 +478,7 @@ borderWidth: 1,          // 🔥 slightly thicker = premium look
     display: true,
     position: "right",
     labels: {
-        color: "#333",
+        color: "#e5e7eb",
         font: { size: 11 }
     }
 },

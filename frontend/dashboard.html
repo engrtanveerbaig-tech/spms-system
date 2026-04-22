@@ -23,12 +23,55 @@ body.dark-mode{
 
 /* ================= HEADER ================= */
 .header{
-    background: var(--card-bg);
-    backdrop-filter: blur(12px);
-    backdrop-filter:blur(12px);
+    background:rgba(255,255,255,0.06);
+    backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,0.1);
+
     padding:20px;
     border-radius:16px;
     margin-bottom:20px;
+
+    box-shadow:0 10px 30px rgba(0,0,0,0.25);
+}
+.header-top{
+    margin-bottom:12px;
+}
+
+.header-bottom{
+    font-size:13px;
+    color:#94a3b8;
+}
+
+#workTypeSummary{
+    margin-top:10px;
+    margin-bottom:10px;
+}
+.filters button{
+    border:none;
+    padding:8px 14px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:13px;
+    transition:0.2s;
+}
+
+.filters button:first-child{
+    background:linear-gradient(135deg,#ec4899,#f43f5e);
+    color:white;
+}
+
+.reset-btn{
+    background:linear-gradient(135deg,#6366f1,#3b82f6);
+    color:white;
+}
+
+.filters button:hover{
+    transform:translateY(-1px);
+    box-shadow:0 5px 12px rgba(0,0,0,0.2);
+}
+.main-content{
+    margin-left:90px;
+    padding:25px 30px;
 }
 
 body.dark-mode .header{
@@ -38,10 +81,15 @@ body.dark-mode .header{
 /* ================= KPI GRID ================= */
 .dashboard-grid{
     display:grid;
-    grid-template-columns:repeat(5,1fr);
+    grid-template-columns:repeat(6,1fr);
     gap:12px;
 }
-
+.mini-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:10px;
+    margin-top:10px;
+}
 /* KPI CARD */
 .kpi{
     background:linear-gradient(135deg,#0f172a,#1e293b);
@@ -92,9 +140,10 @@ body.dark-mode .header{
 /* ================= FILTERS ================= */
 .filters{
     display:flex;
+    align-items:center;
     gap:10px;
     margin:20px 0;
-    flex-wrap:wrap;
+    flex-wrap:nowrap; /* 🔥 KEY FIX */
 }
 
 .filters select{
@@ -106,6 +155,7 @@ body.dark-mode .header{
 .filter-actions{
     display:flex;
     gap:10px;
+    margin-left:auto; /* push buttons right */
 }
 /* ================= CHART GRID ================= */
 .dashboard-custom{
@@ -158,6 +208,7 @@ body.dark-mode .header{
     font-size:12px;
     color:#94a3b8;
 }
+
 
 .top-sub-value{
     font-size:16px;
