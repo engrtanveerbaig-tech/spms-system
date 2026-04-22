@@ -398,6 +398,22 @@ body.dark-mode #popupSuggestions{
 .menu-item[onclick*="openSearchModal"]:hover{
     box-shadow:0 0 20px rgba(59,130,246,0.6);
 }
+
+.logout-btn{
+    margin-left:auto;
+    background:linear-gradient(135deg,#ef4444,#dc2626);
+    color:white;
+    padding:8px 14px;
+    border-radius:10px;
+    font-size:13px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.logout-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 5px 15px rgba(0,0,0,0.3);
+}
 </style>
 </head>
 
@@ -436,9 +452,7 @@ body.dark-mode #popupSuggestions{
 </div>
     <div class="logo">S<br>P<br>S</div>
 
-<div class="sidebar-bottom">
-    <button class="logout" onclick="logout()">Logout</button>
-</div>
+<div class="logout-btn" onclick="logout()">🚪 Logout</div>
 
 </div>
 

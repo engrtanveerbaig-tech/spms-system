@@ -34,7 +34,9 @@ body.dark-mode{
     box-shadow:0 10px 30px rgba(0,0,0,0.25);
 }
 .header-top{
-    margin-bottom:12px;
+     display:flex;
+    align-items:center;
+    justify-content:space-between;
 }
 
 .header-bottom{
@@ -69,11 +71,31 @@ body.dark-mode{
     transform:translateY(-1px);
     box-shadow:0 5px 12px rgba(0,0,0,0.2);
 }
+.main{
+    margin-left:80px; /* exact sidebar width */
+    padding:20px 25px;
+}
 .main-content{
-    margin-left:90px;
     padding:25px 30px;
 }
+.sidebar{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:space-between;
+    padding:20px 0;
+}
 
+/* LOGO TEXT */
+.sidebar::after{
+    content:"SPMS";
+    writing-mode:vertical-rl;
+    transform:rotate(180deg);
+    font-weight:bold;
+    letter-spacing:6px;
+    font-size:14px;
+    color:rgba(255,255,255,0.6);
+}
 body.dark-mode .header{
     background:rgba(255,255,255,0.05);
 }
@@ -139,6 +161,10 @@ body.dark-mode .header{
 
 /* ================= FILTERS ================= */
 .filters{
+    background:rgba(255,255,255,0.04);
+    backdrop-filter:blur(10px);
+    padding:12px 15px;
+    border-radius:12px;
     display:flex;
     align-items:center;
     gap:10px;
@@ -147,10 +173,19 @@ body.dark-mode .header{
 }
 
 .filters select{
-    padding:8px;
-    border-radius:10px;
-    border:1px solid #ddd;
-    min-width:200px;
+    background:transparent;
+    border:none;
+    border-bottom:1px solid rgba(0,0,0,0.2);
+    border-radius:0;
+    padding:6px 4px;
+    min-width:180px;
+    font-size:13px;
+}
+
+/* DARK MODE */
+body.dark-mode .filters select{
+    border-bottom:1px solid rgba(255,255,255,0.2);
+    color:#e2e8f0;
 }
 .filter-actions{
     display:flex;
