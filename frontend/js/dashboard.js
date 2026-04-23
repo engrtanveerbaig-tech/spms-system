@@ -432,24 +432,23 @@ function createTopSubsList(data) {
     const grouped = {};
 
     data.forEach(item => {
-        const name = item.company_name || "Unknown";
+        const name = item.subcontractor || "Unknown";
 
         if (!grouped[name]) grouped[name] = 0;
-        grouped[name] += Number(item.total_net || item.net_payment || 0);
+        grouped[name] += Number(item.total_net || 0);
     });
 
     const top = Object.entries(grouped)
-        .map(([company, total]) => ({ company, total }))
+        .map(([name, total]) => ({ name, total }))
         .sort((a, b) => b.total - a.total)
         .slice(0, 6);
 
     container.innerHTML = "";
 
-    top.forEach((x, i) => {
-
+    top.forEach(x => {
         container.innerHTML += `
             <div class="top-sub-card">
-                <div class="top-sub-name">${x.company}</div>
+                <div class="top-sub-name">${x.name}</div>
                 <div class="top-sub-value">${format(x.total)}</div>
                 <div class="top-sub-currency">SAR</div>
             </div>
