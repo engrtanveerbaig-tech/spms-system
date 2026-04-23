@@ -1,12 +1,3 @@
-function fixArabic(text) {
-    if (!text) return "";
-
-    return text
-        .split(" ")
-        .map(word => word.split("").reverse().join(""))
-        .reverse()
-        .join(" ");
-}
 // =====================================================
 // GLOBAL STATE
 // =====================================================
@@ -801,143 +792,25 @@ window.resetDashboard = function() {
     initFilters();
     renderAll();
 };
-// =====================================================
-function buildPDF() {
 
-    const jsPDF = window.jspdf?.jsPDF;
-    if (!jsPDF) {
-        alert("jsPDF not loaded!");
-        return null;
+function openReportWindow(print = false) {
+
+    const win = window.open("", "_blank");
+
+    win.document.open();
+    win.document.write(buildDashboardHTML());
+    win.document.close();
+
+    if (print) {
+        setTimeout(() => win.print(), 500);
     }
 
-    const doc = new jsPDF("l", "mm", "a4");
-
-if (window.loadArabicFont) {
-    window.loadArabicFont(doc);
-    doc.setFont("Amiri");
+    return win;
 }
 
-// 🔥 CRITICAL (Arabic direction fix)
-doc.setR2L(true);
-
-    const data = applyFilterData();
-
-    const pageWidth = doc.internal.pageSize.getWidth();
-
-    // ================= HEADER (ONLY FIRST PAGE) =================
-    doc.setFontSize(16);
-    doc.text("NAM-153VILLAS-040624", pageWidth / 2, 15, { align: "center" });
-
-    doc.setFontSize(11);
-    doc.text("Subcontractors | Payment Certificates Report", pageWidth / 2, 22, { align: "center" });
-
-    doc.text(`Prepared by: Eng. Tanveer Ahmad`, 14, 30);
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 36);
-
-    // ================= TOTALS =================
-    const totalWork = sum(data, "total_work");
-    const totalWithdrawn = sum(data, "total_withdrawn");
-    const totalDeduction = sum(data, "total_deduction");
-    const totalRefund = sum(data, "total_refund");
-    const totalRetention = sum(data, "total_retention");
-    const totalAdvance = sum(data, "total_advance");
-    const totalNet = sum(data, "total_net");
-
-    const tableData = data.map(x => [
-        x.company || "",
-        x.subcontractor || "",
-        x.work_type,
-        x.cert_count,
-        format(x.total_work),
-        format(x.total_withdrawn),
-        format(x.total_deduction),
-        format(x.total_refund),
-        format(x.total_retention),
-        format(x.total_advance),
-        format(x.total_net)
-    ]);
-
-    doc.autoTable({
-        margin: { top: 40, left: 6, right: 6, bottom: 12 },
-
-        head: [[
-            "Company","Subcontractor","Work Type","Cert",
-            "Work Value","Withdrawn","Deduction","Refund",
-            "Retention","Advance","Net"
-        ]],
-
-        body: [
-            ...tableData,
-            [
-                "TOTAL","","","",
-                format(totalWork),
-                format(totalWithdrawn),
-                format(totalDeduction),
-                format(totalRefund),
-                format(totalRetention),
-                format(totalAdvance),
-                format(totalNet)
-            ]
-        ],
-
-        startY: 45,
-
-        didParseCell: function (data) {
-            if (data.row.index === tableData.length) {
-                data.cell.styles.fillColor = [220, 220, 220];
-                data.cell.styles.fontStyle = "bold";
-            }
-        },
-
-        // ✅ FIX HEADER SPACE ISSUE
-        didDrawPage: function (data) {
-
-            const pageNumber = doc.internal.getNumberOfPages();
-            const pageHeight = doc.internal.pageSize.height;
-
-            doc.setFontSize(9);
-            doc.setTextColor(120);
-
-            // 🔥 FOOTER ONLY
-            doc.text(
-                `Page ${pageNumber} | Prepared by Eng. Tanveer Ahmad | SPMS Dashboard`,
-                pageWidth / 2,
-                pageHeight - 8,
-                { align: "center" }
-            );
-        }
-    });
-
-    return doc;
-}
-function generatePDFPreview() {
-    const doc = buildPDF();
-    if (!doc) return;
-
-    const blob = doc.output("blob");
-    const url = URL.createObjectURL(blob);
-
-    window.open(url);
-}
-function downloadPDF() {
-    const doc = buildPDF();
-    if (!doc) return;
-
-    doc.save("SPMS_Report.pdf");
-}
-function printPDF() {
-    const doc = buildPDF();
-    if (!doc) return;
-
-    const blob = doc.output("blob");
-    const url = URL.createObjectURL(blob);
-
-    const win = window.open(url);
-
-    win.onload = function () {
-        win.print();
-    };
-}
+window.generatePDFPreview = () => openReportWindow(false);
+window.printPDF = () => openReportWindow(true);
+window.downloadPDF = () => openReportWindow(true);
 // =====================================================
 // EXPORT FUNCTIONS (FINAL POSITION)
 // =====================================================
@@ -947,6 +820,163 @@ window.downloadPDF = downloadPDF;
 window.printPDF = printPDF;
 window.resetDashboard = resetDashboard;
 window.applyGlobalFilter = applyGlobalFilter;
+
+
+function buildDashboardHTML() {
+
+    const data = getFilteredRawData();
+
+    if (!data || data.length === 0) {
+        return "<h2>No data available</h2>";
+    }
+
+    const groups = {};
+
+    data.forEach(p => {
+        const key = `${p.project_name}__${p.work_type}__${p.subcontractor_name}`;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(p);
+    });
+
+    let html = `
+    <html>
+    <head>
+
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal&family=Amiri&display=swap" rel="stylesheet">
+
+    <style>
+
+    body {
+        font-family: 'Tajawal', 'Amiri', Arial;
+    direction: rtl;
+    text-align: right;
+        padding: 20px;
+        font-size: 13px;
+    }
+
+    h1 {
+        text-align: center;
+        color: #1f4e79;
+    }
+
+    h3 {
+        color: #dba512;
+        margin: 6px 0;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    th {
+        background: #1f4e79;
+        color: white;
+    }
+
+    td, th {
+        border: 1px solid #ccc;
+        padding: 6px;
+        text-align: center;
+    }
+
+    .page {
+        page-break-after: always;
+    }
+
+    </style>
+    </head>
+
+    <body>
+
+    <h1>📊 تقرير الدفعات</h1>
+    `;
+
+    Object.values(groups).forEach(records => {
+
+        const first = records[0];
+
+        let tWork = 0, tNet = 0, tRet = 0, tDed = 0;
+
+        records.forEach(p => {
+            tWork += +p.work_value || 0;
+            tNet += +p.net_payment || 0;
+            tRet += +p.retention_amount || 0;
+            tDed += +p.deduction || 0;
+        });
+
+        html += `
+        <div class="page">
+
+            <h3>المشروع: ${first.project_name}</h3>
+
+<div style="font-size:13px; line-height:1.6; margin-bottom:6px;">
+
+    <b>المقاول:</b> ${first.subcontractor_name}
+    &nbsp;&nbsp; | &nbsp;&nbsp;
+    <b>نوع العمل:</b> ${first.work_type}
+
+    <br>
+
+    <b>الشركة:</b> ${first.company_name || '-'}
+    &nbsp;&nbsp; | &nbsp;&nbsp;
+    <b>العقد:</b> ${first.contract_number || '-'}
+
+    <br>
+
+    <b>الهاتف:</b> ${first.phone || '-'}
+    &nbsp;&nbsp; | &nbsp;&nbsp;
+    <b>البريد:</b> ${first.email || '-'}
+
+    <br>
+
+    <b>الرقم الضريبي:</b> ${first.vat_number || '-'}
+    &nbsp;&nbsp; | &nbsp;&nbsp;
+    <b>السجل التجاري:</b> ${first.cr_number || '-'}
+
+</div>
+
+            <table>
+                <tr>
+                    <th>الشهادة</th>
+                    <th>قيمة العمل</th>
+                    <th>الخصم</th>
+                    <th>الاحتجاز</th>
+                    <th>الصافي</th>
+                </tr>
+        `;
+
+        records.forEach(p => {
+            html += `
+            <tr>
+                <td>${p.certificate_no}</td>
+                <td>${(+p.work_value).toFixed(2)}</td>
+                <td>${(+p.deduction).toFixed(2)}</td>
+                <td>${(+p.retention_amount).toFixed(2)}</td>
+                <td>${(+p.net_payment).toFixed(2)}</td>
+            </tr>
+            `;
+        });
+
+        html += `
+            <tr style="font-weight:bold;background:#f0f0f0;">
+                <td>الإجمالي</td>
+                <td>${tWork.toFixed(2)}</td>
+                <td>${tDed.toFixed(2)}</td>
+                <td>${tRet.toFixed(2)}</td>
+                <td>${tNet.toFixed(2)}</td>
+            </tr>
+            </table>
+
+        </div>
+        `;
+    });
+
+    html += `</body></html>`;
+
+    return html;
+}
 })();
 //setInterval(() => {
 //

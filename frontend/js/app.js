@@ -151,19 +151,9 @@ setTimeout(() => {
         applyRoleUI();
 
         // ================= PAGE JS =================
-
-        if (page.includes("dashboard")) {
-
-    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
-
-    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js");
-
+    if (page.includes("dashboard")) {
     await loadScript("js/charts.min.js");
-
     console.log("Chart after load:", typeof Chart);
-
-    await loadScript("js/fonts/arabic-font.js");
-
     try {
     await loadScript("js/dashboard.js");
 } catch (e) {
