@@ -90,10 +90,10 @@ if (content) {
         // ===============================
         // ✅ IMPORTANT: SET GLOBAL DATA
         // ===============================
-        RAW_DATA = data;
-        ORIGINAL_DATA = data;
+ORIGINAL_DATA = data.map(item => Object.freeze({ ...item }));
+Object.freeze(ORIGINAL_DATA);
 
-        
+RAW_DATA = data.map(item => ({ ...item }));   
 
         // ===============================
         // 🔢 BASIC TOTALS (TOP CARDS)
@@ -305,11 +305,24 @@ function renderAll() {
 function getFilteredRawData() {
 
     return RAW_DATA.filter(x =>
-        (!FILTER_STATE.company || x.company_name === FILTER_STATE.company) &&
-        (!FILTER_STATE.type || x.work_type === FILTER_STATE.type) &&
-        (!FILTER_STATE.subcontractor || x.subcontractor_name === FILTER_STATE.subcontractor)
+        (!FILTER_STATE.company || (x.company_name || "").trim() === (FILTER_STATE.company || "").trim()) &&
+        (!FILTER_STATE.type || (x.work_type || "").trim() === (FILTER_STATE.type || "").trim()) &&
+        (!FILTER_STATE.subcontractor || (x.subcontractor_name || "").trim() === (FILTER_STATE.subcontractor || "").trim())
     );
 
+}
+
+function getReportSafeData() {
+
+    // ✅ ALWAYS use original clean dataset
+    const base = [...ORIGINAL_DATA];
+
+    // ✅ apply filters WITHOUT mutation
+    return base.filter(x =>
+        (!FILTER_STATE.company || (x.company_name || "").trim() === (FILTER_STATE.company || "").trim()) &&
+        (!FILTER_STATE.type || (x.work_type || "").trim() === (FILTER_STATE.type || "").trim()) &&
+        (!FILTER_STATE.subcontractor || (x.subcontractor_name || "").trim() === (FILTER_STATE.subcontractor || "").trim())
+    );
 }
 
 // =====================================================
@@ -419,10 +432,10 @@ function createTopSubsList(data) {
     const grouped = {};
 
     data.forEach(item => {
-        const name = item.company || "Unknown";
+        const name = item.company_name || "Unknown";
 
         if (!grouped[name]) grouped[name] = 0;
-        grouped[name] += Number(item.total_net || 0);
+        grouped[name] += Number(item.total_net || item.net_payment || 0);
     });
 
     const top = Object.entries(grouped)
@@ -751,15 +764,17 @@ window.applyGlobalFilter = function(filteredData) {
     }
 
     // 🔥 STEP 1: SET RAW DATA TO FILTERED
-    RAW_DATA = filteredData.map(x => ({
-    ...x,
-    work_value: Number(x.work_value || 0),
-    net_payment: Number(x.net_payment || 0),
-    retention_amount: Number(x.retention_amount || 0),
-    deduction: Number(x.deduction || 0),
-    advance_deduction: Number(x.advance_deduction || 0),
-    refund: Number(x.refund || 0)
-}));
+    RAW_DATA = filteredData
+    .filter(x => ORIGINAL_DATA.some(o => o.id === x.id))
+    .map(x => ({
+        ...x,
+        work_value: Number(x.work_value || 0),
+        net_payment: Number(x.net_payment || 0),
+        retention_amount: Number(x.retention_amount || 0),
+        deduction: Number(x.deduction || 0),
+        advance_deduction: Number(x.advance_deduction || 0),
+        refund: Number(x.refund || 0)
+    }));
 
     // 🔥 STEP 2: CLEAR CURRENT DATA (IMPORTANT)
     CURRENT_DATA = [];
@@ -779,7 +794,7 @@ window.applyGlobalFilter = function(filteredData) {
 
 window.resetDashboard = function() {
 
-    RAW_DATA = [...ORIGINAL_DATA];
+    RAW_DATA = ORIGINAL_DATA.map(x => ({ ...x }));
     CURRENT_DATA = [];
 
     FILTER_STATE = {
@@ -810,7 +825,26 @@ function openReportWindow(print = false) {
 
 window.generatePDFPreview = () => openReportWindow(false);
 window.printPDF = () => openReportWindow(true);
-window.downloadPDF = () => openReportWindow(true);
+window.downloadPDF = function () {
+
+    const html = buildDashboardHTML();
+
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = html;
+
+    const content = wrapper.querySelector("body");
+
+    html2pdf()
+        .set({
+            margin: 5,
+            filename: 'Dashboard_Report.pdf',
+            image: { type: 'jpeg', quality: 1 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        })
+        .from(content)
+        .save();
+};
 // =====================================================
 // EXPORT FUNCTIONS (FINAL POSITION)
 // =====================================================
@@ -824,19 +858,27 @@ window.applyGlobalFilter = applyGlobalFilter;
 
 function buildDashboardHTML() {
 
-    const data = getFilteredRawData();
+   const data = getReportSafeData();
 
     if (!data || data.length === 0) {
         return "<h2>No data available</h2>";
     }
+    data.sort((a, b) =>
+    (a.project_name || "").localeCompare(b.project_name || "") ||
+    (a.contract_number || "").localeCompare(b.contract_number || "") ||
+    Number(a.certificate_no) - Number(b.certificate_no)
+);
 
     const groups = {};
 
     data.forEach(p => {
-        const key = `${p.project_name}__${p.work_type}__${p.subcontractor_name}`;
+        const key = `${p.project_name}__${p.contract_number}__${p.subcontractor_id}`;
         if (!groups[key]) groups[key] = [];
         groups[key].push(p);
     });
+    let pageIndex = 1;
+const groupValues = Object.values(groups);
+const totalPages = groupValues.length;
 
     let html = `
     <html>
@@ -852,6 +894,7 @@ function buildDashboardHTML() {
     text-align: right;
         padding: 20px;
         font-size: 13px;
+        background: #e5e7eb;
     }
 
     h1 {
@@ -883,32 +926,61 @@ function buildDashboardHTML() {
 
     .page {
         page-break-after: always;
+        width: 210mm;
+    min-height: 297mm;
+    margin: 20px auto;
+    background: white;
+    padding: 15mm;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    position: relative;
     }
+    .page::after {
+    content: attr(data-page);
+    position: absolute;
+    bottom: 25px;
+    right: 20px;
+    font-size: 12px;
+    color: #555;
+}
+    .footer {
+    position: absolute;
+    bottom: 25px;
+    right: 20px;
+    font-size: 12px;
+    color: #444;
+    border-top: 1px solid #ccc;
+    padding-top: 5px;
+}
 
     </style>
     </head>
 
     <body>
 
-    <h1>📊 تقرير الدفعات</h1>
     `;
 
-    Object.values(groups).forEach(records => {
+    groupValues.forEach(records => {
 
         const first = records[0];
 
         let tWork = 0, tNet = 0, tRet = 0, tDed = 0;
+let tWithdrawn = 0, tRefund = 0, tAfterVAT = 0, tAdvance = 0;
 
         records.forEach(p => {
-            tWork += +p.work_value || 0;
-            tNet += +p.net_payment || 0;
-            tRet += +p.retention_amount || 0;
-            tDed += +p.deduction || 0;
-        });
+    tWork += +p.work_value || 0;
+    tNet += +p.net_payment || 0;
+    tRet += +p.retention_amount || 0;
+    tDed += +p.deduction || 0;
+
+    tWithdrawn += +p.withdrawn || 0;
+    tRefund += +p.refund || 0;
+    tAfterVAT += +p.after_vat || 0;
+    tAdvance += +p.advance_deduction || 0;
+});
 
         html += `
-        <div class="page">
-
+        <div class="page" data-page="Page ${pageIndex} / ${totalPages}">
+<h1>📊 تقرير الدفعات</h1>
             <h3>المشروع: ${first.project_name}</h3>
 
 <div style="font-size:13px; line-height:1.6; margin-bottom:6px;">
@@ -937,40 +1009,57 @@ function buildDashboardHTML() {
 
 </div>
 
-            <table>
-                <tr>
-                    <th>الشهادة</th>
-                    <th>قيمة العمل</th>
-                    <th>الخصم</th>
-                    <th>الاحتجاز</th>
-                    <th>الصافي</th>
-                </tr>
+    <table>
+<tr>
+    <th>الشهادة</th>
+    <th>قيمة العمل</th>
+    <th>المسحوب</th>
+    <th>الخصم</th>
+    <th>الاسترجاع</th>
+    <th>بعد الضريبة</th>
+    <th>الاحتجاز</th>
+    <th>السلفة</th>
+    <th>الصافي</th>
+</tr>
         `;
 
         records.forEach(p => {
             html += `
             <tr>
-                <td>${p.certificate_no}</td>
-                <td>${(+p.work_value).toFixed(2)}</td>
-                <td>${(+p.deduction).toFixed(2)}</td>
-                <td>${(+p.retention_amount).toFixed(2)}</td>
-                <td>${(+p.net_payment).toFixed(2)}</td>
-            </tr>
+<td>${p.certificate_no}</td>
+<td>${(+p.work_value).toFixed(2)}</td>
+<td>${(+p.withdrawn || 0).toFixed(2)}</td>
+<td>${(+p.deduction).toFixed(2)}</td>
+<td>${(+p.refund || 0).toFixed(2)}</td>
+<td>${(+p.after_vat || 0).toFixed(2)}</td>
+<td>${(+p.retention_amount).toFixed(2)}</td>
+<td>${(+p.advance_deduction || 0).toFixed(2)}</td>
+<td>${(+p.net_payment).toFixed(2)}</td>
+</tr>
             `;
         });
 
         html += `
-            <tr style="font-weight:bold;background:#f0f0f0;">
-                <td>الإجمالي</td>
-                <td>${tWork.toFixed(2)}</td>
-                <td>${tDed.toFixed(2)}</td>
-                <td>${tRet.toFixed(2)}</td>
-                <td>${tNet.toFixed(2)}</td>
-            </tr>
+<tr style="font-weight:bold;background:#f0f0f0;">
+<td>الإجمالي</td>
+<td>${tWork.toFixed(2)}</td>
+<td>${tWithdrawn.toFixed(2)}</td>
+<td>${tDed.toFixed(2)}</td>
+<td>${tRefund.toFixed(2)}</td>
+<td>${tAfterVAT.toFixed(2)}</td>
+<td>${tRet.toFixed(2)}</td>
+<td>${tAdvance.toFixed(2)}</td>
+<td>${tNet.toFixed(2)}</td>
+</tr>
             </table>
+
+            <div class="footer">
+       Prepared by<br> Eng. Tanveer Ahmad
+    </div>
 
         </div>
         `;
+        pageIndex++;
     });
 
     html += `</body></html>`;
@@ -995,8 +1084,19 @@ window.updateDashboardLive = function(newPayment) {
     console.log("Live update received:", newPayment);
 
     // ✅ PUSH into RAW DATA
-    RAW_DATA = [...RAW_DATA, newPayment];
-ORIGINAL_DATA = [...RAW_DATA];
+    const normalized = {
+    ...newPayment,
+    work_value: Number(newPayment.work_value || 0),
+    net_payment: Number(newPayment.net_payment || 0),
+    retention_amount: Number(newPayment.retention_amount || 0),
+    deduction: Number(newPayment.deduction || 0),
+    advance_deduction: Number(newPayment.advance_deduction || 0),
+    refund: Number(newPayment.refund || 0)
+};
+
+RAW_DATA = [...RAW_DATA, normalized];
+
+// ❌ DO NOT TOUCH ORIGINAL_DATA
 
     // ✅ REBUILD EVERYTHING
     buildAggregation();
