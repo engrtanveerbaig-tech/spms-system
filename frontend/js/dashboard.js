@@ -937,7 +937,7 @@ const groupValues = Object.values(groups);
     .footer {
     margin-top: 10px;
     font-size: 11px;
-    text-align: right;
+    text-align: left;
     border-top: 1px solid #ccc;
     padding-top: 5px;
 }
@@ -1046,7 +1046,7 @@ html += `
             </table>
 
             <div class="footer">
-       Prepared by<br> Eng. Tanveer Ahmad
+       Prepared by: Eng. Tanveer Ahmad
     </div>
 
         </div>
