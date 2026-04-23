@@ -123,10 +123,11 @@ async function save() {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (emailInput.value && !emailPattern.test(emailInput.value)) {
-        emailError.style.display = "block";
+        if (emailError) emailError.style.display = "block";
         return;
     } else {
         emailError.style.display = "none";
+        
     }
 
     const hasAdvance = document.getElementById("has_advance").checked;
@@ -264,16 +265,20 @@ function filterTable() {
 }
 
 // EMAIL VALIDATION LIVE
-document.getElementById("email").addEventListener("input", function () {
-    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const error = document.getElementById("email_error");
+const emailEl = document.getElementById("email");
 
-    if (this.value && !pattern.test(this.value)) {
-        error.style.display = "block";
-    } else {
-        error.style.display = "none";
-    }
-});
+if (emailEl) {
+    emailEl.addEventListener("input", function () {
+        const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const error = document.getElementById("email_error");
+
+        if (this.value && !pattern.test(this.value)) {
+            if (error) error.style.display = "block";
+        } else {
+            if (error) error.style.display = "none";
+        }
+    });
+}
 
 function bindAdvanceToggle() {
 
