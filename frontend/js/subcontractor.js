@@ -123,11 +123,10 @@ async function save() {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (emailInput.value && !emailPattern.test(emailInput.value)) {
-        if (emailError) emailError.style.display = "block";
+        alert("Invalid email format ❌");
         return;
     } else {
-        emailError.style.display = "none";
-        
+        if (emailError) emailError.style.display = "none";
     }
 
     const hasAdvance = document.getElementById("has_advance").checked;
@@ -151,15 +150,15 @@ async function save() {
         cr_number: document.getElementById("cr").value,
         bank_details: null,
         retention_percent: Number(document.getElementById("retention_percent").value) || 10,
-        // 🔥 ONLY used for ADD (not update)
         advance_amount: hasAdvance ? advanceValue : 0,
         has_advance: hasAdvance ? 1 : 0
     };
 
+    console.log("DATA TO SEND:", data);
+
     let url = `${API}/api/subcontractors/add`;
     let method = "POST";
 
-    // 🚨 IMPORTANT: DO NOT SEND advance on edit
     if (editId) {
         url = `${API}/api/subcontractors/update/${editId}`;
         method = "PUT";
@@ -168,25 +167,38 @@ async function save() {
         delete data.has_advance;
     }
 
-    const res = await fetch(url, {
-    method,
-    headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${localStorage.getItem("token")}`
-    },
-    body: JSON.stringify(data)
-});
+    try {
+        const res = await fetch(url, {
+            method,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
+            body: JSON.stringify(data)
+        });
 
-    document.getElementById("msg").innerText = await res.text();
+        console.log("STATUS:", res.status);
 
-    // RESET
-    editId = null;
-    document.querySelectorAll("input").forEach(i => i.value = "");
-    document.getElementById("has_advance").checked = false;
-    document.getElementById("advance_amount").style.display = "none";
-    document.getElementById("mainBtn").innerText = "Add";
+        const responseText = await res.text();
+        console.log("RESPONSE:", responseText);
 
-    load();
+        document.getElementById("msg").innerText = responseText;
+
+        // RESET ONLY IF SUCCESS
+        if (res.ok) {
+            editId = null;
+            document.querySelectorAll("input").forEach(i => i.value = "");
+            document.getElementById("has_advance").checked = false;
+            document.getElementById("advance_amount").style.display = "none";
+            document.getElementById("mainBtn").innerText = "Add";
+
+            load();
+        }
+
+    } catch (err) {
+        console.error("ERROR:", err);
+        alert("Server error ❌");
+    }
 }
 
 // EDIT
