@@ -1002,7 +1002,7 @@ const remaining = Number(first.advance_remaining || 0);
         `).join("")}
 
         <tr class="total">
-            <td colspan="3">TOTAL</td>
+            <td colspan="2">TOTAL</td>
             <td>${formatNumber(t.work.toFixed(2))}</td>
             <td>${formatNumber(t.withdrawn.toFixed(2))}</td>
             <td>${formatNumber(t.deduction.toFixed(2))}</td>
