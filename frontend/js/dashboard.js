@@ -950,7 +950,7 @@ const groupValues = Object.values(groups);
 
     `;
 
-    groupValues.forEach(records => {
+    groupValues.forEach((records, index) => {
 
         const first = records[0];
 
@@ -969,8 +969,10 @@ let tWithdrawn = 0, tRefund = 0, tAfterVAT = 0, tAdvance = 0;
     tAdvance += +p.advance_deduction || 0;
 });
 
-        html += `
-        <div class="report-block">
+        const pageBreak = index !== 0 ? 'page-break-before: always;' : '';
+
+html += `
+    <div class="report-block" style="${pageBreak}">
 <h1>📊 تقرير الدفعات</h1>
             <h3>المشروع: ${first.project_name}</h3>
 
