@@ -972,7 +972,6 @@ const remaining = Number(first.advance_remaining || 0);
     <h4>Details</h4>
     <table>
         <tr>
-            <th>Contract</th>
             <th>Cert No</th>
             <th>Project</th>
             <th>Work</th>
@@ -984,12 +983,10 @@ const remaining = Number(first.advance_remaining || 0);
             <th>Retention</th>
 <th>Advance</th>
 <th>Net</th>
-<th>Date</th>
         </tr>
 
         ${records.map(p => `
         <tr>
-            <td>${p.contract_number}</td>
             <td>${p.certificate_no}</td>
             <td>${p.project_name}</td>
             <td>${formatNumber(p.work_value)}</td>
@@ -1001,7 +998,6 @@ const remaining = Number(first.advance_remaining || 0);
             <td>${formatNumber(p.retention_amount)}</td>
             <td>${formatNumber(p.advance_deduction || 0)}</td>
             <td>${formatNumber(p.net_payment)}</td>
-            <td>${new Date(p.created_at).toLocaleDateString()}</td>
         </tr>
         `).join("")}
 
