@@ -876,9 +876,9 @@ function buildDashboardHTML() {
         if (!groups[key]) groups[key] = [];
         groups[key].push(p);
     });
-    let pageIndex = 1;
+    
 const groupValues = Object.values(groups);
-const totalPages = groupValues.length;
+
 
     let html = `
     <html>
@@ -919,35 +919,26 @@ const totalPages = groupValues.length;
     }
 
     td, th {
-        border: 1px solid #ccc;
-        padding: 6px;
-        text-align: center;
-    }
-
-    .page {
-        page-break-after: always;
-        width: 210mm;
-    min-height: 297mm;
-    margin: 20px auto;
-    background: white;
-    padding: 15mm;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    position: relative;
-    }
+    padding: 3px 4px;
+    font-size: 10px;
+}
+        .report-block {
+    page-break-inside: avoid;
+    margin-bottom: 15px;
+}
+    @page {
+    size: A4;
+    margin: 6.35mm;
+}
     .page::after {
-    content: attr(data-page);
-    position: absolute;
-    bottom: 25px;
     right: 20px;
     font-size: 12px;
     color: #555;
 }
     .footer {
-    position: absolute;
-    bottom: 25px;
-    right: 20px;
-    font-size: 12px;
-    color: #444;
+    margin-top: 10px;
+    font-size: 11px;
+    text-align: right;
     border-top: 1px solid #ccc;
     padding-top: 5px;
 }
@@ -979,7 +970,7 @@ let tWithdrawn = 0, tRefund = 0, tAfterVAT = 0, tAdvance = 0;
 });
 
         html += `
-        <div class="page" data-page="Page ${pageIndex} / ${totalPages}">
+        <div class="report-block">
 <h1>📊 تقرير الدفعات</h1>
             <h3>المشروع: ${first.project_name}</h3>
 
@@ -1059,7 +1050,6 @@ let tWithdrawn = 0, tRefund = 0, tAfterVAT = 0, tAdvance = 0;
 
         </div>
         `;
-        pageIndex++;
     });
 
     html += `</body></html>`;

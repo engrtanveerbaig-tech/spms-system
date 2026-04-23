@@ -739,7 +739,7 @@ function initExportButton() {
 body {
     font-family: Arial;
     padding: 10px;
-    font-size: 12px;
+    font-size: 11px;
 }
 
 h1 {
@@ -777,9 +777,13 @@ th {
 td, th {
 
     border: 1px solid #ccc;
-    padding: 4px;
+    padding:3px 4px;
     text-align: center;
-    font-size: 11px;
+    font-size: 10px;
+}
+    .report-block {
+    page-break-inside: avoid;
+    margin-bottom: 15px;
 }
 
 .total {
@@ -789,7 +793,8 @@ td, th {
 
 /* ✅ PAGE BREAK */
 .page {
-    page-break-after: always;
+    page-break-inside: avoid;
+    margin-bottom: 10px;
 }
 
 /* ✅ HIDE EXTRA SPACE */
@@ -797,16 +802,8 @@ td, th {
 
     @page {
         size: A4;
-        margin: 10mm;
+        margin: 6.35mm;
     }
-
-    body {
-        margin: 0;
-        padding: 10px;
-        width: 210mm;   /* 🔥 FIX WIDTH */
-        font-size: 12px;
-    }
-
     table {
         width: 100% !important;
         border-collapse: collapse;
@@ -827,11 +824,6 @@ td, th {
         text-align: center;
     }
 
-    /* 🔥 PREVENT SHRINKING */
-    html, body {
-        zoom: 100%;
-    }
-
     /* 🔥 FORCE COLORS FOR ALL */
     * {
         -webkit-print-color-adjust: exact !important;
@@ -843,7 +835,6 @@ td, th {
         page-break-after: always;
     }
 }
-        body { font-family: Arial; padding:15px; }
         h1 { text-align:center; color:#1f4e79; font-size: 40px; }
         h2 { color:#1f4e79; margin-top:8px; }
         h3 { color:#dba512; margin:4px 0; font-size:20px; }
@@ -858,14 +849,13 @@ h3, h4 { margin:5px 0; }
         .total { font-weight:bold; background:#f0f0f0; }
 
         .footer {
-            position: fixed;
-            bottom: 10px;
+            margin-top: 10px;
+            font-size: 10px;
             left: 0;
             right: 0;
             display: flex;
             justify-content: space-between;
             padding: 0 40px;
-            font-size: 12px;
         }
 
         .page { page-break-after: always; }
@@ -911,7 +901,7 @@ h3, h4 { margin:5px 0; }
         });
 
         html += `
-<div class="page">
+<div class="report-block">
 
     <h3 style="color:#dba512;">Project: ${first.project_name}</h3>
 
@@ -1035,7 +1025,7 @@ const remaining = Number(first.advance_remaining || 0);
     </div>
 
 </div>
-<br><br>
+<br>
 `;
     });
 
