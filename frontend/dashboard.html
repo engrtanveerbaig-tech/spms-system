@@ -477,6 +477,17 @@ body.dark-mode tbody tr:hover{
     flex-direction:column;
 }
 
+.filters div {
+    display: flex;
+    flex-direction: column;
+}
+
+.filters small {
+    font-size: 11px;
+    color: #64748b;
+    margin-bottom: 2px;
+}
+
 </style>
 </head>
 
@@ -574,10 +585,22 @@ body.dark-mode tbody tr:hover{
 
         <!-- FILTERS -->
         <div class="filters">
-            <h6>🔎 Filters</h6>
-            <select id="filterCompany"></select>
-            <select id="filterType"></select>
-            <select id="filterSub"></select>
+    <h6>🔎 Filters</h6>
+
+    <div>
+        <small>Company</small><br>
+        <select id="filterCompany"></select>
+    </div>
+
+    <div>
+        <small>Work Type</small><br>
+        <select id="filterType"></select>
+    </div>
+
+    <div>
+        <small>Subcontractor</small><br>
+        <select id="filterSub"></select>
+    </div>
 
             <div class="filter-actions">
                 <button onclick="generatePDFPreview()">👁 Preview</button>
@@ -586,8 +609,8 @@ body.dark-mode tbody tr:hover{
             </div>
         </div>
         <div class="pdf-actions">
-    
-    <button onclick="downloadPDF()">⬇ Download</button>
+    <button onclick="downloadExcel()">📊 Excel</button>
+    <button onclick="downloadPDF()">⬇ PDF</button>
     <button onclick="printPDF()">🖨 Print</button>
 </div>
 
@@ -675,7 +698,7 @@ body.dark-mode tbody tr:hover{
     </div>
 
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </body>
 </html>
 

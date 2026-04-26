@@ -270,13 +270,25 @@ function getUnique(key) {
 }
 
 function updateDependentFilters() {
+
     const filtered = applyFilterData();
 
-    populateSelect(document.getElementById("filterType"),
-        [...new Set(filtered.map(x => x.work_type))]);
+    // ✅ Update ALL filters based on current selection
 
-    populateSelect(document.getElementById("filterSub"),
-        [...new Set(filtered.map(x => x.subcontractor))]);
+    populateSelect(
+        document.getElementById("filterCompany"),
+        [...new Set(filtered.map(x => x.company))]
+    );
+
+    populateSelect(
+        document.getElementById("filterType"),
+        [...new Set(filtered.map(x => x.work_type))]
+    );
+
+    populateSelect(
+        document.getElementById("filterSub"),
+        [...new Set(filtered.map(x => x.subcontractor))]
+    );
 }
 
 function applyFilterData() {
@@ -1092,5 +1104,48 @@ RAW_DATA = [...RAW_DATA, normalized];
     // ✅ REBUILD EVERYTHING
     buildAggregation();
     renderAll();
+};
+
+window.downloadExcel = function () {
+
+    const data = getReportSafeData(); // ✅ already filtered safe data
+
+    if (!data || data.length === 0) {
+        alert("No data to export");
+        return;
+    }
+
+    // ✅ Format data for Excel
+    const excelData = data.map(x => ({
+        "Project": x.project_name,
+        "Company": x.company_name,
+        "Subcontractor": x.subcontractor_name,
+        "Work Type": x.work_type,
+        "Certificate No": x.certificate_no,
+        "Work Value": x.work_value,
+        "Withdrawn": x.withdrawn,
+        "Deduction": x.deduction,
+        "Refund": x.refund,
+        "After VAT": x.after_vat,
+        "Retention": x.retention_amount,
+        "Advance": x.advance_deduction,
+        "Net Payment": x.net_payment
+    }));
+
+    // ✅ Create sheet
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    // ✅ Auto column width
+    const wscols = Object.keys(excelData[0]).map(key => ({
+        wch: key.length + 5
+    }));
+    worksheet["!cols"] = wscols;
+
+    // ✅ Create workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+
+    // ✅ Download file
+    XLSX.writeFile(workbook, "SPMS_Report.xlsx");
 };
 
