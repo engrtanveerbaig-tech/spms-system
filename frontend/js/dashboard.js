@@ -1108,6 +1108,11 @@ RAW_DATA = [...RAW_DATA, normalized];
 
 window.downloadExcel = function () {
 
+    if (typeof XLSX === "undefined") {
+        alert("Excel library not loaded yet. Please wait...");
+        return;
+    }
+
     const data = getReportSafeData(); // ✅ already filtered safe data
 
     if (!data || data.length === 0) {
