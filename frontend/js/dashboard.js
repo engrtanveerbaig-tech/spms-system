@@ -1128,7 +1128,11 @@ window.downloadExcel = function () {
     });
 
     // create file
-    const blob = new Blob([csv.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const BOM = "\uFEFF"; // 🔥 important for Arabic
+
+const blob = new Blob([BOM + csv.join("\n")], {
+    type: "text/csv;charset=utf-8;"
+});
 
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
