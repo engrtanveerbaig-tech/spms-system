@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const db = require("./db");
+const puppeteer = require("puppeteer");
 
 const subcontractorRoutes = require("./routes/subcontractorRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
@@ -9,7 +10,7 @@ const app = express();
 
 // ================= MIDDLEWARE =================
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" })); // 🔥 important for large HTML
 
 // ================= AUTH SYSTEM =================
 
@@ -44,7 +45,6 @@ app.post("/api/login", async (req, res) => {
     const { username, password } = req.body;
 
     try {
-        // 🔥 IMPORTANT: only check username
         const [rows] = await db.execute(
             "SELECT * FROM users WHERE username = ?",
             [username]
@@ -56,7 +56,6 @@ app.post("/api/login", async (req, res) => {
 
         const user = rows[0];
 
-        // ⚠️ plain comparison (works with your current DB)
         if (user.password !== password) {
             return res.status(401).json({ message: "Wrong password" });
         }
@@ -73,6 +72,51 @@ app.post("/api/login", async (req, res) => {
     } catch (err) {
         console.error("LOGIN ERROR:", err);
         res.status(500).json({ message: "Server error" });
+    }
+});
+
+// ================= PDF DOWNLOAD API =================
+app.post("/api/download-pdf", async (req, res) => {
+    try {
+        const { html } = req.body;
+
+        if (!html) {
+            return res.status(400).json({ message: "No HTML provided" });
+        }
+
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+
+        const page = await browser.newPage();
+
+        await page.setContent(html, {
+            waitUntil: "networkidle0"
+        });
+
+        const pdfBuffer = await page.pdf({
+            format: "A4",
+            printBackground: true,
+            margin: {
+                top: "10mm",
+                bottom: "10mm",
+                left: "10mm",
+                right: "10mm"
+            }
+        });
+
+        await browser.close();
+
+        res.set({
+            "Content-Type": "application/pdf",
+            "Content-Disposition": "attachment; filename=SPMS_Report.pdf"
+        });
+
+        res.send(pdfBuffer);
+
+    } catch (err) {
+        console.error("PDF ERROR:", err);
+        res.status(500).json({ message: "PDF generation failed" });
     }
 });
 

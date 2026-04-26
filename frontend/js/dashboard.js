@@ -836,37 +836,34 @@ function openReportWindow(print = false) {
 
 window.generatePDFPreview = () => openReportWindow(false);
 window.printPDF = () => openReportWindow(true);
-window.downloadPDF = function () {
+window.downloadPDF = async function () {
 
     const html = buildDashboardHTML();
 
-    // create hidden iframe (same as preview)
-    const iframe = document.createElement("iframe");
-    iframe.style.position = "fixed";
-    iframe.style.right = "0";
-    iframe.style.bottom = "0";
-    iframe.style.width = "0";
-    iframe.style.height = "0";
-    iframe.style.border = "0";
+    try {
+        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/download-pdf", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ html })
+        });
 
-    document.body.appendChild(iframe);
+        if (!res.ok) {
+            throw new Error("Failed to generate PDF");
+        }
 
-    const doc = iframe.contentWindow.document;
+        const blob = await res.blob();
 
-    doc.open();
-    doc.write(html);
-    doc.close();
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "SPMS_Report.pdf";
+        link.click();
 
-    // ⏳ wait for render
-    setTimeout(() => {
-
-        // 🔥 THIS WILL OPEN PRINT DIALOG (SAVE AS PDF)
-        iframe.contentWindow.print();
-
-        // cleanup
-        setTimeout(() => document.body.removeChild(iframe), 1000);
-
-    }, 500);
+    } catch (err) {
+        console.error(err);
+        alert("Download failed");
+    }
 };
 // =====================================================
 // EXPORT FUNCTIONS (FINAL POSITION)
