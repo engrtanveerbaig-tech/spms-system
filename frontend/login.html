@@ -113,6 +113,27 @@ button:hover {
     text-align: center;
     color: #888;
 }
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.spinner {
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top: 3px solid white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 </style>
 </head>
 
@@ -144,7 +165,7 @@ button:hover {
             <input id="password" type="password" placeholder="Password">
         </div>
 
-        <button onclick="login()">Login</button>
+        <button id="loginBtn" onclick="login()">Login</button>
 
         <div class="footer-text">
             © 2026 Eng. Tanveer Ahmad
@@ -156,8 +177,13 @@ button:hover {
 <script>
 async function login() {
 
+    const btn = document.getElementById("loginBtn");
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
+
+    // 👉 START LOADING
+    btn.classList.add("loading");
+    btn.innerHTML = 'Logging in <span class="spinner"></span>';
 
     try {
         const res = await fetch("https://spms-backend-jxzn.onrender.com/api/login", {
@@ -172,6 +198,10 @@ async function login() {
 
         if (!res.ok) {
             alert(data.message || "Login failed");
+
+            // ❌ STOP LOADING
+            btn.classList.remove("loading");
+            btn.innerHTML = "Login";
             return;
         }
 
@@ -183,6 +213,10 @@ async function login() {
 
     } catch (err) {
         alert("Server not reachable");
+
+        // ❌ STOP LOADING
+        btn.classList.remove("loading");
+        btn.innerHTML = "Login";
     }
 }
 </script>

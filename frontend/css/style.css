@@ -389,12 +389,7 @@ tbody tr:hover{
         grid-template-columns:1fr;
     }
 }
-.mini-grid{
-    display:grid;
-    grid-template-columns:repeat(5,1fr);
-    gap:10px;
-    margin-top:10px;
-}
+
 #workTypeCards{
     display:grid;
     grid-template-columns:repeat(2,1fr);
