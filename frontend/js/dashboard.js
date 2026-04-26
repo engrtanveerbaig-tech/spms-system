@@ -909,7 +909,7 @@ const groupValues = Object.values(groups);
 
     table {
         width: 100%;
-        border: solid;
+        border: 1px solid #ccc;
         border-collapse: collapse;
         margin-top: 10px;
     }
@@ -921,6 +921,7 @@ const groupValues = Object.values(groups);
 
     td, th {
     padding: 3px 4px;
+    border: 1px solid #ccc;
     font-size: 12px;
 }
         .report-block {
