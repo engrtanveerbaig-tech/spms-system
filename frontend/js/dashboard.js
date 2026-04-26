@@ -767,17 +767,13 @@ async function loadImageBase64(url) {
 
 window.applyGlobalFilter = function(filteredData) {
 
-    console.log("Applying filter:", filteredData.length);
-
     if (!filteredData || filteredData.length === 0) {
         alert("No data found");
         return;
     }
 
-    // 🔥 STEP 1: SET RAW DATA TO FILTERED
-    RAW_DATA = filteredData
-    .filter(x => ORIGINAL_DATA.some(o => o.id === x.id))
-    .map(x => ({
+    // 🔥 STEP 1: SET RAW DATA
+    RAW_DATA = filteredData.map(x => ({
         ...x,
         work_value: Number(x.work_value || 0),
         net_payment: Number(x.net_payment || 0),
@@ -787,19 +783,26 @@ window.applyGlobalFilter = function(filteredData) {
         refund: Number(x.refund || 0)
     }));
 
-    // 🔥 STEP 2: CLEAR CURRENT DATA (IMPORTANT)
     CURRENT_DATA = [];
 
-    // 🔥 STEP 3: RESET FILTER STATE
+    // ✅ 🔥 AUTO SYNC FILTER STATE
+    const first = filteredData[0];
+
     FILTER_STATE = {
-        company: "",
-        type: "",
-        subcontractor: ""
+        company: first?.company_name || "",
+        type: first?.work_type || "",
+        subcontractor: first?.subcontractor_name || ""
     };
 
-    // 🔥 STEP 4: REBUILD FROM FILTERED DATA
+    // 🔥 REBUILD
     buildAggregation();
     initFilters();
+
+    // 🔥 FORCE UI MATCH
+    document.getElementById("filterCompany").value = FILTER_STATE.company || "";
+    document.getElementById("filterType").value = FILTER_STATE.type || "";
+    document.getElementById("filterSub").value = FILTER_STATE.subcontractor || "";
+
     renderAll();
 };
 
@@ -1131,32 +1134,18 @@ const blob = new Blob([BOM + csv.join("\n")], {
     link.click();
 };
 
-async function createPDF() {
+window.downloadPDF = function () {
 
-    const { jsPDF } = window.jspdf;
-    const element = document.getElementById("dashboardContent");
+    const html = buildDashboardHTML();
 
-    const canvas = await html2canvas(element, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
+    const win = window.open("", "_blank");
 
-    const pdf = new jsPDF("p", "mm", "a4");
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
 
-    const imgWidth = 210;
-    const pageHeight = 295;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    let heightLeft = imgHeight;
-    let position = 0;
-
-    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-    }
-
-    return pdf;
-}
+    // 🔥 WAIT THEN SAVE
+    setTimeout(() => {
+        win.print();   // 👉 user clicks "Save as PDF"
+    }, 500);
+};
