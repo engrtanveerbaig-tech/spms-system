@@ -181,7 +181,7 @@ body.dark-mode .header{
     border-radius:0;
     display:flex;
     justify-content: space-between;
-    align-items: flex-end;
+    align-items: center;
     gap:12px;
     margin:15px 0;
     flex-wrap:nowrap;
@@ -206,11 +206,12 @@ body.dark-mode .header{
 }
 .filters-left {
     display: flex;
-    align-items: flex-end;
+    align-items: center;   /* 🔥 THIS FIXES ALIGNMENT */
     gap: 20px;
 }
 .filter-title {
     font-size: 13px;
+    align-self: center;   /* keeps icon aligned with filters */
     color: #64748b;
     margin-bottom: 6px;
 }
@@ -500,12 +501,6 @@ body.dark-mode tbody tr:hover{
     display:flex;
     flex-direction:column;
 }
-
-.filters div {
-    display: flex;
-    flex-direction: column;
-}
-
 .filters small {
     font-size: 11px;
     color: #64748b;
@@ -726,6 +721,7 @@ body.dark-mode tbody tr:hover{
 
 </div>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="./js/dashboard.js"></script>
 </body>
 </html>
 
