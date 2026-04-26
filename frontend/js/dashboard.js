@@ -840,21 +840,33 @@ window.downloadPDF = function () {
 
     const html = buildDashboardHTML();
 
-    const wrapper = document.createElement("div");
-    wrapper.innerHTML = html;
+    // create hidden iframe (same as preview)
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
 
-    const content = wrapper.querySelector("body");
+    document.body.appendChild(iframe);
 
-    html2pdf()
-        .set({
-            margin: 5,
-            filename: 'Dashboard_Report.pdf',
-            image: { type: 'jpeg', quality: 1 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        })
-        .from(content)
-        .save();
+    const doc = iframe.contentWindow.document;
+
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    // ⏳ wait for render
+    setTimeout(() => {
+
+        // 🔥 THIS WILL OPEN PRINT DIALOG (SAVE AS PDF)
+        iframe.contentWindow.print();
+
+        // cleanup
+        setTimeout(() => document.body.removeChild(iframe), 1000);
+
+    }, 500);
 };
 // =====================================================
 // EXPORT FUNCTIONS (FINAL POSITION)
@@ -1139,3 +1151,33 @@ const blob = new Blob([BOM + csv.join("\n")], {
     link.download = "SPMS_Report.csv";
     link.click();
 };
+
+async function createPDF() {
+
+    const { jsPDF } = window.jspdf;
+    const element = document.getElementById("dashboardContent");
+
+    const canvas = await html2canvas(element, { scale: 2 });
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    const imgWidth = 210;
+    const pageHeight = 295;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+    }
+
+    return pdf;
+}
