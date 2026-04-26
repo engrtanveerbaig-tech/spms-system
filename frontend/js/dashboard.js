@@ -837,29 +837,9 @@ function openReportWindow(print = false) {
 window.generatePDFPreview = () => openReportWindow(false);
 window.printPDF = () => openReportWindow(true);
 window.downloadPDF = async function () {
-
-    const html = buildDashboardHTML();
-
     try {
-        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/download-pdf", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ html })
-        });
-
-        if (!res.ok) {
-            throw new Error("Failed to generate PDF");
-        }
-
-        const blob = await res.blob();
-
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "SPMS_Report.pdf";
-        link.click();
-
+        const pdf = await createPDF();
+        pdf.save("SPMS_Report.pdf");
     } catch (err) {
         console.error(err);
         alert("Download failed");
@@ -929,6 +909,7 @@ const groupValues = Object.values(groups);
 
     table {
         width: 100%;
+        border: solid;
         border-collapse: collapse;
         margin-top: 10px;
     }
@@ -940,7 +921,7 @@ const groupValues = Object.values(groups);
 
     td, th {
     padding: 3px 4px;
-    font-size: 10px;
+    font-size: 12px;
 }
         .report-block {
     page-break-inside: avoid;
