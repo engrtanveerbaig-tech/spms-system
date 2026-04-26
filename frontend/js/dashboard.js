@@ -859,7 +859,7 @@ window.resetDashboard = resetDashboard;
 window.applyGlobalFilter = applyGlobalFilter;
 
 
-function buildDashboardHTML() {
+window.buildDashboardHTML = function () {
 
    const data = getReportSafeData();
 
@@ -1136,7 +1136,12 @@ const blob = new Blob([BOM + csv.join("\n")], {
 
 window.downloadPDF = function () {
 
-    const html = buildDashboardHTML();
+    if (typeof window.buildDashboardHTML !== "function") {
+        alert("PDF system not ready");
+        return;
+    }
+
+    const html = window.buildDashboardHTML();
 
     const win = window.open("", "_blank");
 
@@ -1144,8 +1149,9 @@ window.downloadPDF = function () {
     win.document.write(html);
     win.document.close();
 
-    // 🔥 WAIT THEN SAVE
+    // 🔥 Auto open SAVE AS PDF (no HTML saving popup)
     setTimeout(() => {
-        win.print();   // 👉 user clicks "Save as PDF"
+        win.focus();
+        win.print();
     }, 500);
 };
