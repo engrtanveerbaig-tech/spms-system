@@ -1108,49 +1108,30 @@ RAW_DATA = [...RAW_DATA, normalized];
 
 window.downloadExcel = function () {
 
-    if (typeof XLSX === "undefined") {
-        alert("Excel library not loaded yet. Please wait...");
-        return;
-    }
+    const data = getReportSafeData();
 
-    const data = getReportSafeData(); // ✅ already filtered safe data
-
-    if (!data || data.length === 0) {
+    if (!data.length) {
         alert("No data to export");
         return;
     }
 
-    // ✅ Format data for Excel
-    const excelData = data.map(x => ({
-        "Project": x.project_name,
-        "Company": x.company_name,
-        "Subcontractor": x.subcontractor_name,
-        "Work Type": x.work_type,
-        "Certificate No": x.certificate_no,
-        "Work Value": x.work_value,
-        "Withdrawn": x.withdrawn,
-        "Deduction": x.deduction,
-        "Refund": x.refund,
-        "After VAT": x.after_vat,
-        "Retention": x.retention_amount,
-        "Advance": x.advance_deduction,
-        "Net Payment": x.net_payment
-    }));
+    let csv = [];
 
-    // ✅ Create sheet
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    // headers
+    const headers = Object.keys(data[0]);
+    csv.push(headers.join(","));
 
-    // ✅ Auto column width
-    const wscols = Object.keys(excelData[0]).map(key => ({
-        wch: key.length + 5
-    }));
-    worksheet["!cols"] = wscols;
+    // rows
+    data.forEach(row => {
+        const values = headers.map(h => `"${(row[h] || "").toString().replace(/"/g, '""')}"`);
+        csv.push(values.join(","));
+    });
 
-    // ✅ Create workbook
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+    // create file
+    const blob = new Blob([csv.join("\n")], { type: "text/csv;charset=utf-8;" });
 
-    // ✅ Download file
-    XLSX.writeFile(workbook, "SPMS_Report.xlsx");
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "SPMS_Report.csv";
+    link.click();
 };
-
