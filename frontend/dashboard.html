@@ -180,7 +180,8 @@ body.dark-mode .header{
     padding:8px 0;
     border-radius:0;
     display:flex;
-    align-items:center;
+    justify-content: space-between;
+    align-items: flex-end;
     gap:12px;
     margin:15px 0;
     flex-wrap:nowrap;
@@ -203,7 +204,30 @@ body.dark-mode .header{
     font-size:13px;
     outline:none;
 }
+.filters-left {
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+}
+.filter-title {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 6px;
+}
+.filter-item {
+    display: flex;
+    flex-direction: column;
+}
+.filter-item label {
+    font-size: 11px;
+    color: #64748b;
+    margin-bottom: 2px;
+}
 
+/* SELECT */
+.filter-item select {
+    min-width: 180px;
+}
 /* DARK MODE */
 body.dark-mode .filters select{
     background:#020617;
@@ -585,29 +609,32 @@ body.dark-mode tbody tr:hover{
 
         <!-- FILTERS -->
         <div class="filters">
-    <h6>🔎 Filters</h6>
 
-    <div>
-        <small>Company</small><br>
-        <select id="filterCompany"></select>
-    </div>
+    <div class="filters-left">
+        <span class="filter-title">🔎 Filters</span>
 
-    <div>
-        <small>Work Type</small><br>
-        <select id="filterType"></select>
-    </div>
-
-    <div>
-        <small>Subcontractor</small><br>
-        <select id="filterSub"></select>
-    </div>
-
-            <div class="filter-actions">
-                <button onclick="generatePDFPreview()">👁 Preview</button>
-                
-                <button onclick="resetDashboard()" class="reset-btn">🔄 Clear</button>
-            </div>
+        <div class="filter-item">
+            <label>Company</label>
+            <select id="filterCompany"></select>
         </div>
+
+        <div class="filter-item">
+            <label>Work Type</label>
+            <select id="filterType"></select>
+        </div>
+
+        <div class="filter-item">
+            <label>Subcontractor</label>
+            <select id="filterSub"></select>
+        </div>
+    </div>
+
+    <div class="filter-actions">
+        <button onclick="generatePDFPreview()">👁 Preview</button>
+        <button onclick="resetDashboard()" class="reset-btn">🔄 Clear</button>
+    </div>
+
+</div>
         <div class="pdf-actions">
     <button onclick="downloadExcel()">📊 Excel</button>
     <button onclick="downloadPDF()">⬇ PDF</button>

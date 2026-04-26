@@ -324,7 +324,7 @@ function getFilteredRawData() {
 
 }
 
-function getReportSafeData() {
+window.getReportSafeData = function () {
 
     // ✅ ALWAYS use original clean dataset
     const base = [...ORIGINAL_DATA];
