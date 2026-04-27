@@ -499,6 +499,8 @@ borderWidth: 1,          // 🔥 slightly thicker = premium look
 }]
         },
         options: {
+            responsive: true,
+        maintainAspectRatio: false ,// 🔥 MUST ADD
             plugins: {
                 legend: {
     display: true,
@@ -587,6 +589,8 @@ function createTrendChart(data) {
             ]
         },
         options: {
+            responsive: true,
+        maintainAspectRatio: false , // 🔥 MUST ADD
             interaction: {
                 mode: 'index',
                 intersect: false
@@ -642,6 +646,8 @@ function createRetentionChart(data) {
             ]
         },
         options: {
+            responsive: true,
+        maintainAspectRatio: false ,// 🔥 MUST ADD
             interaction: {
                 mode: 'index',
                 intersect: false
