@@ -198,16 +198,28 @@ tbody tr:hover{
     border-radius:10px;
     padding:10px;
 }
-
-/* CHART */
 .chart{
     background:linear-gradient(135deg,#0f172a,#1e293b);
     border-radius:14px;
     padding:15px;
+    position: relative;
+
+    height:300px;
 }
-.chart{
-    overflow:hidden;
+
+.chart.right-panel{
+    height:auto;
+    min-height:300px;
 }
+
+.chart canvas{
+    position:absolute;
+    top:35px;
+    left:0;
+    width:100%!important;
+    height:calc(100% - 40px)!important;
+}
+
 .dashboard-grid{
     align-items:start;
 }
