@@ -273,29 +273,27 @@ function getUnique(key) {
             if (key === "company") return x.company_name;
             if (key === "work_type") return x.work_type;
             if (key === "subcontractor") return x.subcontractor_name;
-        })
+        }).filter(Boolean) // 🔥 ADD THIS
     )];
 }
 
 function updateDependentFilters() {
 
-    const filtered = getFilteredRawData(); // 🔥 FIX
-
-    // ✅ Update ALL filters based on current selection
+    const filtered = getFilteredRawData();
 
     populateSelect(
         document.getElementById("filterCompany"),
-        [...new Set(filtered.map(x => x.company))]
+        [...new Set(filtered.map(x => x.company_name).filter(Boolean))]
     );
 
     populateSelect(
         document.getElementById("filterType"),
-        [...new Set(filtered.map(x => x.work_type))]
+        [...new Set(filtered.map(x => x.work_type).filter(Boolean))]
     );
 
     populateSelect(
         document.getElementById("filterSub"),
-        [...new Set(filtered.map(x => x.subcontractor))]
+        [...new Set(filtered.map(x => x.subcontractor_name).filter(Boolean))]
     );
 }
 
