@@ -483,12 +483,15 @@ function createTypeChart(data) {
             datasets: [{
     data: Object.values(group),
     backgroundColor: [
-    "#7ea6e0",  // blue
+    "#7ea6e0",
+    "#346cc1",  // blue
     "#f28b82",  // red
     "#c5e1a5",  // green
     "#ffd180",  // orange
     "#b39ddb",  // purple
-    "#80cbc4"   // teal
+    "#80cbc4",  // teal
+    "#93e6a4"   
+
 ],
     borderColor: "#ffffff",
 borderWidth: 1,          // 🔥 slightly thicker = premium look

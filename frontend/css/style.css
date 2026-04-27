@@ -395,6 +395,9 @@ tbody tr:hover{
     grid-template-columns:repeat(2,1fr);
     gap:12px;
     padding-top:10px;
+
+    /* 🔥 ADD THIS */
+    max-height:none;
 }
 .work-card-premium{
     background:linear-gradient(135deg,#0f172a,#1e293b);
