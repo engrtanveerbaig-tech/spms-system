@@ -244,9 +244,11 @@ function initFilters() {
     };
 
     subEl.onchange = () => {
-        FILTER_STATE.subcontractor = subEl.value;
-        renderAll();
-    };
+    FILTER_STATE.subcontractor = subEl.value;
+
+    updateDependentFilters(); // 🔥 ADD THIS
+    renderAll();
+};
 }
 
 function populateSelect(el, values) {
@@ -266,12 +268,18 @@ function populateSelect(el, values) {
 }
 
 function getUnique(key) {
-    return [...new Set(AGG_DATA.map(x => x[key]))];
+    return [...new Set(
+        RAW_DATA.map(x => {
+            if (key === "company") return x.company_name;
+            if (key === "work_type") return x.work_type;
+            if (key === "subcontractor") return x.subcontractor_name;
+        })
+    )];
 }
 
 function updateDependentFilters() {
 
-    const filtered = applyFilterData();
+    const filtered = getFilteredRawData(); // 🔥 FIX
 
     // ✅ Update ALL filters based on current selection
 
@@ -297,7 +305,7 @@ function applyFilterData() {
     return AGG_DATA.filter(x =>
         (!FILTER_STATE.company || x.company?.trim() === FILTER_STATE.company?.trim()) &&
         (!FILTER_STATE.type || x.work_type?.trim() === FILTER_STATE.type?.trim()) &&
-        (!FILTER_STATE.subcontractor || x.subcontractor?.trim() === FILTER_STATE.subcontractor?.trim())
+        (!FILTER_STATE.subcontractor || x.subcontractor === FILTER_STATE.subcontractor)
     );
 }
 
@@ -319,7 +327,7 @@ function getFilteredRawData() {
     return RAW_DATA.filter(x =>
         (!FILTER_STATE.company || (x.company_name || "").trim() === (FILTER_STATE.company || "").trim()) &&
         (!FILTER_STATE.type || (x.work_type || "").trim() === (FILTER_STATE.type || "").trim()) &&
-        (!FILTER_STATE.subcontractor || (x.subcontractor_name || "").trim() === (FILTER_STATE.subcontractor || "").trim())
+        (!FILTER_STATE.subcontractor || (x.subcontractor_name || "") === (FILTER_STATE.subcontractor || ""))
     );
 
 }
@@ -698,7 +706,7 @@ function renderWorkTypeCards(data) {
         grouped[type].certs.add(item.id || item.payment_id || item.invoice_no);
 
         // ✅ UNIQUE SUBCONTRACTOR
-        grouped[type].subs.add(item.company_name);
+        grouped[type].subs.add(item.subcontractor_id);
     });
 
     let html = "";
