@@ -100,6 +100,17 @@ tfoot td{
     font-weight:bold;
     background:#f8fafc;
 }
+.card{
+    background: var(--card-bg, #fff);
+    padding:18px;
+    border-radius:16px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.06);
+    margin-bottom:15px;
+}
+
+.card h3{
+    margin-bottom:10px;
+}
 
 </style>
 </head>
@@ -110,104 +121,124 @@ tfoot td{
 
 <h2>💰 SC Payment Certificate Record</h2>
 
+<!-- ================= CARD: SELECTION ================= -->
+<div class="card">
+<h3>📌 Selection</h3>
+
 <div class="form-grid">
 
-    <!-- ROW 1 -->
-    <div class="input-group col-3">
-        <label>Work Type</label>
-        <select id="work_type_form">
-            <option value="">Select Work Type</option>
-            <option>Concrete & Masonry</option>
-            <option>Masonry</option>
-            <option>Plaster</option>
-            <option>Paint</option>
-            <option>Tiles</option>
-            <option>Insulation</option>
-            <option>Electrical</option>
-            <option>Mechanical</option>
-        </select>
-    </div>
+<div>
+<label>Work Type</label>
+<select id="work_type_form"></select>
+</div>
 
-    <div class="input-group col-3">
-        <label>Subcontractor</label>
-        <select id="subcontractor_form">
-            <option value="">Select Subcontractor</option>
-        </select>
-    </div>
+<div>
+<label>Subcontractor</label>
+<select id="subcontractor_form"></select>
+</div>
 
-    <div class="input-group col-3">
-        <label>Project</label>
-        <input id="project_form" value="Sadayem" readonly>
-    </div>
+<div>
+<label>Project</label>
+<input id="project_form" readonly>
+</div>
 
-    <div class="input-group col-3">
-        <label>Certificate No</label>
-        <input id="certificate_no" readonly>
-    </div>
+<div>
+<label>Certificate No</label>
+<input id="certificate_no" readonly>
+</div>
 
-    
+</div>
+</div>
 
-    <div class="input-group col-3">
-        <label>Contract No</label>
-        <input id="contract_number" readonly>
-    </div>
 
-    <!-- ROW 2 -->
-    <div class="input-group col-3">
-        <label>Remaining Advance</label>
-        <input id="advance_remaining" readonly>
-    </div>
+<!-- ================= CARD: CONTRACT ================= -->
+<div class="card">
+<h3>📄 Contract Details</h3>
 
-    <div class="input-group col-3">
-        <label>Retention %</label>
-        <input id="retention_percent_display" readonly>
-    </div>
+<div class="form-grid">
 
-    <div class="input-group col-3">
-        <label>Advance Deduction</label>
-        <input id="advance_deduction" readonly>
-    </div>
+<div>
+<label>Contract No</label>
+<input id="contract_number" readonly>
+</div>
 
-    <!-- ROW 3 -->
-    <div class="input-group col-3">
-        <label>VAT</label>
-        <input id="vat" readonly>
-    </div>
+<div>
+<label>Remaining Advance</label>
+<input id="advance_remaining" readonly>
+</div>
 
-    <div class="input-group col-3">
-        <label>Retention</label>
-        <input id="retention" readonly>
-    </div>
+<div>
+<label>Retention %</label>
+<input id="retention_percent_display" readonly>
+</div>
 
-    <div class="input-group col-3">
-        <label>Net</label>
-        <input id="net" readonly>
-    </div>
+</div>
+</div>
 
-    <div class="input-group col-6">
-        <label>Deduction</label>
-        <input id="deduction">
-    </div>
 
-    <div class="input-group col-3">
-        <label>Work Withdrawn</label>
-        <input id="withdrawn">
-    </div>
+<!-- ================= CARD: READ ONLY ================= -->
+<div class="card">
+<h3>📊 Financial Summary</h3>
 
-    <div class="input-group col-3">
-        <label>Refund</label>
-        <input id="refund">
-    </div>
+<div class="form-grid">
 
-    <div class="input-group col-6">
-        <label>Work Value</label>
-        <input id="work">
-    </div>
+<div>
+<label>VAT</label>
+<input id="vat" readonly>
+</div>
 
-    <div class="col-6" style="display:flex;align-items:flex-end;">
-        <button id="saveBtn" style="width:100%;">Save Payment</button>
-    </div>
+<div>
+<label>Retention</label>
+<input id="retention" readonly>
+</div>
 
+<div>
+<label>Advance Deduction</label>
+<input id="advance_deduction" readonly>
+</div>
+
+<div>
+<label>Net</label>
+<input id="net" readonly>
+</div>
+
+</div>
+</div>
+
+
+<!-- ================= CARD: PAYMENT ================= -->
+<div class="card">
+<h3>💰 Payment Entry</h3>
+
+<div class="form-grid">
+
+<div>
+<label>Deduction</label>
+<input id="deduction">
+</div>
+
+<div>
+<label>Work Withdrawn</label>
+<input id="withdrawn">
+</div>
+
+<div>
+<label>Refund</label>
+<input id="refund">
+</div>
+
+<div>
+<label>Work Value</label>
+<input id="work">
+</div>
+
+</div>
+</div>
+
+
+<!-- ================= ACTION ================= -->
+<div style="margin-top:15px;">
+<button id="saveBtn" style="width:100%;">Save Payment</button>
 </div>
 
 <p id="msg"></p>
