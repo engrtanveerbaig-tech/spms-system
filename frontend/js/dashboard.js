@@ -698,7 +698,7 @@ function renderWorkTypeCards(data) {
         grouped[type].certs.add(item.id || item.payment_id || item.invoice_no);
 
         // ✅ UNIQUE SUBCONTRACTOR
-        grouped[type].subs.add(item.subcontractor_name);
+        grouped[type].subs.add(item.company_name);
     });
 
     let html = "";
