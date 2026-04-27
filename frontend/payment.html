@@ -121,36 +121,6 @@ tfoot td{
 
 <h2>💰 SC Payment Certificate Record</h2>
 
-<!-- ================= CARD: SELECTION ================= -->
-<div class="card">
-<h3>📌 Selection</h3>
-
-<div class="form-grid">
-
-<div>
-<label>Work Type</label>
-<select id="work_type_form"></select>
-</div>
-
-<div>
-<label>Subcontractor</label>
-<select id="subcontractor_form"></select>
-</div>
-
-<div>
-<label>Project</label>
-<input id="project_form" readonly>
-</div>
-
-<div>
-<label>Certificate No</label>
-<input id="certificate_no" readonly>
-</div>
-
-</div>
-</div>
-
-
 <!-- ================= CARD: CONTRACT ================= -->
 <div class="card">
 <h3>📄 Contract Details</h3>
@@ -204,13 +174,55 @@ tfoot td{
 
 </div>
 </div>
+<!-- ================= CARD: SELECTION ================= -->
+<div class="card">
+<h3>📌 Selection</h3>
 
+<div class="form-grid">
+
+<div>
+<label>Work Type</label>
+<select id="work_type_form">
+            <option value="">Select Work Type</option>
+            <option>Concrete & Masonry</option>
+            <option>Masonry</option>
+            <option>Plaster</option>
+            <option>Paint</option>
+            <option>Tiles</option>
+            <option>Insulation</option>
+            <option>Electrical</option>
+            <option>Mechanical</option>
+        </select>
+</div>
+
+<div>
+<label>Subcontractor</label>
+<select id="subcontractor_form"></select>
+</div>
+
+<div>
+<label>Project</label>
+<input id="project_form" readonly>
+</div>
+
+<div>
+<label>Certificate No</label>
+<input id="certificate_no" readonly>
+</div>
+
+</div>
+</div>
 
 <!-- ================= CARD: PAYMENT ================= -->
 <div class="card">
 <h3>💰 Payment Entry</h3>
 
 <div class="form-grid">
+
+<div >
+<label >Certified Amount</label>
+<input id="work" style="background: linear-gradient(135deg,#abc4a8,#ffffff); font-weight: 900;">
+</div>
 
 <div>
 <label>Deduction</label>
@@ -227,10 +239,7 @@ tfoot td{
 <input id="refund">
 </div>
 
-<div>
-<label>Work Value</label>
-<input id="work">
-</div>
+
 
 </div>
 </div>
