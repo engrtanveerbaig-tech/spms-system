@@ -1111,8 +1111,11 @@ async function saveCertStatus(paymentId,btn){
       // Update local data
       if(Array.isArray(window.__rawShadow)){
         window.__rawShadow.forEach(function(r){
-          if(String(r.id||r.payment_id)===String(paymentId)){r.cert_status=newStatus;r.status=newStatus;}
-        });
+  if(String(r.id||r.payment_id)===String(paymentId)){
+    r.cert_status=newStatus;
+    r.status=newStatus; // ✅ already sets both, good
+  }
+});
       }
       if(msgEl){msgEl.classList.add("show");setTimeout(function(){msgEl.classList.remove("show");},2000);}
       addNotification("status","Status changed to <strong>"+newStatus+"</strong> for cert #"+paymentId,"⚡");
