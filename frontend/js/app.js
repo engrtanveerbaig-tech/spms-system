@@ -1,6 +1,5 @@
 /* ============================================================
    SPMS v2 — app.js  (shell: routing, search, theme, auth)
-   All API endpoints and business logic unchanged.
    ============================================================ */
 
 function normalize(text){
@@ -41,13 +40,29 @@ function applyRoleUI(){
 }
 
 // ── Load Script ──────────────────────────────────────────
-async function loadScript(src){
+// KEY FIX: always remove & re-inject page-specific scripts so their IIFEs
+// re-execute on every navigation (avoids "script failed to load" on second visit)
+async function loadScript(src, forceReload){
   return new Promise((resolve,reject)=>{
-    if(document.querySelector(`script[src^="${src}"]`)){resolve();return;}
+    const baseSrc = src.split("?")[0];
+
+    if(forceReload){
+      // Remove any previously injected copy so the IIFE runs fresh
+      document.querySelectorAll(`script[data-spms-src="${baseSrc}"]`).forEach(s=>s.remove());
+      // Also clear the window symbol so dashboard.js re-registers loadDashboard
+      if(baseSrc.includes("dashboard")) { window.loadDashboard=undefined; delete window.loadDashboard; }
+      if(baseSrc.includes("payment"))   { window.initPaymentPage=undefined; delete window.initPaymentPage; }
+      if(baseSrc.includes("subcontractor")){ window.initSubcontractorPage=undefined; delete window.initSubcontractorPage; }
+    } else {
+      // For shared libs (charts.min.js etc.) keep the cache — only inject once
+      if(document.querySelector(`script[data-spms-src="${baseSrc}"]`)){resolve();return;}
+    }
+
     const s=document.createElement("script");
-    s.src=src+"?v="+Date.now();
-    s.onload=()=>resolve();
-    s.onerror=()=>reject();
+    s.src=baseSrc+"?v="+Date.now();
+    s.setAttribute("data-spms-src", baseSrc);
+    s.onload=()=>{console.log("Loaded:",baseSrc);resolve();};
+    s.onerror=(e)=>{console.error("Failed to load:",baseSrc,e);reject(new Error("Script load failed: "+baseSrc));};
     document.body.appendChild(s);
   });
 }
@@ -66,8 +81,17 @@ async function loadPage(page){
   if(role==="viewer"&&!page.includes("dashboard")){alert("Access denied");return;}
 
   const container=document.getElementById("mainContent");
+
+  // Show inline spinner while loading
+  container.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:12px;">
+    <div style="width:34px;height:34px;border:2px solid rgba(244,63,94,.25);border-top-color:#f43f5e;border-radius:50%;animation:spin .8s linear infinite;"></div>
+    <div style="font-size:11px;letter-spacing:.12em;color:#3e4560;font-family:'JetBrains Mono',monospace;">LOADING</div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+  </div>`;
+
   try{
-    const res=await fetch(page);
+    const res=await fetch(page+"?v="+Date.now());
+    if(!res.ok) throw new Error("HTTP "+res.status+" fetching "+page);
     const html=await res.text();
     container.innerHTML=html;
     container.style.opacity=0;
@@ -76,22 +100,41 @@ async function loadPage(page){
     applyRoleUI();
 
     if(page.includes("dashboard")){
-      await loadScript("js/charts.min.js");
-      try{await loadScript("js/dashboard.js");}catch(e){console.error("Dashboard JS failed",e);}
-      if(typeof window.loadDashboard==="function") window.loadDashboard();
-      else container.innerHTML="<div style='padding:40px;color:#f43f5e;font-family:Outfit,sans-serif'>Dashboard script failed to load.</div>";
+      // charts.min.js: load once (cached), dashboard.js: always force-reload
+      await loadScript("js/charts.min.js", false);
+      console.log("Chart available:", typeof Chart);
+      try{
+        await loadScript("js/dashboard.js", true); // ← force reload every time
+      }catch(e){
+        console.error("dashboard.js failed to load:", e);
+        container.innerHTML="<div style='padding:40px;color:#f43f5e;font-family:Outfit,sans-serif'>Dashboard script failed to load. Check that <code>js/dashboard.js</code> exists on the server.</div>";
+        return;
+      }
+      // Small delay to let the IIFE register window.loadDashboard
+      await new Promise(r=>setTimeout(r,50));
+      if(typeof window.loadDashboard==="function"){
+        window.loadDashboard();
+      } else {
+        console.error("loadDashboard not found after script load");
+        container.innerHTML="<div style='padding:40px;color:#f43f5e;font-family:Outfit,sans-serif'>Dashboard initialisation failed. Check js/dashboard.js.</div>";
+      }
     }
+
     if(page.includes("subcontractor")){
-      await loadScript("js/subcontractor.js");
+      await loadScript("js/subcontractor.js", true);
+      await new Promise(r=>setTimeout(r,50));
       if(window.initSubcontractorPage) window.initSubcontractorPage();
     }
+
     if(page.includes("payment")){
-      await loadScript("js/payment.js");
+      await loadScript("js/payment.js", true);
+      await new Promise(r=>setTimeout(r,50));
       if(window.initPaymentPage) window.initPaymentPage();
     }
+
   }catch(err){
     console.error("Page Load Error:",err);
-    container.innerHTML="<div style='padding:40px;color:#f43f5e;font-family:Outfit,sans-serif'>Error loading page.</div>";
+    container.innerHTML=`<div style='padding:40px;color:#f43f5e;font-family:Outfit,sans-serif'>Error loading page: ${err.message}</div>`;
   }
 }
 
@@ -122,6 +165,7 @@ async function loadSearchData(){
       refund:Number(x.refund||0)
     }));
     GLOBAL_DATA=SEARCH_DATA;
+    console.log("Search data loaded:", SEARCH_DATA.length, "records");
   }catch(err){console.error("Search API error",err);}
 }
 
@@ -211,6 +255,7 @@ window.confirmSearch=function(){
     label.classList.add("show");
   }
   if(typeof window.applyGlobalFilter==="function") window.applyGlobalFilter(filtered);
+  else console.error("applyGlobalFilter not available — dashboard may not be loaded yet");
   closeSearchModal();
 };
 
