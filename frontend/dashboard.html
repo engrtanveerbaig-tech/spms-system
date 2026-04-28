@@ -1141,7 +1141,15 @@ async function saveCertStatus(paymentId, btn){
         });
       }
       if(msgEl){ msgEl.classList.add("show"); setTimeout(function(){msgEl.classList.remove("show");}, 2000); }
-      addNotification("status", "Status changed to <strong>"+newStatus+"</strong> for cert #"+paymentId, "⚡");
+      // Get subcontractor + company name from raw data
+var certRecord = (window.__rawShadow||[]).find(function(r){
+  return String(r.id||r.payment_id) === String(paymentId);
+});
+var certName = certRecord
+  ? (certRecord.subcontractor_name||"—") + " · " + (certRecord.company_name||"—") + " · Cert #"+paymentId
+  : "Cert #"+paymentId;
+
+addNotification("status", "Status → <strong>"+newStatus+"</strong><br><span style='font-size:9px;opacity:.7'>"+certName+"</span>", "⚡");
       if(typeof window._dashRenderAll === "function") window._dashRenderAll();
     }
   } catch(e){
