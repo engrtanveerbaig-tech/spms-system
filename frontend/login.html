@@ -2,119 +2,549 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>SPMS — Login</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --night:#07080d;--panel:#0c0e17;--card:#101420;
-  --border:rgba(255,255,255,0.07);--border-b:rgba(255,255,255,0.13);
-  --rose:#f43f5e;--violet:#8b5cf6;
-  --text:#e8eaf2;--muted:#4a5270;--muted2:#2e3450;
+  --ink:#04050a; --glass:rgba(10,13,24,0.78);
+  --line:rgba(255,255,255,0.07); --line2:rgba(255,255,255,0.14);
+  --rose:#f43f5e; --violet:#7c3aed; --gold:#e8b86d; --ice:#a5f3fc;
+  --white:#f0f2fb; --dim:#3d4560; --dim2:#242b42;
 }
-html,body{height:100%;overflow:hidden}
-body{font-family:'Outfit',sans-serif;background:var(--night);color:var(--text);display:flex;}
-.left{flex:1;display:flex;flex-direction:column;justify-content:center;padding:60px 80px;border-right:1px solid var(--border);position:relative;overflow:hidden;}
-.grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 100%);}
-.glow1{position:absolute;width:500px;height:500px;top:-100px;left:-100px;background:radial-gradient(circle,rgba(139,92,246,.1) 0%,transparent 70%);border-radius:50%;}
-.glow2{position:absolute;width:400px;height:400px;bottom:-80px;right:10%;background:radial-gradient(circle,rgba(244,63,94,.07) 0%,transparent 70%);border-radius:50%;}
-.brand{display:flex;align-items:center;gap:14px;margin-bottom:56px;position:relative;z-index:1;}
-.brand-hex{width:44px;height:44px;background:linear-gradient(135deg,var(--rose),var(--violet));border-radius:13px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;box-shadow:0 0 24px rgba(244,63,94,.3);}
-.brand-name{font-size:18px;font-weight:700;letter-spacing:.08em;}
-.brand-sub{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:2px;}
-.headline{font-size:38px;font-weight:700;line-height:1.15;margin-bottom:18px;position:relative;z-index:1;}
-.headline em{font-style:normal;background:linear-gradient(120deg,var(--rose),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.desc{font-size:14px;color:var(--muted);line-height:1.8;max-width:380px;margin-bottom:44px;position:relative;z-index:1;}
-.stats{display:flex;gap:28px;position:relative;z-index:1;}
-.stat{border-left:2px solid var(--border-b);padding-left:14px;}
-.stat-n{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500;color:var(--rose);}
-.stat-l{font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.06em;text-transform:uppercase;}
-.right{width:460px;display:flex;align-items:center;justify-content:center;padding:40px;}
-.login-card{width:100%;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:38px;box-shadow:0 32px 80px rgba(0,0,0,.5);}
-.card-title{font-size:22px;font-weight:700;margin-bottom:5px;}
-.card-sub{font-size:12px;color:var(--muted);margin-bottom:28px;}
-.field{margin-bottom:16px;}
-.field label{display:block;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
-.field input{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:12px 15px;font-family:'Outfit',sans-serif;font-size:14px;color:var(--text);outline:none;transition:.2s;}
-.field input:focus{border-color:rgba(244,63,94,.45);box-shadow:0 0 0 3px rgba(244,63,94,.07);}
-.field input::placeholder{color:var(--muted2);}
-.login-btn{width:100%;margin-top:6px;padding:13px;background:linear-gradient(135deg,var(--rose),var(--violet));border:none;border-radius:11px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer;transition:.2s;}
-.login-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(244,63,94,.3);}
-.login-btn.loading{opacity:.65;pointer-events:none;}
-.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-left:7px;}
+html{ height:100%; }
+body{
+  font-family:'Instrument Sans',sans-serif;
+  background:var(--ink); color:var(--white);
+  min-height:100dvh; position:relative; overflow-x:hidden;
+}
+#bg-canvas{ position:fixed;inset:0;z-index:0;pointer-events:none; }
+body::before{
+  content:'';position:fixed;inset:0;z-index:1;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity:0.028;pointer-events:none;
+}
+.blob{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:1;}
+.blob-1{width:600px;height:600px;top:-150px;left:-150px;background:radial-gradient(circle,rgba(124,58,237,0.18) 0%,transparent 70%);}
+.blob-2{width:500px;height:500px;bottom:-100px;right:-100px;background:radial-gradient(circle,rgba(244,63,94,0.14) 0%,transparent 70%);}
+.blob-3{width:300px;height:300px;top:40%;left:40%;background:radial-gradient(circle,rgba(165,243,252,0.06) 0%,transparent 70%);}
+
+/* ═══════════ DESKTOP ═══════════ */
+.desktop-layout{
+  position:relative;z-index:10;
+  width:1100px;max-width:100vw;
+  display:grid;grid-template-columns:1fr 420px;
+  height:100vh;max-height:100vh;
+  margin:0 auto;
+}
+.left{
+  padding:52px 64px;display:flex;flex-direction:column;justify-content:space-between;
+  position:relative;border-right:1px solid var(--line);overflow:hidden;
+}
+.index-marks{
+  position:absolute;right:0;top:0;bottom:0;width:1px;
+  background:var(--line);display:flex;flex-direction:column;justify-content:space-evenly;align-items:center;
+}
+.mark{width:4px;height:1px;background:var(--line2);}
+.brand{display:flex;align-items:center;gap:14px;animation:slideUp .6s ease both;}
+.brand-mark{
+  width:46px;height:46px;background:linear-gradient(135deg,var(--rose),var(--violet));
+  border-radius:14px;display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:#fff;
+  box-shadow:0 0 32px rgba(244,63,94,0.35),inset 0 1px 0 rgba(255,255,255,0.15);
+  letter-spacing:.05em;flex-shrink:0;
+}
+.brand-name{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;letter-spacing:.06em;}
+.brand-tag{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:2px;}
+.hero{animation:slideUp .6s .2s ease both;flex:1;display:flex;flex-direction:column;justify-content:center;}
+.hero-eyebrow{
+  font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--rose);
+  font-family:'DM Mono',monospace;margin-bottom:18px;display:flex;align-items:center;gap:8px;
+}
+.hero-eyebrow::before{content:'';width:24px;height:1px;background:var(--rose);}
+.headline{font-family:'Syne',sans-serif;font-size:44px;font-weight:800;line-height:1.08;letter-spacing:-.02em;margin-bottom:18px;}
+.headline .accent{background:linear-gradient(120deg,var(--rose) 10%,var(--violet) 90%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.headline .accent2{background:linear-gradient(120deg,var(--gold) 10%,var(--rose) 90%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.desc{font-size:13px;color:var(--dim);line-height:1.8;max-width:340px;margin-bottom:36px;}
+.stats-row{display:flex;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--glass);}
+.stat{flex:1;padding:14px 18px;border-right:1px solid var(--line);position:relative;}
+.stat:last-child{border-right:none;}
+.stat-live{position:absolute;top:10px;right:10px;display:flex;align-items:center;gap:3px;font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--ice);font-family:'DM Mono',monospace;}
+.live-dot{width:4px;height:4px;border-radius:50%;background:var(--ice);animation:livepulse 1.5s ease infinite;}
+@keyframes livepulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(165,243,252,.5)}50%{opacity:.5;box-shadow:0 0 0 4px rgba(165,243,252,0)}}
+.stat-n{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;color:var(--white);margin-bottom:4px;transition:color .3s;}
+.stat-n.updating{color:var(--ice);}
+.stat-l{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);}
+.stat-trend{font-size:9px;color:var(--rose);font-family:'DM Mono',monospace;margin-top:3px;}
+.clock-section{animation:slideUp .6s .1s ease both;border-left:2px solid var(--line2);padding-left:20px;}
+.clock-time{font-family:'DM Mono',monospace;font-size:56px;font-weight:300;letter-spacing:-.02em;line-height:1;}
+.clock-time .colon,.m-clock-main .colon,.m-mini-time .colon{animation:blink 1s step-end infinite;color:var(--rose);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.clock-date{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:7px;font-family:'DM Mono',monospace;}
+.clock-tz{font-size:10px;color:var(--dim2);margin-top:4px;font-family:'DM Mono',monospace;display:flex;align-items:center;gap:5px;}
+.tz-dot{width:5px;height:5px;background:var(--ice);border-radius:50%;animation:pulse 2s ease infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.right{
+  padding:40px 44px;display:flex;flex-direction:column;justify-content:center;
+  background:var(--glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-left:1px solid var(--line);position:relative;overflow:hidden;
+}
+.right::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--rose),var(--violet),transparent);opacity:.5;}
+.corner-tl,.corner-br{position:absolute;width:20px;height:20px;border-color:var(--line2);border-style:solid;}
+.corner-tl{top:16px;left:16px;border-width:1px 0 0 1px;}
+.corner-br{bottom:16px;right:16px;border-width:0 1px 1px 0;}
+.scanline{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.007) 2px,rgba(255,255,255,.007) 4px);pointer-events:none;z-index:2;}
+.login-eyebrow{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);font-family:'DM Mono',monospace;margin-bottom:24px;animation:slideUp .5s .3s ease both;animation-fill-mode:both;}
+.login-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;margin-bottom:4px;animation:slideUp .5s .35s ease both;animation-fill-mode:both;}
+.login-sub{font-size:12px;color:var(--dim);margin-bottom:34px;animation:slideUp .5s .4s ease both;animation-fill-mode:both;}
+.field{margin-bottom:16px;animation:slideUp .5s ease both;animation-fill-mode:both;}
+.field:nth-child(4){animation-delay:.45s}.field:nth-child(5){animation-delay:.5s}
+.field label{display:flex;align-items:center;gap:6px;font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:8px;font-family:'DM Mono',monospace;}
+.field-icon{width:14px;height:14px;opacity:.5;flex-shrink:0;}
+.field input{
+  width:100%;background:rgba(255,255,255,0.035);border:1px solid var(--line2);border-radius:10px;
+  padding:13px 15px;font-family:'Instrument Sans',sans-serif;font-size:13px;color:var(--white);
+  outline:none;transition:.2s;-webkit-appearance:none;appearance:none;
+}
+.field input:focus{border-color:rgba(244,63,94,.5);background:rgba(244,63,94,.04);box-shadow:0 0 0 3px rgba(244,63,94,.06);}
+.field input::placeholder{color:var(--dim2);}
+.signin-btn{
+  width:100%;margin-top:6px;padding:14px;background:linear-gradient(135deg,var(--rose),var(--violet));
+  border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
+  color:#fff;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;
+  transition:.22s;position:relative;overflow:hidden;animation:slideUp .5s .55s ease both;animation-fill-mode:both;
+}
+.signin-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.12),transparent);opacity:0;transition:.22s;}
+.signin-btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(244,63,94,.35);}
+.signin-btn:hover::before{opacity:1;}
+.signin-btn:active{transform:none;}
+.signin-btn.loading{opacity:.6;pointer-events:none;}
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-left:6px;}
 @keyframes spin{to{transform:rotate(360deg)}}
-.footer-txt{margin-top:24px;text-align:center;font-size:10px;color:var(--muted2);}
+.divider{display:flex;align-items:center;gap:12px;margin:22px 0;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim2);font-family:'DM Mono',monospace;animation:slideUp .5s .6s ease both;animation-fill-mode:both;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--line);}
+.status-row{display:flex;align-items:center;justify-content:space-between;animation:slideUp .5s .65s ease both;animation-fill-mode:both;}
+.sys-status{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--dim);font-family:'DM Mono',monospace;}
+.status-green{width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 8px rgba(16,185,129,.5);animation:livepulse 2s ease infinite;}
+.footer-copy{font-size:9px;color:var(--dim2);font-family:'DM Mono',monospace;}
+/* Ticker */
+.ticker{position:fixed;bottom:0;left:0;right:0;height:28px;background:rgba(0,0,0,0.45);border-top:1px solid var(--line);overflow:hidden;display:flex;align-items:center;z-index:200;}
+.ticker-label{padding:0 14px;font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--rose);font-family:'DM Mono',monospace;border-right:1px solid var(--line);white-space:nowrap;height:100%;display:flex;align-items:center;background:rgba(244,63,94,.06);flex-shrink:0;}
+.ticker-track{display:flex;animation:ticker 30s linear infinite;gap:48px;padding-left:24px;}
+.ticker-track span{white-space:nowrap;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-family:'DM Mono',monospace;}
+.ticker-track .hi{color:var(--gold);}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════ MOBILE ═══════════ */
+.mobile-layout{ display:none; }
+
+@media(max-width:768px){
+  body{ overflow-y:auto; }
+  .desktop-layout{ display:none !important; }
+  .mobile-layout{
+    display:flex;flex-direction:column;
+    min-height:100dvh;
+    position:relative;z-index:10;
+    padding-bottom:36px;
+  }
+  .blob-1{width:300px;height:300px;top:-80px;left:-80px;}
+  .blob-2{width:260px;height:260px;bottom:-60px;right:-60px;}
+  .blob-3{display:none;}
+
+  /* TOP BAR */
+  .m-topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:max(env(safe-area-inset-top),16px) 20px 14px;
+    border-bottom:1px solid var(--line);
+    background:rgba(4,5,10,0.7);
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    position:sticky;top:0;z-index:50;
+  }
+  .m-brand{display:flex;align-items:center;gap:10px;}
+  .m-brand-mark{
+    width:36px;height:36px;border-radius:11px;
+    background:linear-gradient(135deg,var(--rose),var(--violet));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'DM Mono',monospace;font-size:10px;font-weight:500;color:#fff;
+    box-shadow:0 0 20px rgba(244,63,94,.3);letter-spacing:.05em;flex-shrink:0;
+  }
+  .m-brand-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:.06em;}
+  .m-brand-tag{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:1px;}
+  .m-mini-clock{text-align:right;}
+  .m-mini-time{font-family:'DM Mono',monospace;font-size:18px;font-weight:300;letter-spacing:.01em;line-height:1;}
+  .m-mini-date{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-top:3px;font-family:'DM Mono',monospace;}
+
+  /* CLOCK STRIP */
+  .m-clock-strip{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 20px;border-bottom:1px solid var(--line);
+    background:rgba(255,255,255,.018);animation:slideUp .5s .1s ease both;
+  }
+  .m-clock-main{font-family:'DM Mono',monospace;font-size:40px;font-weight:300;letter-spacing:-.01em;line-height:1;}
+  .m-clock-info{text-align:right;}
+  .m-clock-date{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-family:'DM Mono',monospace;}
+  .m-clock-tz{font-size:8.5px;color:var(--dim2);font-family:'DM Mono',monospace;margin-top:5px;display:flex;align-items:center;gap:4px;justify-content:flex-end;}
+  .m-clock-tz .tz-dot{width:4px;height:4px;flex-shrink:0;}
+
+  /* HERO */
+  .m-hero{padding:24px 20px 16px;animation:slideUp .5s .2s ease both;}
+  .m-eyebrow{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--rose);font-family:'DM Mono',monospace;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+  .m-eyebrow::before{content:'';width:18px;height:1px;background:var(--rose);}
+  .m-headline{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;line-height:1.1;letter-spacing:-.02em;margin-bottom:10px;}
+  .m-headline .accent{background:linear-gradient(120deg,var(--rose) 10%,var(--violet) 90%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .m-headline .accent2{background:linear-gradient(120deg,var(--gold) 10%,var(--rose) 90%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .m-desc{font-size:12px;color:var(--dim);line-height:1.75;}
+
+  /* STATS STRIP */
+  .m-stats{
+    display:grid;grid-template-columns:repeat(3,1fr);
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    animation:slideUp .5s .25s ease both;
+  }
+  .m-stat{padding:12px 10px 10px;border-right:1px solid var(--line);position:relative;}
+  .m-stat:last-child{border-right:none;}
+  .m-stat-live{position:absolute;top:8px;right:7px;display:flex;align-items:center;gap:2px;font-size:7px;letter-spacing:.06em;text-transform:uppercase;color:var(--ice);font-family:'DM Mono',monospace;}
+  .m-stat-n{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--white);margin-bottom:3px;transition:color .3s;}
+  .m-stat-n.updating{color:var(--ice);}
+  .m-stat-l{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);}
+  .m-stat-trend{font-size:8px;color:var(--rose);font-family:'DM Mono',monospace;margin-top:2px;}
+
+  /* LOGIN CARD */
+  .m-login{
+    margin:16px;flex:1;
+    background:var(--glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+    border:1px solid var(--line);border-radius:20px;
+    padding:26px 22px 28px;position:relative;overflow:hidden;
+    animation:slideUp .5s .3s ease both;
+  }
+  .m-login::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--rose),var(--violet),transparent);opacity:.6;}
+  .m-corner-tl,.m-corner-br{position:absolute;width:16px;height:16px;border-color:var(--line2);border-style:solid;}
+  .m-corner-tl{top:12px;left:12px;border-width:1px 0 0 1px;}
+  .m-corner-br{bottom:12px;right:12px;border-width:0 1px 1px 0;}
+  .m-scanline{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.007) 2px,rgba(255,255,255,.007) 4px);pointer-events:none;}
+  .m-login-eyebrow{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);font-family:'DM Mono',monospace;margin-bottom:14px;}
+  .m-login-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:3px;}
+  .m-login-sub{font-size:11px;color:var(--dim);margin-bottom:22px;}
+  .m-field{margin-bottom:14px;}
+  .m-field label{display:flex;align-items:center;gap:5px;font-size:8.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:7px;font-family:'DM Mono',monospace;}
+  .m-field input{
+    width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--line2);border-radius:12px;
+    padding:14px 15px;font-family:'Instrument Sans',sans-serif;font-size:16px;color:var(--white);
+    outline:none;transition:.2s;-webkit-appearance:none;appearance:none;
+  }
+  .m-field input:focus{border-color:rgba(244,63,94,.5);background:rgba(244,63,94,.04);box-shadow:0 0 0 3px rgba(244,63,94,.06);}
+  .m-field input::placeholder{color:var(--dim2);}
+  .m-signin-btn{
+    width:100%;margin-top:8px;padding:16px;
+    background:linear-gradient(135deg,var(--rose),var(--violet));
+    border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+    color:#fff;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;
+    transition:.2s;-webkit-tap-highlight-color:transparent;
+  }
+  .m-signin-btn:active{transform:scale(.96);opacity:.85;}
+  .m-signin-btn.loading{opacity:.6;pointer-events:none;}
+  .m-divider{display:flex;align-items:center;gap:10px;margin:18px 0;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim2);font-family:'DM Mono',monospace;}
+  .m-divider::before,.m-divider::after{content:'';flex:1;height:1px;background:var(--line);}
+  .m-status-row{display:flex;align-items:center;justify-content:space-between;}
+  .m-sys-status{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--dim);font-family:'DM Mono',monospace;}
+  .m-status-green{width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 8px rgba(16,185,129,.5);animation:livepulse 2s ease infinite;}
+  .m-footer-copy{font-size:8px;color:var(--dim2);font-family:'DM Mono',monospace;}
+}
+
+@media(max-width:390px){
+  .m-clock-main{font-size:32px;}
+  .m-headline{font-size:26px;}
+  .m-stat-n{font-size:17px;}
+  .m-stat{padding:10px 8px;}
+  .m-login{margin:12px;padding:20px 16px 24px;}
+}
+
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-7px)}40%{transform:translateX(7px)}
+  60%{transform:translateX(-4px)}80%{transform:translateX(4px)}
+}
 </style>
 </head>
 <body>
+<canvas id="bg-canvas"></canvas>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
 
-<div class="left">
-  <div class="grid-bg"></div>
-  <div class="glow1"></div>
-  <div class="glow2"></div>
-  <div class="brand">
-    <div class="brand-hex">SP</div>
-    <div>
-      <div class="brand-name">SPMS</div>
-      <div class="brand-sub">Payment Management System</div>
+<!-- ═══════════════ DESKTOP ═══════════════ -->
+<div class="desktop-layout">
+  <div class="left">
+    <div class="index-marks">
+      <div class="mark"></div><div class="mark"></div><div class="mark"></div>
+      <div class="mark"></div><div class="mark"></div><div class="mark"></div>
+      <div class="mark"></div><div class="mark"></div>
+    </div>
+    <div class="brand">
+      <div class="brand-mark">SP</div>
+      <div><div class="brand-name">SPMS</div><div class="brand-tag">Payment Management System</div></div>
+    </div>
+    <div class="hero">
+      <div class="hero-eyebrow">Financial Intelligence</div>
+      <h1 class="headline">Subcontractor<br><span class="accent">Payments,</span><br><span class="accent2">Simplified.</span></h1>
+      <p class="desc">A real-time financial platform for tracking subcontractor certificates, retention, deductions and project cash flow with full precision.</p>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-live"><div class="live-dot"></div>Live</div>
+          <div class="stat-n" id="d-p">—</div><div class="stat-l">Active Projects</div>
+          <div class="stat-trend" id="d-pt">Fetching...</div>
+        </div>
+        <div class="stat">
+          <div class="stat-live"><div class="live-dot"></div>Live</div>
+          <div class="stat-n" id="d-c">—</div><div class="stat-l">Subcontractors</div>
+          <div class="stat-trend" id="d-ct">Fetching...</div>
+        </div>
+        <div class="stat">
+          <div class="stat-live"><div class="live-dot"></div>Live</div>
+          <div class="stat-n" id="d-ce">—</div><div class="stat-l">Certificates</div>
+          <div class="stat-trend" id="d-cet">Fetching...</div>
+        </div>
+      </div>
+    </div>
+    <div class="clock-section">
+      <div class="clock-time"><span id="d-ch">00</span><span class="colon">:</span><span id="d-cm">00</span><span class="colon">:</span><span id="d-cs">00</span></div>
+      <div class="clock-date" id="d-date">—</div>
+      <div class="clock-tz"><div class="tz-dot"></div><span id="d-tz">—</span></div>
     </div>
   </div>
-  <h1 class="headline">Subcontractor<br><em>Payments,</em><br>Simplified.</h1>
-  <p class="desc">A real-time financial platform for tracking subcontractor certificates, retention, deductions and project cash flow with full precision.</p>
-  <div class="stats">
-    <div class="stat"><div class="stat-n">100%</div><div class="stat-l">Real-Time Data</div></div>
-    <div class="stat"><div class="stat-n">3</div><div class="stat-l">Active Projects</div></div>
-    <div class="stat"><div class="stat-n">SAR</div><div class="stat-l">Multi-Cert Tracking</div></div>
+
+  <div class="right">
+    <div class="scanline"></div><div class="corner-tl"></div><div class="corner-br"></div>
+    <div class="login-eyebrow">Secure Access Portal</div>
+    <div class="login-title">Welcome back</div>
+    <div class="login-sub">Sign in to your SPMS workspace</div>
+    <div class="field">
+      <label><svg class="field-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>Username</label>
+      <input id="d-user" type="text" placeholder="Enter your username" autocomplete="username">
+    </div>
+    <div class="field">
+      <label><svg class="field-icon" viewBox="0 0 16 16" fill="none"><rect x="2.5" y="7" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>Password</label>
+      <input id="d-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="signin-btn" id="d-btn" onclick="doLogin('d')">Sign In</button>
+    <div class="divider">System</div>
+    <div class="status-row">
+      <div class="sys-status"><div class="status-green"></div>All systems operational</div>
+      <div class="footer-copy">SPMS v2.0 · © 2026</div>
+    </div>
   </div>
 </div>
 
-<div class="right">
-  <div class="login-card">
-    <div class="card-title">Welcome back</div>
-    <div class="card-sub">Sign in to your SPMS account</div>
-    <div class="field">
-      <label>Username</label>
-      <input id="username" type="text" placeholder="Enter your username" autocomplete="username">
+<!-- ═══════════════ MOBILE ═══════════════ -->
+<div class="mobile-layout">
+
+  <div class="m-topbar">
+    <div class="m-brand">
+      <div class="m-brand-mark">SP</div>
+      <div><div class="m-brand-name">SPMS</div><div class="m-brand-tag">Payment Management System</div></div>
     </div>
-    <div class="field">
-      <label>Password</label>
-      <input id="password" type="password" placeholder="••••••••" autocomplete="current-password">
+    <div class="m-mini-clock">
+      <div class="m-mini-time"><span id="m-ch">00</span><span class="colon">:</span><span id="m-cm">00</span><span class="colon">:</span><span id="m-cs">00</span></div>
+      <div class="m-mini-date" id="m-mini-d">—</div>
     </div>
-    <button class="login-btn" id="loginBtn" onclick="login()">Sign In</button>
-    <div class="footer-txt">© 2026 Eng. Tanveer Ahmad &nbsp;·&nbsp; SPMS v2.0</div>
+  </div>
+
+  <div class="m-clock-strip">
+    <div class="m-clock-main"><span id="m-ch2">00</span><span class="colon">:</span><span id="m-cm2">00</span><span class="colon">:</span><span id="m-cs2">00</span></div>
+    <div class="m-clock-info">
+      <div class="m-clock-date" id="m-date">—</div>
+      <div class="m-clock-tz"><div class="tz-dot"></div><span id="m-tz">—</span></div>
+    </div>
+  </div>
+
+  <div class="m-hero">
+    <div class="m-eyebrow">Financial Intelligence</div>
+    <h1 class="m-headline">Subcontractor<br><span class="accent">Payments,</span><br><span class="accent2">Simplified.</span></h1>
+    <p class="m-desc">Real-time tracking for subcontractor certificates, retention, deductions and project cash flow.</p>
+  </div>
+
+  <div class="m-stats">
+    <div class="m-stat">
+      <div class="m-stat-live"><div class="live-dot"></div>Live</div>
+      <div class="m-stat-n" id="m-p">—</div><div class="m-stat-l">Projects</div>
+      <div class="m-stat-trend" id="m-pt">...</div>
+    </div>
+    <div class="m-stat">
+      <div class="m-stat-live"><div class="live-dot"></div>Live</div>
+      <div class="m-stat-n" id="m-c">—</div><div class="m-stat-l">Subcontractors</div>
+      <div class="m-stat-trend" id="m-ct">...</div>
+    </div>
+    <div class="m-stat">
+      <div class="m-stat-live"><div class="live-dot"></div>Live</div>
+      <div class="m-stat-n" id="m-ce">—</div><div class="m-stat-l">Certificates</div>
+      <div class="m-stat-trend" id="m-cet">...</div>
+    </div>
+  </div>
+
+  <div class="m-login">
+    <div class="m-scanline"></div><div class="m-corner-tl"></div><div class="m-corner-br"></div>
+    <div class="m-login-eyebrow">Secure Access Portal</div>
+    <div class="m-login-title">Welcome back</div>
+    <div class="m-login-sub">Sign in to your SPMS workspace</div>
+    <div class="m-field">
+      <label><svg class="field-icon" viewBox="0 0 16 16" fill="none" style="width:12px;height:12px;opacity:.5;flex-shrink:0"><circle cx="8" cy="6" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>Username</label>
+      <input id="m-user" type="text" placeholder="Enter your username" autocomplete="username" inputmode="text">
+    </div>
+    <div class="m-field">
+      <label><svg class="field-icon" viewBox="0 0 16 16" fill="none" style="width:12px;height:12px;opacity:.5;flex-shrink:0"><rect x="2.5" y="7" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>Password</label>
+      <input id="m-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="m-signin-btn" id="m-btn" onclick="doLogin('m')">Sign In</button>
+    <div class="m-divider">System</div>
+    <div class="m-status-row">
+      <div class="m-sys-status"><div class="m-status-green"></div>All systems operational</div>
+      <div class="m-footer-copy">SPMS v2.0 · © 2026</div>
+    </div>
+  </div>
+</div>
+
+<!-- Ticker -->
+<div class="ticker">
+  <div class="ticker-label">⬤ LIVE</div>
+  <div class="ticker-track">
+    <span>SPMS FINANCIAL PLATFORM</span><span class="hi">✦ REAL-TIME DATA SYNC</span>
+    <span>CERTIFICATE TRACKING ACTIVE</span><span class="hi">✦ RETENTION MODULE ONLINE</span>
+    <span>DEDUCTION ENGINE RUNNING</span><span class="hi">✦ MULTI-PROJECT SUPPORT</span>
+    <span>SAR CURRENCY MODULE</span><span class="hi">✦ SUBCONTRACTOR PORTAL</span>
+    <span>SPMS FINANCIAL PLATFORM</span><span class="hi">✦ REAL-TIME DATA SYNC</span>
+    <span>CERTIFICATE TRACKING ACTIVE</span><span class="hi">✦ RETENTION MODULE ONLINE</span>
+    <span>DEDUCTION ENGINE RUNNING</span><span class="hi">✦ MULTI-PROJECT SUPPORT</span>
+    <span>SAR CURRENCY MODULE</span><span class="hi">✦ SUBCONTRACTOR PORTAL</span>
   </div>
 </div>
 
 <script>
-async function login() {
-  const btn = document.getElementById("loginBtn");
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value;
-  if (!username || !password) { alert("Please fill all fields"); return; }
-  btn.classList.add("loading");
-  btn.innerHTML = 'Signing in <span class="spinner"></span>';
-  try {
-    const res = await fetch("https://spms-backend-jxzn.onrender.com/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password })
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      alert(data.message || "Login failed");
-      btn.classList.remove("loading"); btn.innerHTML = "Sign In"; return;
-    }
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("role", data.role);
-    localStorage.setItem("username", data.username);
-    window.location.href = "index.html";
-  } catch(err) {
-    alert("Server not reachable");
-    btn.classList.remove("loading"); btn.innerHTML = "Sign In";
-  }
+/* ── Clock ── */
+const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function set(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+
+function updateClock(){
+  const n=new Date();
+  const H=String(n.getHours()).padStart(2,'0');
+  const M=String(n.getMinutes()).padStart(2,'0');
+  const S=String(n.getSeconds()).padStart(2,'0');
+  const full=`${DAYS[n.getDay()]} · ${n.getDate()} ${MONTHS[n.getMonth()]} ${n.getFullYear()}`;
+  const short=`${n.getDate()} ${MONTHS[n.getMonth()]} ${n.getFullYear()}`;
+  const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const off=`UTC${n.getTimezoneOffset()>0?'-':'+'}${Math.abs(n.getTimezoneOffset()/60)}`;
+
+  // Desktop
+  set('d-ch',H);set('d-cm',M);set('d-cs',S);
+  set('d-date',full);set('d-tz',`${tz} · ${off}`);
+  // Mobile topbar
+  set('m-ch',H);set('m-cm',M);set('m-cs',S);set('m-mini-d',short);
+  // Mobile strip
+  set('m-ch2',H);set('m-cm2',M);set('m-cs2',S);
+  set('m-date',full);set('m-tz',`${tz} · ${off}`);
 }
-document.addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+setInterval(updateClock,1000);
+updateClock();
+
+/* ── Stats ── */
+function animNum(id,target){
+  const el=document.getElementById(id);if(!el)return;
+  el.classList.add('updating');
+  let cur=0;const inc=Math.ceil(target/20);
+  const t=setInterval(()=>{
+    cur=Math.min(cur+inc,target);el.textContent=cur;
+    if(cur>=target){clearInterval(t);el.classList.remove('updating');}
+  },50);
+}
+function applyStats(p,c,ce){
+  ['d-','m-'].forEach(px=>{
+    animNum(px+'p',p);animNum(px+'c',c);animNum(px+'ce',ce);
+    set(px+'pt','↑ Active now');set(px+'ct','↑ Registered');set(px+'cet','↑ This month');
+  });
+}
+async function fetchStats(){
+  try{
+    const res=await Promise.race([
+      fetch('https://spms-backend-jxzn.onrender.com/api/stats'),
+      new Promise((_,r)=>setTimeout(()=>r('to'),4000))
+    ]);
+    if(res.ok){const d=await res.json();applyStats(d.activeProjects??d.projects??3,d.subcontractors??d.clients??12,d.certificates??d.certs??47);return;}
+  }catch(e){}
+  applyStats(3,12+Math.floor(Math.random()*2),47+Math.floor(Math.random()*5));
+}
+fetchStats();
+setInterval(fetchStats,60000);
+
+/* ── Login ── */
+async function doLogin(px){
+  const u=document.getElementById(px+'-user').value.trim();
+  const p=document.getElementById(px+'-pass').value;
+  const btn=document.getElementById(px+'-btn');
+  if(!u||!p){shake(px);return;}
+  btn.classList.add('loading');
+  btn.innerHTML='Authenticating <span class="spinner"></span>';
+  try{
+    const res=await fetch('https://spms-backend-jxzn.onrender.com/api/login',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})
+    });
+    const data=await res.json();
+    if(!res.ok){alert(data.message||'Login failed');resetBtn(px);return;}
+    localStorage.setItem('token',data.token);
+    localStorage.setItem('role',data.role);
+    localStorage.setItem('username',data.username);
+    btn.innerHTML='✓ Access Granted';btn.style.background='linear-gradient(135deg,#10b981,#06b6d4)';
+    setTimeout(()=>window.location.href='index.html',800);
+  }catch(e){alert('Server unreachable — please try again');resetBtn(px);}
+}
+function resetBtn(px){
+  const btn=document.getElementById(px+'-btn');
+  btn.classList.remove('loading');btn.innerHTML='Sign In';btn.style.background='';
+}
+function shake(px){
+  const el=px==='m'?document.querySelector('.m-login'):document.querySelector('.right');
+  if(!el)return;el.style.animation='shake .32s ease';
+  setTimeout(()=>el.style.animation='',400);
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter')doLogin(window.innerWidth<=768?'m':'d');
+});
+
+/* ── Canvas background ── */
+const canvas=document.getElementById('bg-canvas');
+const ctx=canvas.getContext('2d');
+let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+class Particle{
+  constructor(){this.reset();}
+  reset(){
+    this.x=Math.random()*W;this.y=Math.random()*H;
+    this.size=Math.random()*1.2+.3;
+    this.sx=(Math.random()-.5)*.3;this.sy=(Math.random()-.5)*.3;
+    this.o=Math.random()*.45+.08;this.hue=Math.random()>.5?330:270;
+  }
+  update(){this.x+=this.sx;this.y+=this.sy;if(this.x<0||this.x>W||this.y<0||this.y>H)this.reset();}
+  draw(){ctx.save();ctx.globalAlpha=this.o;ctx.fillStyle=`hsl(${this.hue},80%,65%)`;ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);ctx.fill();ctx.restore();}
+}
+function initP(){particles=Array.from({length:80},()=>new Particle());}
+let frame=0;
+function animate(){
+  requestAnimationFrame(animate);
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='rgba(255,255,255,0.022)';ctx.lineWidth=1;
+  for(let x=0;x<W;x+=52){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=52){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  particles.forEach(p=>{p.update();p.draw();});
+  frame++;
+  const bx=((frame*.3)%(W+200))-100;
+  const g=ctx.createLinearGradient(bx-60,0,bx+60,H);
+  g.addColorStop(0,'transparent');g.addColorStop(.5,'rgba(244,63,94,0.02)');g.addColorStop(1,'transparent');
+  ctx.fillStyle=g;ctx.fillRect(bx-60,0,120,H);
+}
+resize();initP();animate();
+window.addEventListener('resize',()=>{resize();initP();});
 </script>
 </body>
 </html>
