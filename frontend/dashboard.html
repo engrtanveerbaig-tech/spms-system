@@ -1,653 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard — SPMS</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta charset="UTF-8"><title>Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.mini.min.js"></script>
 <link rel="stylesheet" href="css/style.css">
 <style>
-/* ═══════════════════════════════════════════════
-   SPMS — Financial Terminal Design System
-   Deep navy · Amber · Emerald · Sharp mono type
-═══════════════════════════════════════════════ */
-:root{
-  --bg:       #070b14;
-  --bg2:      #0c1120;
-  --bg3:      #111827;
-  --border:   rgba(255,255,255,.06);
-  --border2:  rgba(255,255,255,.11);
-  --text1:    #f0f4ff;
-  --text2:    #8a95b0;
-  --text3:    #3d4a6a;
-  --amber:    #f59e0b;
-  --amber2:   #fbbf24;
-  --green:    #10b981;
-  --green2:   #34d399;
-  --red:      #f43f5e;
-  --blue:     #3b82f6;
-  --violet:   #8b5cf6;
-  --cyan:     #06b6d4;
-  --font:     'Syne', sans-serif;
-  --mono:     'JetBrains Mono', monospace;
-  --r:        10px;
-  --r2:       14px;
-  --shadow:   0 4px 24px rgba(0,0,0,.5);
-}
+body{margin:0;background:var(--night);}
 
-*{box-sizing:border-box;margin:0;padding:0;}
-html{scroll-behavior:smooth;}
-body{background:var(--bg);font-family:var(--font);color:var(--text1);min-height:100vh;overflow-x:hidden;}
+/* ── Date range picker ── */
+.date-range-wrap{display:flex;align-items:center;gap:8px;}
+.date-range-wrap input[type=date]{flex:1;min-width:110px;}
+.date-sep{font-size:11px;color:var(--text3);font-weight:600;flex-shrink:0;}
+.date-range-box{background:var(--card2);border:1px solid var(--borderb);border-radius:var(--rsm);padding:8px 12px;}
+.date-range-display{font-size:10px;color:var(--text3);margin-top:5px;font-family:var(--mono);}
 
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar{width:4px;height:4px;}
-::-webkit-scrollbar-track{background:var(--bg2);}
-::-webkit-scrollbar-thumb{background:#1e2d4a;border-radius:4px;}
+/* ── Status filter select colors ── */
+#filterStatus option[value="Approved"]     {color:#10b981;}
+#filterStatus option[value="Under Review"] {color:#f59e0b;}
+#filterStatus option[value="On Site"]      {color:#3b82f6;}
+#filterStatus option[value="Pending"]      {color:#8b5cf6;}
+#filterStatus option[value="Rejected"]     {color:#ef4444;}
 
-/* ── GRID NOISE OVERLAY ── */
-body::before{
-  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:
-    radial-gradient(ellipse 80% 50% at 20% 10%,rgba(59,130,246,.07) 0%,transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 80%,rgba(16,185,129,.05) 0%,transparent 60%),
-    radial-gradient(ellipse 40% 30% at 50% 50%,rgba(245,158,11,.03) 0%,transparent 70%);
-}
+/* ── Status breakdown strip ── */
+.status-strip{display:flex;gap:8px;flex-wrap:wrap;padding:0 26px 14px;}
+.status-card{flex:1;min-width:110px;background:var(--card);border:1px solid var(--borderb);border-radius:var(--rsm);padding:10px 14px;display:flex;flex-direction:column;gap:3px;cursor:pointer;transition:border-color .18s;}
+.status-card:hover{border-color:var(--violet);}
+.status-card .sc-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;display:inline-block;width:fit-content;}
+.status-card .sc-count{font-size:20px;font-weight:700;font-family:var(--mono);}
+.status-card .sc-amt{font-size:10px;color:var(--text3);font-family:var(--mono);}
+/* badge variants */
+.b-approved  {background:rgba(16,185,129,.15);color:#10b981;}
+.b-review    {background:rgba(245,158,11,.15);color:#f59e0b;}
+.b-onsite    {background:rgba(59,130,246,.15);color:#3b82f6;}
+.b-pending   {background:rgba(139,92,246,.15);color:#8b5cf6;}
+.b-rejected  {background:rgba(239,68,68,.15);color:#ef4444;}
 
-/* ── GRID LINES ── */
-body::after{
-  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:
-    linear-gradient(rgba(255,255,255,.014) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.014) 1px,transparent 1px);
-  background-size:40px 40px;
-}
-
-/* ── ANIMATIONS ── */
-@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-@keyframes countUp{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-@keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
-@keyframes borderPulse{0%,100%{border-color:rgba(245,158,11,.2)}50%{border-color:rgba(245,158,11,.5)}}
-
-/* ── SKELETON ── */
-.skel{
-  background:linear-gradient(90deg,var(--bg3) 25%,#182035 50%,var(--bg3) 75%);
-  background-size:600px 100%;
-  animation:shimmer 1.5s infinite;
-  border-radius:var(--r);
-}
-
-/* ─────────────────────────────────────────────
-   MAIN WRAPPER
-─────────────────────────────────────────────── */
-#dashContent{position:relative;z-index:1;}
-
-/* ─────────────────────────────────────────────
-   HEADER
-─────────────────────────────────────────────── */
-.dash-header{
-  display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;
-  padding:28px 28px 0;
-  animation:fadeUp .4s ease both;
-}
-.dash-eyebrow{
-  font-size:9px;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--text3);font-family:var(--mono);margin-bottom:6px;
-  display:flex;align-items:center;gap:6px;
-}
-.dash-eyebrow::before{
-  content:"";display:inline-block;width:20px;height:1px;background:var(--amber);opacity:.4;
-}
-.dash-title{font-size:28px;font-weight:800;letter-spacing:-.03em;color:var(--text1);line-height:1;}
-.dash-title span{color:var(--amber);}
-.dash-meta{
-  font-size:11px;color:var(--text3);margin-top:6px;font-family:var(--mono);
-  display:flex;align-items:center;gap:8px;
-}
-.dash-meta b{color:var(--green);}
-.dash-meta .dot{width:3px;height:3px;background:var(--text3);border-radius:50%;}
-
-/* Live indicator */
-.live-dot{
-  display:inline-flex;align-items:center;gap:6px;
-  font-size:9px;font-family:var(--mono);color:var(--green2);letter-spacing:.08em;
-  background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);
-  border-radius:20px;padding:5px 12px;
-}
-.live-dot::before{
-  content:"";width:6px;height:6px;background:var(--green);border-radius:50%;
-  animation:pulse 1.4s infinite;
-  box-shadow:0 0 6px var(--green);
-}
-.header-right{display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
-
-/* Total SAR hero */
-.sar-hero{
-  text-align:right;
-  background:var(--bg2);border:1px solid rgba(245,158,11,.2);
-  border-radius:var(--r2);padding:12px 18px;
-  animation:borderPulse 3s infinite;
-}
-.sar-label{font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);margin-bottom:3px;}
-.sar-val{
-  font-size:30px;font-weight:800;font-family:var(--mono);
-  color:var(--amber);letter-spacing:-.02em;
-  text-shadow:0 0 30px rgba(245,158,11,.3);
-}
-.sar-val span{font-size:12px;color:var(--text3);font-weight:400;margin-left:4px;}
-
-/* ─────────────────────────────────────────────
-   FILTER BAR
-─────────────────────────────────────────────── */
-.fbar{
-  display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;
-  padding:18px 28px 0;
-  animation:fadeUp .4s .08s ease both;
-  background:linear-gradient(180deg,transparent,rgba(11,17,32,.6));
-  border-bottom:1px solid var(--border);
-  padding-bottom:18px;
-  margin-bottom:4px;
-}
-.fg{display:flex;flex-direction:column;gap:5px;}
-.fg label{
-  font-size:9px;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--text3);font-family:var(--mono);
-}
-.fg select,.fg input[type=date]{
-  background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);
-  padding:9px 12px;font-family:var(--mono);font-size:11px;color:var(--text1);
-  outline:none;transition:.18s;min-width:130px;cursor:pointer;
-  -webkit-appearance:none;
-  appearance:none;
-}
-.fg select{
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%233d4a6a'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 10px center;
-  padding-right:28px;
-}
-.fg select:focus,.fg input[type=date]:focus{
-  border-color:rgba(245,158,11,.5);
-  box-shadow:0 0 0 3px rgba(245,158,11,.07);
-}
-.fg select:hover,.fg input[type=date]:hover{border-color:var(--border2);}
-
-/* Status select colored options */
-#filterStatus option[value="Approved"]    {color:#10b981;}
-#filterStatus option[value="Under Review"]{color:#f59e0b;}
-#filterStatus option[value="On Site"]     {color:#3b82f6;}
-#filterStatus option[value="Pending"]     {color:#8b5cf6;}
-#filterStatus option[value="Rejected"]    {color:#f43f5e;}
-
-/* Date range box */
-.dbox{
-  background:var(--bg2);border:1px solid var(--border2);
-  border-radius:var(--r);padding:8px 12px;
-}
-.dbox-lbl{
-  font-size:9px;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--text3);font-family:var(--mono);margin-bottom:6px;
-  display:flex;align-items:center;gap:5px;
-}
-.dbox-row{display:flex;align-items:center;gap:6px;}
-.dbox-row input[type=date]{
-  min-width:0;width:122px;background:transparent;
-  border:1px solid var(--border);border-radius:7px;
-  padding:5px 8px;font-family:var(--mono);font-size:10px;
-  color:var(--text1);outline:none;
-}
-.dbox-row input[type=date]:focus{border-color:rgba(245,158,11,.4);}
-.dbox-sep{font-size:10px;color:var(--text3);font-family:var(--mono);}
-.dbox-clear{
-  background:transparent;border:1px solid var(--border);color:var(--text3);
-  cursor:pointer;font-size:12px;padding:3px 7px;transition:.15s;
-  border-radius:6px;line-height:1;
-}
-.dbox-clear:hover{color:var(--red);border-color:rgba(244,63,94,.3);}
-.dbox-info{font-size:9px;font-family:var(--mono);color:var(--violet);margin-top:5px;min-height:12px;}
-
-/* Buttons */
-.fbar-actions{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;align-self:flex-end;}
-.btn{
-  display:inline-flex;align-items:center;gap:5px;padding:9px 15px;
-  border:none;border-radius:var(--r);font-family:var(--mono);
-  font-size:10px;font-weight:500;letter-spacing:.06em;
-  cursor:pointer;transition:.18s;text-transform:uppercase;white-space:nowrap;
-}
-.btn svg{flex-shrink:0;}
-.btn-ghost{
-  background:var(--bg2);border:1px solid var(--border2);color:var(--text2);
-}
-.btn-ghost:hover{border-color:rgba(255,255,255,.18);color:var(--text1);background:var(--bg3);}
-.btn-amber{
-  background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:var(--amber);
-}
-.btn-amber:hover{background:rgba(245,158,11,.2);box-shadow:0 0 20px rgba(245,158,11,.15);}
-.btn-green{
-  background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:var(--green2);
-}
-.btn-green:hover{background:rgba(16,185,129,.2);}
-.btn-reset{
-  background:transparent;border:1px solid var(--border);color:var(--text3);
-}
-.btn-reset:hover{color:var(--red);border-color:rgba(244,63,94,.3);}
-
-/* ─────────────────────────────────────────────
-   KPI STRIP
-─────────────────────────────────────────────── */
-.kpi-strip{
-  display:grid;grid-template-columns:repeat(6,1fr);gap:10px;
-  padding:18px 28px 0;
-  animation:fadeUp .4s .1s ease both;
-}
-@media(max-width:1200px){.kpi-strip{grid-template-columns:repeat(3,1fr);}}
-@media(max-width:700px){.kpi-strip{grid-template-columns:repeat(2,1fr);}}
-
-.kpi-card{
-  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);
-  padding:16px;position:relative;overflow:hidden;transition:.22s;cursor:default;
-}
-.kpi-card::before{
-  content:"";position:absolute;inset:0;opacity:0;
-  background:linear-gradient(135deg,rgba(255,255,255,.03),transparent);
-  transition:.22s;
-}
-.kpi-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
-.kpi-card:hover::before{opacity:1;}
-
-/* Accent line top */
-.kpi-card::after{
-  content:"";position:absolute;top:0;left:0;right:100%;height:2px;
-  transition:.3s;border-radius:2px;
-}
-.kpi-card:hover::after{right:0;}
-.k-amber::after{background:var(--amber);}
-.k-green::after{background:var(--green);}
-.k-violet::after{background:var(--violet);}
-.k-red::after{background:var(--red);}
-.k-blue::after{background:var(--blue);}
-.k-cyan::after{background:var(--cyan);}
-
-.kpi-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
-.kpi-icon svg{width:14px;height:14px;}
-.kpi-lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);margin-bottom:5px;}
-.kpi-val{font-size:20px;font-weight:700;font-family:var(--mono);letter-spacing:-.02em;animation:countUp .5s ease both;}
-.kpi-sub{font-size:9px;font-family:var(--mono);color:var(--text3);margin-top:3px;}
-.kpi-sparkline{position:absolute;bottom:0;right:0;left:0;height:34px;opacity:.35;pointer-events:none;}
-
-/* KPI color variants */
-.k-amber .kpi-icon{background:rgba(245,158,11,.12);color:var(--amber);}
-.k-amber .kpi-val{color:var(--amber);}
-.k-green .kpi-icon{background:rgba(16,185,129,.12);color:var(--green);}
-.k-green .kpi-val{color:var(--green2);}
-.k-violet .kpi-icon{background:rgba(139,92,246,.12);color:var(--violet);}
-.k-violet .kpi-val{color:var(--violet);}
-.k-red .kpi-icon{background:rgba(244,63,94,.12);color:var(--red);}
-.k-red .kpi-val{color:var(--red);}
-.k-blue .kpi-icon{background:rgba(59,130,246,.12);color:var(--blue);}
-.k-blue .kpi-val{color:var(--blue);}
-.k-cyan .kpi-icon{background:rgba(6,182,212,.12);color:var(--cyan);}
-.k-cyan .kpi-val{color:var(--cyan);}
-
-/* ─────────────────────────────────────────────
-   STATUS STRIP
-─────────────────────────────────────────────── */
-.status-strip{
-  display:flex;gap:8px;padding:14px 28px 0;flex-wrap:wrap;
-  animation:fadeUp .4s .14s ease both;
-}
-.st-card{
-  flex:1;min-width:110px;background:var(--bg2);border:1px solid var(--border);
-  border-radius:var(--r);padding:12px 16px;cursor:pointer;transition:.2s;
-  display:flex;flex-direction:column;gap:3px;position:relative;overflow:hidden;
-}
-.st-card::before{
-  content:"";position:absolute;left:0;top:0;bottom:0;width:2px;
-  border-radius:2px;transition:.2s;
-}
-.s-approved::before{background:var(--green);}
-.s-review::before{background:var(--amber);}
-.s-onsite::before{background:var(--blue);}
-.s-pending::before{background:var(--violet);}
-.s-rejected::before{background:var(--red);}
-.st-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
-.st-badge{font-size:9px;font-weight:600;padding:2px 8px;border-radius:20px;display:inline-block;width:fit-content;font-family:var(--mono);letter-spacing:.04em;}
-.st-count{font-size:22px;font-weight:800;font-family:var(--mono);margin-top:3px;line-height:1;}
-.st-amt{font-size:9px;font-family:var(--mono);color:var(--text3);margin-top:2px;}
-
-/* status colors */
-.s-approved{border-color:rgba(16,185,129,.15);}
-.s-approved .st-badge{background:rgba(16,185,129,.12);color:#10b981;}
-.s-approved .st-count{color:#10b981;}
-.s-approved:hover{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.03);}
-
-.s-review{border-color:rgba(245,158,11,.15);}
-.s-review .st-badge{background:rgba(245,158,11,.12);color:#f59e0b;}
-.s-review .st-count{color:#f59e0b;}
-.s-review:hover{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.03);}
-
-.s-onsite{border-color:rgba(59,130,246,.15);}
-.s-onsite .st-badge{background:rgba(59,130,246,.12);color:#3b82f6;}
-.s-onsite .st-count{color:#3b82f6;}
-.s-onsite:hover{border-color:rgba(59,130,246,.35);background:rgba(59,130,246,.03);}
-
-.s-pending{border-color:rgba(139,92,246,.15);}
-.s-pending .st-badge{background:rgba(139,92,246,.12);color:#8b5cf6;}
-.s-pending .st-count{color:#8b5cf6;}
-.s-pending:hover{border-color:rgba(139,92,246,.35);background:rgba(139,92,246,.03);}
-
-.s-rejected{border-color:rgba(244,63,94,.15);}
-.s-rejected .st-badge{background:rgba(244,63,94,.12);color:#f43f5e;}
-.s-rejected .st-count{color:#f43f5e;}
-.s-rejected:hover{border-color:rgba(244,63,94,.35);background:rgba(244,63,94,.03);}
-
-/* ─────────────────────────────────────────────
-   AI BOX
-─────────────────────────────────────────────── */
-.ai-box{
-  margin:14px 28px 0;
-  background:linear-gradient(135deg,rgba(139,92,246,.06),rgba(59,130,246,.04));
-  border:1px solid rgba(139,92,246,.2);
-  border-radius:var(--r2);padding:16px 20px;
-  animation:fadeUp .4s .16s ease both;
-  position:relative;overflow:hidden;
-}
-.ai-box::before{
-  content:"";position:absolute;top:-30px;right:-30px;
-  width:120px;height:120px;border-radius:50%;
-  background:radial-gradient(circle,rgba(139,92,246,.1),transparent 70%);
-  pointer-events:none;
-}
-.ai-hd{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.ai-badge{
-  display:inline-flex;align-items:center;gap:6px;
-  font-size:9px;letter-spacing:.1em;text-transform:uppercase;
-  font-family:var(--mono);color:var(--violet);
-  background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);
-  border-radius:20px;padding:4px 10px;
-}
-.ai-badge svg{animation:spin 3s linear infinite;}
-#ai_summary{font-size:12px;color:var(--text2);line-height:1.8;}
-#ai_summary strong{color:var(--text1);}
-#workTypeSummary{font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:6px;line-height:1.6;}
-#activeFilter{
-  font-size:9px;font-family:var(--mono);color:var(--amber);
-  background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);
-  border-radius:20px;padding:3px 10px;display:none;
-}
-
-/* ─────────────────────────────────────────────
-   MINI STATS ROW
-─────────────────────────────────────────────── */
-.mini-row{
-  display:flex;gap:10px;padding:14px 28px 0;flex-wrap:wrap;
-  animation:fadeUp .4s .18s ease both;
-}
-.mini-card{
-  flex:1;min-width:120px;background:var(--bg2);border:1px solid var(--border);
-  border-radius:var(--r);padding:12px 16px;
-  display:flex;flex-direction:column;gap:4px;transition:.18s;
-}
-.mini-card:hover{border-color:var(--border2);}
-.mini-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);}
-.mini-val{font-size:16px;font-weight:700;font-family:var(--mono);color:var(--text1);}
-
-/* ─────────────────────────────────────────────
-   CHARTS
-─────────────────────────────────────────────── */
-.charts-section{padding:14px 28px 0;animation:fadeUp .4s .2s ease both;}
-.chart-row{display:grid;gap:12px;margin-bottom:12px;}
-.cr-3{grid-template-columns:2fr 1.2fr 1fr;}
-.cr-2{grid-template-columns:1.4fr 1fr;}
-.cr-4{grid-template-columns:1fr 1fr 1fr 1fr;}
-@media(max-width:1200px){.cr-3,.cr-4{grid-template-columns:1fr 1fr;}}
-@media(max-width:900px){.cr-2{grid-template-columns:1fr;}}
-@media(max-width:640px){.cr-3,.cr-4{grid-template-columns:1fr;}}
-
-.chart-card{
-  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);
-  padding:18px;overflow:hidden;position:relative;transition:.2s;
-}
-.chart-card::after{
-  content:"";position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);
-}
-.chart-card:hover{border-color:var(--border2);}
-.chart-hd{
-  display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;
-}
-.chart-title{
-  font-size:10px;font-weight:600;letter-spacing:.08em;
-  text-transform:uppercase;color:var(--text2);font-family:var(--mono);
-}
-.chart-badge{
-  font-size:9px;font-family:var(--mono);color:var(--text3);
-  background:var(--bg3);border:1px solid var(--border);
-  border-radius:20px;padding:2px 8px;
-}
-.chart-bd{position:relative;}
-.h200{height:200px;}
-.h180{height:180px;}
-.h160{height:160px;}
-.h240{height:240px;}
-
-/* Top subs list */
-.ts-list{display:flex;flex-direction:column;gap:0;}
-.ts-row{
-  display:flex;align-items:center;gap:10px;
-  padding:8px 0;border-bottom:1px solid var(--border);
-  transition:.15s;
-}
-.ts-row:last-child{border-bottom:none;}
-.ts-row:hover{padding-left:4px;}
-.ts-rank{font-size:9px;font-family:var(--mono);color:var(--text3);width:18px;flex-shrink:0;}
-.ts-name{font-size:11px;color:var(--text2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ts-bar-wrap{width:80px;height:3px;background:var(--bg3);border-radius:2px;flex-shrink:0;}
-.ts-bar{height:3px;background:linear-gradient(90deg,var(--green),var(--cyan));border-radius:2px;transition:.6s;}
-.ts-val{font-size:10px;font-family:var(--mono);color:var(--green2);width:74px;text-align:right;flex-shrink:0;}
-
-/* Work type cards */
-.wt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.wt-card{
-  background:var(--bg3);border:1px solid var(--border);
-  border-radius:9px;padding:10px 12px;transition:.18s;
-}
-.wt-card:hover{border-color:var(--border2);}
-.wt-lbl{font-size:9px;font-family:var(--mono);color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px;}
-.wt-val{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--amber);}
-.wt-sub{font-size:8px;font-family:var(--mono);color:var(--text3);margin-top:2px;}
-
-/* ─────────────────────────────────────────────
-   SUMMARY TABLE
-─────────────────────────────────────────────── */
-.table-section{padding:14px 28px 32px;animation:fadeUp .4s .24s ease both;}
-.table-hd{
-  display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;
-}
-.table-title{
-  font-size:11px;font-weight:700;letter-spacing:.08em;
-  text-transform:uppercase;color:var(--text2);font-family:var(--mono);
-}
-.table-hint{font-size:9px;font-family:var(--mono);color:var(--text3);}
-.table-hint b{color:var(--amber);}
-.tbox{
-  background:var(--bg2);border:1px solid var(--border);
-  border-radius:var(--r2);overflow:auto;
-  box-shadow:0 4px 24px rgba(0,0,0,.3);
-}
-.tbox table{width:100%;border-collapse:collapse;min-width:900px;}
-.tbox th{
-  background:var(--bg3);padding:10px 14px;
-  font-size:8px;letter-spacing:.12em;text-transform:uppercase;
-  font-family:var(--mono);color:var(--text3);font-weight:500;
-  text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;
-  position:sticky;top:0;z-index:2;
-}
-.tbox td{
-  padding:10px 14px;font-size:11px;font-family:var(--mono);
-  color:var(--text2);border-bottom:1px solid rgba(255,255,255,.03);
-  white-space:nowrap;
-}
-.tbox tr:last-child td{border-bottom:none;}
-.tbox tr:hover td{background:rgba(255,255,255,.025);color:var(--text1);}
-.td-num{color:var(--text1)!important;text-align:right;}
-.td-net{color:var(--green2)!important;font-weight:600;text-align:right;}
-.td-company{color:var(--text1)!important;font-weight:500;}
-
-.st-pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:600;font-family:var(--mono);}
-.b-approved {background:rgba(16,185,129,.12);color:#10b981;}
-.b-review   {background:rgba(245,158,11,.12);color:#f59e0b;}
-.b-onsite   {background:rgba(59,130,246,.12);color:#3b82f6;}
-.b-pending  {background:rgba(139,92,246,.12);color:#8b5cf6;}
-.b-rejected {background:rgba(244,63,94,.12);color:#f43f5e;}
-
-.btn-change{
-  background:var(--bg3);border:1px solid var(--border2);color:var(--text3);
-  border-radius:6px;padding:4px 9px;font-size:9px;font-family:var(--mono);
-  cursor:pointer;transition:.15s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;
-}
-.btn-change:hover{color:var(--amber);border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.05);}
-
-/* ─────────────────────────────────────────────
-   STATUS MODAL
-─────────────────────────────────────────────── */
-#statusModal{
-  display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,.8);z-index:9999;
-  align-items:center;justify-content:center;
-  backdrop-filter:blur(10px);
-}
+/* ── Status change modal ── */
+#statusModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;align-items:center;justify-content:center;}
 #statusModal.open{display:flex;}
-.sm-box{
-  background:var(--bg2);border:1px solid var(--border2);
-  border-radius:18px;padding:30px;width:380px;max-width:92vw;
-  box-shadow:0 40px 80px rgba(0,0,0,.7);
-  animation:fadeUp .25s ease both;
-}
-.sm-box h3{font-size:15px;font-weight:700;color:var(--text1);margin-bottom:5px;}
-.sm-box p{font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:20px;}
-.sm-box label{
-  font-size:9px;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--text3);font-family:var(--mono);display:block;margin-bottom:5px;
-}
-.sm-box select,.sm-box input{
-  width:100%;background:var(--bg3);border:1px solid var(--border2);
-  border-radius:9px;padding:10px 14px;font-family:var(--mono);
-  font-size:12px;color:var(--text1);outline:none;margin-bottom:14px;transition:.15s;
-}
-.sm-box select:focus,.sm-box input:focus{border-color:rgba(245,158,11,.4);box-shadow:0 0 0 3px rgba(245,158,11,.07);}
-.sm-err{color:var(--red);font-size:10px;font-family:var(--mono);min-height:16px;margin-bottom:10px;}
-.sm-actions{display:flex;gap:8px;}
-.sm-actions button{flex:1;}
+.status-modal-box{background:var(--card);border:1px solid var(--borderb);border-radius:12px;padding:28px 28px 22px;width:360px;max-width:90vw;}
+.status-modal-box h3{margin:0 0 6px;font-size:15px;color:var(--text1);}
+.status-modal-box p{margin:0 0 16px;font-size:12px;color:var(--text3);}
+.status-modal-box label{font-size:11px;color:var(--text3);display:block;margin-bottom:4px;}
+.status-modal-box select,
+.status-modal-box input{width:100%;box-sizing:border-box;margin-bottom:12px;}
+.status-modal-actions{display:flex;gap:8px;margin-top:4px;}
+.status-modal-actions button{flex:1;}
+#statusModalErr{color:#ef4444;font-size:11px;min-height:16px;margin-bottom:6px;}
 
-/* ─────────────────────────────────────────────
-   SKELETON
-─────────────────────────────────────────────── */
-#dashSkeleton{padding:28px;position:relative;z-index:1;}
-.sk-hd{display:flex;justify-content:space-between;margin-bottom:24px;}
-.sk-kpi{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px;}
-.sk-chart{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:12px;}
-.sk-row{display:flex;gap:10px;margin-bottom:14px;}
-
-/* ─────────────────────────────────────────────
-   SECTION DIVIDER
-─────────────────────────────────────────────── */
-.section-div{
-  height:1px;
-  background:linear-gradient(90deg,transparent,var(--border),transparent);
-  margin:14px 28px 0;
-}
+/* status pill in table */
+.st-pill{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600;}
 </style>
 </head>
 <body>
 
-<!-- ══════ SKELETON ══════ -->
+<!-- ══════════════════ SKELETON ══════════════════ -->
 <div id="dashboardSkeleton">
-  <div class="sk-hd">
-    <div>
-      <div class="skel" style="width:60px;height:10px;margin-bottom:10px"></div>
-      <div class="skel" style="width:220px;height:28px;margin-bottom:8px"></div>
-      <div class="skel" style="width:280px;height:12px"></div>
-    </div>
-    <div>
-      <div class="skel" style="width:180px;height:68px;border-radius:14px"></div>
-    </div>
+  <div class="dash-hd">
+    <div><div class="skeleton" style="width:150px;height:22px;margin-bottom:7px"></div><div class="skeleton" style="width:220px;height:12px"></div></div>
+    <div class="skeleton" style="width:155px;height:52px;border-radius:10px"></div>
   </div>
-  <div class="skel" style="height:60px;margin-bottom:14px;border-radius:10px"></div>
-  <div class="sk-kpi">
-    <div class="skel" style="height:88px"></div>
-    <div class="skel" style="height:88px"></div>
-    <div class="skel" style="height:88px"></div>
-    <div class="skel" style="height:88px"></div>
-    <div class="skel" style="height:88px"></div>
-    <div class="skel" style="height:88px"></div>
+  <div class="kpi-grid">
+    <div class="skeleton" style="height:70px"></div><div class="skeleton" style="height:70px"></div>
+    <div class="skeleton" style="height:70px"></div><div class="skeleton" style="height:70px"></div>
+    <div class="skeleton" style="height:70px"></div><div class="skeleton" style="height:70px"></div>
   </div>
-  <div class="sk-row">
-    <div class="skel" style="flex:1;height:64px"></div>
-    <div class="skel" style="flex:1;height:64px"></div>
-    <div class="skel" style="flex:1;height:64px"></div>
-    <div class="skel" style="flex:1;height:64px"></div>
-    <div class="skel" style="flex:1;height:64px"></div>
-  </div>
-  <div class="skel" style="height:60px;margin-bottom:12px;border-radius:14px"></div>
-  <div class="sk-row" style="margin-bottom:12px">
-    <div class="skel" style="flex:1;height:54px"></div>
-    <div class="skel" style="flex:1;height:54px"></div>
-    <div class="skel" style="flex:1;height:54px"></div>
-    <div class="skel" style="flex:1;height:54px"></div>
-    <div class="skel" style="flex:1;height:54px"></div>
-    <div class="skel" style="flex:1;height:54px"></div>
-  </div>
-  <div class="sk-chart">
-    <div class="skel" style="height:260px"></div>
-    <div class="skel" style="height:260px"></div>
-    <div class="skel" style="height:260px"></div>
-  </div>
-  <div class="skel" style="height:220px;border-radius:14px"></div>
+  <div class="skeleton" style="height:80px;margin:0 26px 14px;border-radius:13px"></div>
+  <div class="mini-grid"><div class="skeleton" style="height:54px"></div><div class="skeleton" style="height:54px"></div><div class="skeleton" style="height:54px"></div><div class="skeleton" style="height:54px"></div><div class="skeleton" style="height:54px"></div></div>
+  <div class="charts-row r3"><div class="skeleton" style="height:240px"></div><div class="skeleton" style="height:240px"></div><div class="skeleton" style="height:240px"></div></div>
+  <div style="padding:0 26px 26px"><div class="skeleton" style="height:180px;border-radius:13px"></div></div>
 </div>
 
-<!-- ══════ REAL DASHBOARD ══════ -->
+<!-- ══════════════════ REAL DASHBOARD ══════════════════ -->
 <div id="dashboardContent" style="display:none">
 
-  <!-- HEADER -->
-  <div class="dash-header">
+  <!-- Header -->
+  <div class="dash-hd">
     <div>
-      <div class="dash-eyebrow">SPMS · Subcontractor Payment Management System</div>
-      <div class="dash-title">Financial <span>Overview</span></div>
-      <div class="dash-meta">
-        <b id="meta-certs">—</b> certificates
-        <span class="dot"></span>
-        <b id="meta-subs">—</b> subcontractors
-        <span class="dot"></span>
-        <span id="meta-date" style="color:var(--text3)">—</span>
-      </div>
+      <div class="dash-title">Dashboard</div>
+      <div class="dash-sub">Subcontractor Payment Management &nbsp;<span id="activeFilter"></span></div>
     </div>
-    <div class="header-right">
-      <div class="live-dot">LIVE DATA</div>
-      <div class="sar-hero">
-        <div class="sar-label">Total Net Payment</div>
-        <div class="sar-val" id="total_sar">— <span>SAR</span></div>
-      </div>
-    </div>
+    <div class="sar-box"><h3>Total Project Value (SAR)</h3><p id="total_sar">—</p></div>
   </div>
 
-  <!-- FILTER BAR -->
-  <div class="fbar">
+  <!-- ── Filters Bar ── -->
+  <div class="filters-bar">
+    <div class="fg"><label>Company</label><select id="filterCompany"></select></div>
+    <div class="fg"><label>Work Type</label><select id="filterType"></select></div>
+    <div class="fg"><label>Subcontractor</label><select id="filterSub"></select></div>
+
+    <!-- STATUS FILTER -->
     <div class="fg">
-      <label>Company</label>
-      <select id="filterCompany"></select>
-    </div>
-    <div class="fg">
-      <label>Work Type</label>
-      <select id="filterType"></select>
-    </div>
-    <div class="fg">
-      <label>Subcontractor</label>
-      <select id="filterSub"></select>
-    </div>
-    <div class="fg">
-      <label>Status</label>
+      <label>Certificate Status</label>
       <select id="filterStatus">
         <option value="">All Statuses</option>
         <option value="Approved">✓ Approved</option>
@@ -657,238 +102,123 @@ body::after{
         <option value="Rejected">✕ Rejected</option>
       </select>
     </div>
-    <div class="fg">
-      <label>Date Range</label>
-      <div class="dbox">
-        <div class="dbox-lbl">
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Cert Date
+
+    <!-- DATE RANGE FILTER -->
+    <div class="fg" style="align-self:flex-end;">
+      <div class="date-range-box">
+        <label style="font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;display:block">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Date Range (Cert Date)
+        </label>
+        <div class="date-range-wrap">
+          <input type="date" id="dash_date_from" title="From date">
+          <span class="date-sep">→</span>
+          <input type="date" id="dash_date_to" title="To date">
+          <button class="btn-ghost btn-sm" id="clearDateBtn" title="Clear dates" style="padding:6px 8px">✕</button>
         </div>
-        <div class="dbox-row">
-          <input type="date" id="dash_date_from">
-          <span class="dbox-sep">→</span>
-          <input type="date" id="dash_date_to">
-          <button class="dbox-clear" id="clearDateBtn" title="Clear">✕</button>
-        </div>
-        <div class="dbox-info" id="dateInfo"></div>
+        <div class="date-range-display" id="dash_date_range_label"></div>
       </div>
     </div>
-    <div class="fbar-actions">
-      <button class="btn btn-ghost" onclick="generatePDFPreview()">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Preview
-      </button>
-      <button class="btn btn-ghost" onclick="downloadExcel()">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Excel
-      </button>
-      <button class="btn btn-amber" onclick="printPDF()">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print
-      </button>
-      <button class="btn btn-reset" onclick="resetDashboard()">↺ Reset</button>
+
+    <div class="filter-actions">
+      <button class="btn-secondary btn-sm" onclick="generatePDFPreview()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Preview</button>
+      <button class="btn-secondary btn-sm" onclick="downloadExcel()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Excel</button>
+      <button class="btn-secondary btn-sm" onclick="downloadPDF()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF</button>
+      <button class="btn-primary btn-sm" onclick="printPDF()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print</button>
+      <button class="btn-ghost btn-sm" onclick="resetDashboard()">↺ Reset</button>
     </div>
   </div>
 
-  <!-- KPI STRIP -->
-  <div class="kpi-strip">
-    <div class="kpi-card k-amber">
-      <div class="kpi-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-      </div>
-      <div class="kpi-lbl">Total Certified</div>
-      <div class="kpi-val" id="total_work">—</div>
-      <div class="kpi-sub">SAR work value</div>
-      <canvas class="kpi-sparkline" id="spark_work"></canvas>
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi kpi-work"><div class="kpi-label">Total Certified</div><div class="kpi-value" id="total_work">—</div><div class="kpi-sub">SAR</div></div>
+    <div class="kpi kpi-net"><div class="kpi-label">Net Payment</div><div class="kpi-value" id="total_paid">—</div><div class="kpi-sub">SAR</div></div>
+    <div class="kpi kpi-ret"><div class="kpi-label">Retention</div><div class="kpi-value" id="total_retention">—</div><div class="kpi-sub">SAR</div></div>
+    <div class="kpi kpi-ded"><div class="kpi-label">Deductions</div><div class="kpi-value" id="total_deduction">—</div><div class="kpi-sub">SAR</div></div>
+    <div class="kpi kpi-with"><div class="kpi-label">Withdrawn</div><div class="kpi-value" id="total_withdrawn">—</div><div class="kpi-sub">SAR</div></div>
+    <div class="kpi kpi-ref"><div class="kpi-label">Refund</div><div class="kpi-value" id="total_refund">—</div><div class="kpi-sub">SAR</div></div>
+  </div>
+
+  <!-- ── Status Breakdown Strip (NEW) ── -->
+  <div class="status-strip" id="statusStrip">
+    <div class="status-card" onclick="quickFilterStatus('Approved')">
+      <span class="sc-badge b-approved">✓ Approved</span>
+      <span class="sc-count" id="sc_approved">—</span>
+      <span class="sc-amt" id="sa_approved">— SAR</span>
     </div>
-    <div class="kpi-card k-green">
-      <div class="kpi-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      </div>
-      <div class="kpi-lbl">Net Payment</div>
-      <div class="kpi-val" id="total_paid">—</div>
-      <div class="kpi-sub">SAR net out</div>
-      <canvas class="kpi-sparkline" id="spark_net"></canvas>
+    <div class="status-card" onclick="quickFilterStatus('Under Review')">
+      <span class="sc-badge b-review">⏳ Under Review</span>
+      <span class="sc-count" id="sc_review">—</span>
+      <span class="sc-amt" id="sa_review">— SAR</span>
     </div>
-    <div class="kpi-card k-violet">
-      <div class="kpi-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      </div>
-      <div class="kpi-lbl">Retention</div>
-      <div class="kpi-val" id="total_retention">—</div>
-      <div class="kpi-sub">SAR held back</div>
+    <div class="status-card" onclick="quickFilterStatus('On Site')">
+      <span class="sc-badge b-onsite">📍 On Site</span>
+      <span class="sc-count" id="sc_onsite">—</span>
+      <span class="sc-amt" id="sa_onsite">— SAR</span>
     </div>
-    <div class="kpi-card k-red">
-      <div class="kpi-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      </div>
-      <div class="kpi-lbl">Deductions</div>
-      <div class="kpi-val" id="total_deduction">—</div>
-      <div class="kpi-sub">SAR deducted</div>
+    <div class="status-card" onclick="quickFilterStatus('Pending')">
+      <span class="sc-badge b-pending">◷ Pending</span>
+      <span class="sc-count" id="sc_pending">—</span>
+      <span class="sc-amt" id="sa_pending">— SAR</span>
     </div>
-    <div class="kpi-card k-blue">
-      <div class="kpi-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-      </div>
-      <div class="kpi-lbl">Withdrawn</div>
-      <div class="kpi-val" id="total_withdrawn">—</div>
-      <div class="kpi-sub">SAR withdrawn</div>
-    </div>
-    <div class="kpi-card k-cyan">
-      <div class="kpi-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-      </div>
-      <div class="kpi-lbl">Refund</div>
-      <div class="kpi-val" id="total_refund">—</div>
-      <div class="kpi-sub">SAR refunded</div>
+    <div class="status-card" onclick="quickFilterStatus('Rejected')">
+      <span class="sc-badge b-rejected">✕ Rejected</span>
+      <span class="sc-count" id="sc_rejected">—</span>
+      <span class="sc-amt" id="sa_rejected">— SAR</span>
     </div>
   </div>
 
-  <!-- STATUS STRIP -->
-  <div class="status-strip">
-    <div class="st-card s-approved" onclick="quickFilterStatus('Approved')">
-      <span class="st-badge">✓ Approved</span>
-      <span class="st-count" id="sc_approved">—</span>
-      <span class="st-amt" id="sa_approved">— SAR</span>
-    </div>
-    <div class="st-card s-review" onclick="quickFilterStatus('Under Review')">
-      <span class="st-badge">⏳ Under Review</span>
-      <span class="st-count" id="sc_review">—</span>
-      <span class="st-amt" id="sa_review">— SAR</span>
-    </div>
-    <div class="st-card s-onsite" onclick="quickFilterStatus('On Site')">
-      <span class="st-badge">📍 On Site</span>
-      <span class="st-count" id="sc_onsite">—</span>
-      <span class="st-amt" id="sa_onsite">— SAR</span>
-    </div>
-    <div class="st-card s-pending" onclick="quickFilterStatus('Pending')">
-      <span class="st-badge">◷ Pending</span>
-      <span class="st-count" id="sc_pending">—</span>
-      <span class="st-amt" id="sa_pending">— SAR</span>
-    </div>
-    <div class="st-card s-rejected" onclick="quickFilterStatus('Rejected')">
-      <span class="st-badge">✕ Rejected</span>
-      <span class="st-count" id="sc_rejected">—</span>
-      <span class="st-amt" id="sa_rejected">— SAR</span>
-    </div>
-  </div>
-
-  <!-- AI BOX -->
+  <!-- AI Box -->
   <div class="ai-box">
-    <div class="ai-hd">
-      <span class="ai-badge">
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
-        AI Insights
-      </span>
-      <span id="activeFilter"></span>
-    </div>
+    <div class="ai-hd"><span class="ai-badge"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>AI Insights</span></div>
     <div id="ai_summary">Analyzing project data…</div>
     <div id="workTypeSummary"></div>
   </div>
 
-  <!-- MINI STATS -->
-  <div class="mini-row">
-    <div class="mini-card">
-      <div class="mini-lbl">Subcontractors</div>
-      <div class="mini-val" id="total_subs">—</div>
+  <!-- Mini stats -->
+  <div class="mini-grid">
+    <div class="mini">Subcontractors<span id="total_subs">—</span></div>
+    <div class="mini">Avg Certificates<span id="avg_cert">—</span></div>
+    <div class="mini">Work Types<span id="mini_types">—</span></div>
+    <div class="mini">Top Subcontractor<span id="mini_top" style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span></div>
+    <div class="mini">Retention Rate<span id="mini_ret_pct">—</span></div>
+  </div>
+
+  <!-- Charts row 1 -->
+  <div class="charts-row r3">
+    <div class="chart-card">
+      <div class="chart-hd"><span class="chart-title">Payment Trend</span><span style="font-size:10px;color:var(--text3)">Net · Retention · Deduction</span></div>
+      <div class="chart-bd h220"><canvas id="trendChart"></canvas></div>
     </div>
-    <div class="mini-card">
-      <div class="mini-lbl">Avg Certs / Sub</div>
-      <div class="mini-val" id="avg_cert">—</div>
+    <div class="chart-card">
+      <div class="chart-hd"><span class="chart-title">Work Distribution</span></div>
+      <div class="chart-bd h220"><canvas id="typeChart"></canvas></div>
     </div>
-    <div class="mini-card">
-      <div class="mini-lbl">Work Types</div>
-      <div class="mini-val" id="mini_types">—</div>
-    </div>
-    <div class="mini-card">
-      <div class="mini-lbl">Top Subcontractor</div>
-      <div class="mini-val" id="mini_top" style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</div>
-    </div>
-    <div class="mini-card">
-      <div class="mini-lbl">Retention Rate</div>
-      <div class="mini-val" id="mini_ret_pct">—</div>
-    </div>
-    <div class="mini-card">
-      <div class="mini-lbl">Net / Work Ratio</div>
-      <div class="mini-val" id="mini_ratio">—</div>
+    <div class="chart-card" style="display:flex;flex-direction:column;">
+      <div class="chart-hd"><span class="chart-title">SC · PC Overview</span></div>
+      <div id="workTypeCards"></div>
     </div>
   </div>
 
-  <!-- CHARTS ROW 1 -->
-  <div class="charts-section">
-    <div class="chart-row cr-3">
-      <div class="chart-card">
-        <div class="chart-hd">
-          <span class="chart-title">Payment Trend</span>
-          <span class="chart-badge">Net · Retention · Deduction</span>
-        </div>
-        <div class="chart-bd h240"><canvas id="trendChart"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-hd">
-          <span class="chart-title">Work Distribution</span>
-          <span class="chart-badge">By Type</span>
-        </div>
-        <div class="chart-bd h240"><canvas id="typeChart"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-hd"><span class="chart-title">SC · PC Overview</span></div>
-        <div class="wt-grid" id="workTypeCards" style="margin-top:4px;"></div>
-      </div>
+  <!-- Charts row 2 -->
+  <div class="charts-row r2">
+    <div class="chart-card">
+      <div class="chart-hd"><span class="chart-title">Retention Analysis</span><span style="font-size:10px;color:var(--text3)">Retention · Deduction</span></div>
+      <div class="chart-bd h220"><canvas id="retentionChart"></canvas></div>
     </div>
-
-    <!-- CHARTS ROW 2 -->
-    <div class="chart-row cr-4">
-      <div class="chart-card">
-        <div class="chart-hd">
-          <span class="chart-title">Retention Analysis</span>
-          <span class="chart-badge">Top 20</span>
-        </div>
-        <div class="chart-bd h180"><canvas id="retentionChart"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-hd">
-          <span class="chart-title">Status Split</span>
-          <span class="chart-badge">Certificates</span>
-        </div>
-        <div class="chart-bd h180"><canvas id="statusChart"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-hd">
-          <span class="chart-title">Net by Status</span>
-          <span class="chart-badge">SAR</span>
-        </div>
-        <div class="chart-bd h180"><canvas id="statusValChart"></canvas></div>
-      </div>
-      <div class="chart-card" style="display:flex;flex-direction:column;">
-        <div class="chart-hd"><span class="chart-title">Top Subcontractors</span></div>
-        <div class="ts-list" id="topSubsList"></div>
-      </div>
-    </div>
-
-    <!-- CHARTS ROW 3 -->
-    <div class="chart-row cr-2">
-      <div class="chart-card">
-        <div class="chart-hd">
-          <span class="chart-title">Financial Breakdown</span>
-          <span class="chart-badge">Per Subcontractor</span>
-        </div>
-        <div class="chart-bd h200"><canvas id="breakdownChart"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-hd">
-          <span class="chart-title">Advance vs Net</span>
-          <span class="chart-badge">Bubble · Top 20</span>
-        </div>
-        <div class="chart-bd h200"><canvas id="bubbleChart"></canvas></div>
-      </div>
+    <div class="chart-card" style="display:flex;flex-direction:column;">
+      <div class="chart-hd"><span class="chart-title">Top Subcontractors — Net Payment</span></div>
+      <div id="topSubsList"></div>
     </div>
   </div>
 
-  <!-- SUMMARY TABLE -->
-  <div class="table-section">
-    <div class="table-hd">
-      <span class="table-title">Payment Summary</span>
-      <span class="table-hint">Click <b>Change</b> to update certificate status · Admin password required</span>
+  <!-- Summary Table — now includes Status column + Change button -->
+  <div class="table-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;">
+      <span style="font-size:12px;font-weight:600;color:var(--text2)">Payment Summary</span>
+      <span style="font-size:10px;color:var(--text3)">Click <b>Change</b> on any row to update its certificate status</span>
     </div>
-    <div class="tbox">
+    <div class="table-box">
       <table>
         <thead>
           <tr>
@@ -903,13 +233,14 @@ body::after{
     </div>
   </div>
 
-</div><!-- /dashContent -->
+</div><!-- /dashboardContent -->
 
-<!-- STATUS CHANGE MODAL -->
+<!-- ══════════════════ STATUS CHANGE MODAL ══════════════════ -->
 <div id="statusModal">
-  <div class="sm-box">
+  <div class="status-modal-box">
     <h3>🔐 Change Certificate Status</h3>
-    <p>Updating: <strong id="statusModalName" style="color:var(--amber)">—</strong></p>
+    <p id="statusModalSub">Updating status for: <strong id="statusModalName">—</strong></p>
+
     <label>New Status</label>
     <select id="statusModalNewStatus">
       <option value="Approved">✓ Approved</option>
@@ -918,501 +249,382 @@ body::after{
       <option value="Pending">◷ Pending</option>
       <option value="Rejected">✕ Rejected</option>
     </select>
+
     <label>Admin Password</label>
     <input type="password" id="statusModalPwd" placeholder="Enter admin password…">
-    <div class="sm-err" id="statusModalErr"></div>
-    <div class="sm-actions">
-      <button class="btn btn-ghost" onclick="closeStatusModal()">Cancel</button>
-      <button class="btn btn-amber" onclick="confirmStatusChange()">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Confirm
+
+    <div id="statusModalErr"></div>
+
+    <div class="status-modal-actions">
+      <button class="btn-ghost btn-sm" onclick="closeStatusModal()">Cancel</button>
+      <button class="btn-primary btn-sm" onclick="confirmStatusChange()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Confirm
       </button>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-   SCRIPTS
-══════════════════════════════════════════ -->
+<script src="js/xlsx.mini.min.js"></script>
+
 <script>
-/* ── Helpers ── */
-function fmt(n){return Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
-function fmtK(n){n=Number(n||0);if(n>=1e6)return(n/1e6).toFixed(1)+"M";if(n>=1e3)return(n/1e3).toFixed(0)+"K";return n.toFixed(0);}
+/* ═══════════════════════════════════════════════════════
+   DASHBOARD EXTENSION — date range + status filter + status change modal
+   Works on top of dashboard.js (loaded after this block)
+   ═══════════════════════════════════════════════════════ */
 
-/* ── Chart defaults ── */
-Chart.defaults.color='#3d4a6a';
-Chart.defaults.font.family="'JetBrains Mono'";
-
-/* ── Tooltip defaults ── */
-var TOOLTIP={
-  backgroundColor:'#0c1120',
-  titleColor:'#f0f4ff',
-  bodyColor:'#8a95b0',
-  borderColor:'rgba(255,255,255,.08)',
-  borderWidth:1,
-  padding:10,
-  cornerRadius:8,
-};
-
-/* ── Date range ── */
-function updateDateInfo(){
-  var f=document.getElementById("dash_date_from").value;
-  var t=document.getElementById("dash_date_to").value;
-  var el=document.getElementById("dateInfo");
-  if(f&&t){
-    var fd=new Date(f).toLocaleDateString(undefined,{day:"numeric",month:"short"});
-    var td=new Date(t).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"});
-    el.textContent="📅 "+fd+" → "+td;
-  }else if(f||t){
-    el.textContent="📅 "+(f||"any")+" → "+(t||"any");
-  }else{el.textContent="";}
+/* ── Date range label ── */
+function updateDashDateLabel(){
+  var from  = document.getElementById("dash_date_from").value;
+  var to    = document.getElementById("dash_date_to").value;
+  var label = document.getElementById("dash_date_range_label");
+  if(from && to){
+    var f = new Date(from).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"});
+    var t = new Date(to).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"});
+    label.innerHTML = '<span style="color:var(--violet)">📅 '+f+' → '+t+'</span>';
+  } else if(from){
+    label.innerHTML = '<span style="color:var(--violet)">📅 From: '+new Date(from).toLocaleDateString()+'</span>';
+  } else if(to){
+    label.innerHTML = '<span style="color:var(--violet)">📅 To: '+new Date(to).toLocaleDateString()+'</span>';
+  } else {
+    label.innerHTML = "";
+  }
 }
-document.getElementById("dash_date_from").addEventListener("input",function(){updateDateInfo();triggerRender();});
-document.getElementById("dash_date_to").addEventListener("input",function(){updateDateInfo();triggerRender();});
-document.getElementById("clearDateBtn").addEventListener("click",function(){
-  document.getElementById("dash_date_from").value="";
-  document.getElementById("dash_date_to").value="";
-  document.getElementById("dateInfo").textContent="";
-  triggerRender();
+
+document.getElementById("dash_date_from").addEventListener("input", function(){ updateDashDateLabel(); triggerDashRender(); });
+document.getElementById("dash_date_to").addEventListener("input",   function(){ updateDashDateLabel(); triggerDashRender(); });
+document.getElementById("clearDateBtn").addEventListener("click",   function(){
+  document.getElementById("dash_date_from").value = "";
+  document.getElementById("dash_date_to").value   = "";
+  document.getElementById("dash_date_range_label").innerHTML = "";
+  triggerDashRender();
 });
-document.getElementById("filterStatus").addEventListener("change",triggerRender);
+document.getElementById("filterStatus").addEventListener("change", triggerDashRender);
 
-function triggerRender(){if(typeof window._dashRenderAll==="function")window._dashRenderAll();}
-
-/* ── Status quick filter ── */
-function quickFilterStatus(st){
-  var sel=document.getElementById("filterStatus");
-  sel.value=(sel.value===st)?"":st;
-  triggerRender();
+function triggerDashRender(){
+  /* dashboard.js exposes renderAll indirectly via its closure —
+     we hook by calling the public resetDashboard-like re-render path */
+  if(typeof window._dashRenderAll === "function") window._dashRenderAll();
 }
 
-/* ── Status strip update ── */
-function updateStatusStrip(raw){
-  var def=[
-    {k:"Approved",  c:"sc_approved",a:"sa_approved"},
-    {k:"Under Review",c:"sc_review",a:"sa_review"},
-    {k:"On Site",   c:"sc_onsite",  a:"sa_onsite"},
-    {k:"Pending",   c:"sc_pending", a:"sa_pending"},
-    {k:"Rejected",  c:"sc_rejected",a:"sa_rejected"},
+/* ── Quick filter: clicking a status card sets the dropdown ── */
+function quickFilterStatus(status){
+  var sel = document.getElementById("filterStatus");
+  sel.value = (sel.value === status) ? "" : status; /* toggle off if already selected */
+  triggerDashRender();
+}
+
+/* ── Status breakdown updater (called from dashboard.js renderAll patch) ── */
+function updateStatusStrip(rawData){
+  var def = [
+    {key:"Approved",  cId:"sc_approved", aId:"sa_approved"},
+    {key:"Under Review", cId:"sc_review",   aId:"sa_review"},
+    {key:"On Site",   cId:"sc_onsite",   aId:"sa_onsite"},
+    {key:"Pending",   cId:"sc_pending",  aId:"sa_pending"},
+    {key:"Rejected",  cId:"sc_rejected", aId:"sa_rejected"},
   ];
   def.forEach(function(d){
-    var rows=raw.filter(function(r){return(r.cert_status||r.status||"")===d.k;});
-    var amt=rows.reduce(function(s,r){return s+parseFloat(r.net_payment||0);},0);
-    var ce=document.getElementById(d.c),ae=document.getElementById(d.a);
-    if(ce)ce.textContent=rows.length;
-    if(ae)ae.textContent=fmtK(amt)+" SAR";
+    var rows   = rawData.filter(function(r){ return (r.cert_status||r.status||"") === d.key; });
+    var count  = rows.length;
+    var amount = rows.reduce(function(s,r){ return s + (parseFloat(r.net_payment||r.net||0)); }, 0);
+    var cel = document.getElementById(d.cId);
+    var ael = document.getElementById(d.aId);
+    if(cel) cel.textContent = count;
+    if(ael) ael.textContent = amount.toLocaleString("en-SA",{minimumFractionDigits:0,maximumFractionDigits:0}) + " SAR";
   });
 }
 
-/* ── Status pill ── */
+/* ── Status pill HTML helper ── */
 function statusPill(s){
-  var m={"Approved":["b-approved","✓"],"Under Review":["b-review","⏳"],"On Site":["b-onsite","📍"],"Pending":["b-pending","◷"],"Rejected":["b-rejected","✕"]};
-  var x=m[s]||["",""];
-  return'<span class="st-pill '+x[0]+'">'+x[1]+" "+(s||"—")+"</span>";
+  var map = {
+    "Approved":    ["b-approved","✓"],
+    "Under Review":["b-review","⏳"],
+    "On Site":     ["b-onsite","📍"],
+    "Pending":     ["b-pending","◷"],
+    "Rejected":    ["b-rejected","✕"],
+  };
+  var m = map[s] || ["",""];
+  return '<span class="st-pill '+m[0]+'">'+m[1]+' '+(s||"—")+'</span>';
 }
 
-/* ══════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    STATUS CHANGE MODAL
-══════════════════════════════════════════ */
-var _stTarget=null;
-function openStatusModal(id,cur,lbl){
-  _stTarget={paymentId:id};
-  document.getElementById("statusModalName").textContent=lbl;
-  document.getElementById("statusModalNewStatus").value=cur||"Approved";
-  document.getElementById("statusModalPwd").value="";
-  document.getElementById("statusModalErr").textContent="";
+   ═══════════════════════════════════════════════════════ */
+var _statusTarget = null; /* { paymentId, rowIndex } */
+
+function openStatusModal(paymentId, currentStatus, label){
+  _statusTarget = { paymentId: paymentId };
+  document.getElementById("statusModalName").textContent = label;
+  document.getElementById("statusModalNewStatus").value  = currentStatus || "Approved";
+  document.getElementById("statusModalPwd").value        = "";
+  document.getElementById("statusModalErr").textContent  = "";
   document.getElementById("statusModal").classList.add("open");
-  setTimeout(function(){document.getElementById("statusModalPwd").focus();},80);
+  setTimeout(function(){ document.getElementById("statusModalPwd").focus(); }, 80);
 }
-function closeStatusModal(){document.getElementById("statusModal").classList.remove("open");_stTarget=null;}
-document.getElementById("statusModal").addEventListener("click",function(e){if(e.target===this)closeStatusModal();});
-document.getElementById("statusModalPwd").addEventListener("keydown",function(e){if(e.key==="Enter")confirmStatusChange();});
+
+function closeStatusModal(){
+  document.getElementById("statusModal").classList.remove("open");
+  _statusTarget = null;
+}
+
+/* Close on backdrop click */
+document.getElementById("statusModal").addEventListener("click", function(e){
+  if(e.target === this) closeStatusModal();
+});
+
+/* Enter key submits */
+document.getElementById("statusModalPwd").addEventListener("keydown", function(e){
+  if(e.key === "Enter") confirmStatusChange();
+});
 
 async function confirmStatusChange(){
-  var errEl=document.getElementById("statusModalErr");
-  var pwd=document.getElementById("statusModalPwd").value.trim();
-  var newSt=document.getElementById("statusModalNewStatus").value;
-  errEl.textContent="";
-  if(!pwd){errEl.textContent="Password is required.";return;}
-  if(!_stTarget){closeStatusModal();return;}
+  var errEl  = document.getElementById("statusModalErr");
+  var pwd    = document.getElementById("statusModalPwd").value.trim();
+  var newSt  = document.getElementById("statusModalNewStatus").value;
+
+  errEl.textContent = "";
+
+  if(!pwd){ errEl.textContent = "Password is required."; return; }
+  if(!_statusTarget){ closeStatusModal(); return; }
+
+  /* ── Verify password via API ── */
   try{
-    var token=localStorage.getItem("token");
-    var vr=await fetch("https://spms-backend-jxzn.onrender.com/api/auth/verify-admin",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
-      body:JSON.stringify({password:pwd})
+    var token = localStorage.getItem("token");
+    var verRes = await fetch("https://spms-backend-jxzn.onrender.com/api/auth/verify-admin", {
+      method: "POST",
+      headers: { "Content-Type":"application/json", "Authorization":"Bearer "+token },
+      body: JSON.stringify({ password: pwd })
     });
-    if(!vr.ok){var vd=await vr.json().catch(function(){return{};});errEl.textContent=vd.message||"Incorrect password.";return;}
-  }catch(e){errEl.textContent="Network error during verification.";return;}
+    if(!verRes.ok){
+      var vData = await verRes.json().catch(function(){ return {}; });
+      errEl.textContent = vData.message || "Incorrect password or insufficient permissions.";
+      return;
+    }
+  } catch(err){
+    errEl.textContent = "Network error during verification.";
+    return;
+  }
+
+  /* ── Update status via API ── */
   try{
-    var token2=localStorage.getItem("token");
-    var ur=await fetch("https://spms-backend-jxzn.onrender.com/api/payments/"+_stTarget.paymentId+"/status",{
-      method:"PATCH",
-      headers:{"Content-Type":"application/json","Authorization":"Bearer "+token2},
-      body:JSON.stringify({cert_status:newSt})
+    var token2 = localStorage.getItem("token");
+    var upRes = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/"+_statusTarget.paymentId+"/status", {
+      method: "PATCH",
+      headers: { "Content-Type":"application/json", "Authorization":"Bearer "+token2 },
+      body: JSON.stringify({ cert_status: newSt })
     });
-    if(!ur.ok){var ud=await ur.json().catch(function(){return{};});errEl.textContent=ud.message||"Failed to update.";return;}
-    if(Array.isArray(window.__rawShadow)){
-      window.__rawShadow.forEach(function(r){
-        if(String(r.id||r.payment_id)===String(_stTarget.paymentId)){
-          r.cert_status=newSt;r.status=newSt;
+    if(!upRes.ok){
+      var uData = await upRes.json().catch(function(){ return {}; });
+      errEl.textContent = uData.message || "Failed to update status.";
+      return;
+    }
+
+    /* ── Update local RAW_DATA so UI reflects change without full reload ── */
+    if(Array.isArray(window._RAW_DATA_REF)){
+      window._RAW_DATA_REF.forEach(function(r){
+        if(String(r.id||r.payment_id) === String(_statusTarget.paymentId)){
+          r.cert_status = newSt;
+          r.status = newSt;
         }
       });
     }
+
     closeStatusModal();
-    if(typeof window._dashRenderAll==="function")window._dashRenderAll();
-  }catch(e){errEl.textContent="Network error while saving.";}
-}
+    /* re-render */
+    if(typeof window._dashRenderAll === "function") window._dashRenderAll();
 
-/* ══════════════════════════════════════════
-   EXTRA CHARTS
-══════════════════════════════════════════ */
-var _stChart,_stValChart,_bdChart,_bubChart;
-var STATUS_COLORS=["#10b981","#f59e0b","#3b82f6","#8b5cf6","#f43f5e"];
-var STATUS_KEYS=["Approved","Under Review","On Site","Pending","Rejected"];
-
-function drawExtraCharts(raw){
-  /* Status donut */
-  var ctx1=document.getElementById("statusChart");
-  if(ctx1){
-    if(_stChart)_stChart.destroy();
-    var counts=STATUS_KEYS.map(function(k){return raw.filter(function(r){return(r.cert_status||r.status||"")===k;}).length;});
-    _stChart=new Chart(ctx1,{
-      type:"doughnut",
-      data:{
-        labels:STATUS_KEYS,
-        datasets:[{
-          data:counts,
-          backgroundColor:STATUS_COLORS.map(function(c){return c+"20";}),
-          borderColor:STATUS_COLORS,
-          borderWidth:1.5,
-          hoverOffset:4
-        }]
-      },
-      options:{
-        responsive:true,maintainAspectRatio:false,cutout:"70%",
-        plugins:{legend:{display:false},tooltip:TOOLTIP}
-      }
-    });
+  } catch(err){
+    errEl.textContent = "Network error while saving.";
   }
-  /* Status value bar */
-  var ctx2=document.getElementById("statusValChart");
-  if(ctx2){
-    if(_stValChart)_stValChart.destroy();
-    var vals=STATUS_KEYS.map(function(k){
-      return raw.filter(function(r){return(r.cert_status||r.status||"")===k;})
-        .reduce(function(s,r){return s+parseFloat(r.net_payment||0);},0);
-    });
-    _stValChart=new Chart(ctx2,{
-      type:"bar",
-      data:{
-        labels:STATUS_KEYS.map(function(k){return k.split(" ")[0];}),
-        datasets:[{
-          data:vals,
-          backgroundColor:STATUS_COLORS.map(function(c){return c+"30";}),
-          borderColor:STATUS_COLORS,
-          borderWidth:1.5,
-          borderRadius:5,
-          borderSkipped:false
-        }]
-      },
-      options:{
-        responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:TOOLTIP},
-        scales:{
-          x:{ticks:{color:"#3d4a6a",font:{size:9}},grid:{color:"rgba(255,255,255,.03)"}},
-          y:{ticks:{color:"#3d4a6a",font:{size:9}},grid:{color:"rgba(255,255,255,.03)"}}
-        }
-      }
-    });
-  }
-}
-
-function drawBreakdownChart(agg){
-  var ctx=document.getElementById("breakdownChart");if(!ctx)return;
-  if(_bdChart)_bdChart.destroy();
-  var top=[...agg].sort(function(a,b){return b.total_work-a.total_work;}).slice(0,10);
-  _bdChart=new Chart(ctx,{
-    type:"bar",
-    data:{
-      labels:top.map(function(x){return x.subcontractor.split(" ")[0];}),
-      datasets:[
-        {label:"Net",   data:top.map(function(x){return x.total_net;}),      backgroundColor:"rgba(16,185,129,.5)", borderColor:"#10b981",borderWidth:1,borderRadius:3},
-        {label:"Retention",data:top.map(function(x){return x.total_retention;}),backgroundColor:"rgba(139,92,246,.4)", borderColor:"#8b5cf6",borderWidth:1,borderRadius:3},
-        {label:"Deduction",data:top.map(function(x){return x.total_deduction;}),backgroundColor:"rgba(244,63,94,.35)",  borderColor:"#f43f5e",borderWidth:1,borderRadius:3},
-        {label:"Advance",  data:top.map(function(x){return x.total_advance;}),  backgroundColor:"rgba(59,130,246,.35)", borderColor:"#3b82f6",borderWidth:1,borderRadius:3},
-      ]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{
-        legend:{labels:{color:"#8a95b0",font:{size:9},boxWidth:8,padding:8}},
-        tooltip:TOOLTIP
-      },
-      scales:{
-        x:{ticks:{color:"#3d4a6a",font:{size:9}},grid:{display:false}},
-        y:{ticks:{color:"#3d4a6a",font:{size:9}},grid:{color:"rgba(255,255,255,.03)"}}
-      }
-    }
-  });
-}
-
-function drawBubbleChart(agg){
-  var ctx=document.getElementById("bubbleChart");if(!ctx)return;
-  if(_bubChart)_bubChart.destroy();
-  var top=[...agg].sort(function(a,b){return b.total_net-a.total_net;}).slice(0,20);
-  var maxNet=Math.max(...top.map(function(x){return x.total_net;}));
-  var BCOLS=["rgba(16,185,129,.55)","rgba(59,130,246,.55)","rgba(245,158,11,.55)","rgba(139,92,246,.55)","rgba(6,182,212,.55)"];
-  var BCOLS_B=["#10b981","#3b82f6","#f59e0b","#8b5cf6","#06b6d4"];
-  _bubChart=new Chart(ctx,{
-    type:"bubble",
-    data:{
-      datasets:[{
-        label:"Subcontractors",
-        data:top.map(function(x){return{x:x.total_advance,y:x.total_net,r:Math.max(4,Math.round((x.total_net/maxNet)*22))};}),
-        backgroundColor:top.map(function(_,i){return BCOLS[i%5];}),
-        borderColor:top.map(function(_,i){return BCOLS_B[i%5];}),
-        borderWidth:1
-      }]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{...TOOLTIP,callbacks:{label:function(ctx){return" "+top[ctx.dataIndex].subcontractor.split(" ")[0]+": "+fmtK(top[ctx.dataIndex].total_net)+" SAR";}}}
-      },
-      scales:{
-        x:{title:{display:true,text:"ADVANCE",color:"#3d4a6a",font:{size:8}},ticks:{color:"#3d4a6a",font:{size:8}},grid:{color:"rgba(255,255,255,.03)"}},
-        y:{title:{display:true,text:"NET",    color:"#3d4a6a",font:{size:8}},ticks:{color:"#3d4a6a",font:{size:8}},grid:{color:"rgba(255,255,255,.03)"}}
-      }
-    }
-  });
-}
-
-/* KPI sparklines */
-function drawSparkline(canvasId,data,color){
-  var ctx=document.getElementById(canvasId);if(!ctx)return;
-  /* destroy previous */
-  if(ctx._sparkInst)ctx._sparkInst.destroy();
-  ctx._sparkInst=new Chart(ctx,{
-    type:"line",
-    data:{
-      labels:data.map(function(_,i){return i;}),
-      datasets:[{
-        data:data,
-        borderColor:color,
-        borderWidth:1.5,
-        fill:true,
-        backgroundColor:color.replace("rgb(","rgba(").replace(")",",0.12)"),
-        tension:.4,
-        pointRadius:0
-      }]
-    },
-    options:{
-      responsive:false,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{enabled:false}},
-      scales:{x:{display:false},y:{display:false}}
-    }
-  });
 }
 </script>
 
+<script src="js/dashboard.js"></script>
+
+<!-- ══════════════════════════════════════════════════════════
+     PATCH dashboard.js after it loads:
+     — expose _dashRenderAll
+     — inject date/status filtering into getFilteredRaw & applyFilt
+     — call updateStatusStrip after every renderAll
+     — add Status column + Change button to renderTable
+     ══════════════════════════════════════════════════════════ -->
 <script>
-/* ══════════════════════════════════════════
-   PATCH — runs after dashboard.js IIFE
-══════════════════════════════════════════ */
-(function patch(){
+(function patchDashboard(){
+  /* Wait one tick so dashboard.js IIFE has finished */
   setTimeout(function(){
 
-    var _origReset=window.resetDashboard;
+    /* ── Grab the module's internal renderAll via the exposed loadDashboard closure.
+          We override window.resetDashboard (already public) to also call our strip updater,
+          and we expose _dashRenderAll by wrapping resetDashboard logic. ── */
 
-    /* Expose _dashRenderAll */
-    window._dashRenderAll=function(){
-      var ev=new Event("change");
-      var fc=document.getElementById("filterCompany");
-      if(fc)fc.dispatchEvent(ev);
+    /* Expose a thin re-render trigger that calls resetDashboard internals.
+       dashboard.js already exposes window.resetDashboard which calls buildAggregation + initFilters + renderAll.
+       We just need a lighter "renderAll only" path — we'll reuse resetDashboard but preserve filter state. */
+
+    var _origReset = window.resetDashboard;
+
+    /* _dashRenderAll: re-render using current RAW_DATA + FILTER_STATE + our extra filters */
+    window._dashRenderAll = function(){
+      /* We can't call renderAll directly (it's in the closure).
+         Cheapest way: patch the filter selects then call the onchange handlers dashboard.js wired up.
+         But cleanest: just re-trigger via the public filterCompany onchange. */
+      var ev = new Event("change");
+      var fc = document.getElementById("filterCompany");
+      if(fc) fc.dispatchEvent(ev);
     };
 
-    /* Override resetDashboard */
-    window.resetDashboard=function(){
-      document.getElementById("filterStatus").value="";
-      document.getElementById("dash_date_from").value="";
-      document.getElementById("dash_date_to").value="";
-      document.getElementById("dateInfo").textContent="";
-      var af=document.getElementById("activeFilter");
-      if(af){af.textContent="";af.style.display="none";}
-      if(typeof _origReset==="function")_origReset();
+    /* ── Override window.resetDashboard to also reset our new filters ── */
+    window.resetDashboard = function(){
+      document.getElementById("filterStatus").value        = "";
+      document.getElementById("dash_date_from").value      = "";
+      document.getElementById("dash_date_to").value        = "";
+      document.getElementById("dash_date_range_label").innerHTML = "";
+      if(typeof _origReset === "function") _origReset();
     };
 
-    /* MutationObserver on summaryTable */
-    var observer=new MutationObserver(function(){postProcess();});
-    var tb=document.getElementById("summaryTable");
-    if(tb)observer.observe(tb,{childList:true});
+    /* ── Patch getFilteredRaw + applyFilt to respect Status & Date filters.
+          dashboard.js defines these inside its IIFE so we can't override them directly.
+          Instead we patch the renderTable output to add the Status column,
+          and patch renderAll by intercepting the summaryTable update. ──
 
-    /* Filter change listeners */
-    ["filterCompany","filterType","filterSub"].forEach(function(id){
-      var el=document.getElementById(id);
-      if(el)el.addEventListener("change",function(){
-        setTimeout(function(){
-          var raw=window.getReportSafeData?window.getReportSafeData():[];
-          updateStatusStrip(raw);
-          drawExtraCharts(raw);
-        },250);
-      });
+       Strategy: use a MutationObserver on #summaryTable to post-process rows
+       and also add status strip update after each render. */
+
+    /* Keep a live reference to RAW_DATA for the modal local update */
+    /* We read it from a known global pattern dashboard.js uses */
+    Object.defineProperty(window, "_RAW_DATA_REF", {
+      get: function(){
+        /* dashboard.js stores RAW_DATA in its closure — we expose it via the
+           applyGlobalFilter path which assigns to the closure variable.
+           For the modal we only need to update in-place; the reference is the
+           same array dashboard.js holds because applyGlobalFilter does:
+             RAW_DATA = filteredData.map(...) — a NEW array each time.
+           So we keep a live shadow: populated in the MutationObserver below. */
+        return window.__rawDataShadow || [];
+      },
+      configurable: true
     });
-    document.getElementById("filterStatus").addEventListener("change",function(){setTimeout(postProcess,100);});
-    document.getElementById("dash_date_from").addEventListener("input",function(){setTimeout(postProcess,100);});
-    document.getElementById("dash_date_to").addEventListener("input",function(){setTimeout(postProcess,100);});
 
-    /* ── postProcess: re-build table with status + date filters ── */
-    function postProcess(){
-      var tbody=document.getElementById("summaryTable");if(!tbody)return;
-      var raw=window.getReportSafeData?window.getReportSafeData():[];
-      window.__rawShadow=raw;
-      updateStatusStrip(raw);
-      drawExtraCharts(raw);
+    /* ── MutationObserver on summaryTable: after dashboard.js writes rows,
+          we (a) inject Status + Action columns, (b) update the status strip ── */
+    var observer = new MutationObserver(function(){
+      postProcessTable();
+    });
+    var tb = document.getElementById("summaryTable");
+    if(tb) observer.observe(tb, { childList: true });
 
-      var statusF=document.getElementById("filterStatus").value;
-      var df=document.getElementById("dash_date_from").value;
-      var dt=document.getElementById("dash_date_to").value;
+    /* Also observe filterCompany change to refresh strip even when table hasn't changed */
+    var fc2 = document.getElementById("filterCompany");
+    if(fc2) fc2.addEventListener("change", function(){ setTimeout(refreshStrip, 200); });
+    var ft2 = document.getElementById("filterType");
+    if(ft2) ft2.addEventListener("change", function(){ setTimeout(refreshStrip, 200); });
+    var fs2 = document.getElementById("filterSub");
+    if(fs2) fs2.addEventListener("change", function(){ setTimeout(refreshStrip, 200); });
+    document.getElementById("filterStatus").addEventListener("change", function(){ setTimeout(postProcessTable, 100); });
+    document.getElementById("dash_date_from").addEventListener("input", function(){ setTimeout(postProcessTable, 100); });
+    document.getElementById("dash_date_to").addEventListener("input",   function(){ setTimeout(postProcessTable, 100); });
 
-      /* Group filtered records */
-      var grouped={};
-      raw.forEach(function(r){
-        if(statusF&&(r.cert_status||r.status||"")!==statusF)return;
-        if(df||dt){
-          var cd=r.cert_date?r.cert_date.substring(0,10):"";
-          if(df&&cd&&cd<df)return;
-          if(dt&&cd&&cd>dt)return;
-          if((df||dt)&&!cd)return;
+    function refreshStrip(){
+      var data = window.getReportSafeData ? window.getReportSafeData() : [];
+      updateStatusStrip(data);
+    }
+
+    function postProcessTable(){
+      var tbody = document.getElementById("summaryTable");
+      if(!tbody) return;
+
+      /* Grab current raw data (via public API) */
+      var rawData = window.getReportSafeData ? window.getReportSafeData() : [];
+      window.__rawDataShadow = rawData;
+
+      /* Update status strip */
+      updateStatusStrip(rawData);
+
+      /* Apply our extra filters: status + date range */
+      var statusFilter = document.getElementById("filterStatus").value;
+      var dateFrom     = document.getElementById("dash_date_from").value;
+      var dateTo       = document.getElementById("dash_date_to").value;
+
+      /* Build a map: subcontractor+work_type → representative raw records */
+      var grouped = {};
+      rawData.forEach(function(r){
+        /* Apply status filter */
+        if(statusFilter && (r.cert_status||r.status||"") !== statusFilter) return;
+        /* Apply date range filter on cert_date */
+        if(dateFrom || dateTo){
+          var cd = r.cert_date ? r.cert_date.substring(0,10) : "";
+          if(dateFrom && cd && cd < dateFrom) return;
+          if(dateTo   && cd && cd > dateTo)   return;
+          if((dateFrom||dateTo) && !cd) return; /* exclude records with no cert_date when filter active */
         }
-        var key=(r.subcontractor_name||"")+"__"+(r.work_type||"");
-        if(!grouped[key])grouped[key]={records:[],company:r.company_name,sub:r.subcontractor_name,wt:r.work_type};
+        var key = (r.subcontractor_name||"")+"__"+(r.work_type||"");
+        if(!grouped[key]) grouped[key] = { records:[], company:r.company_name, sub:r.subcontractor_name, wt:r.work_type };
         grouped[key].records.push(r);
       });
 
-      observer.disconnect();
-      var html="";
+      /* Re-build tbody rows */
+      observer.disconnect(); /* avoid recursion */
+
+      /* Helper */
+      function fmtN(n){ return Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+      var html = "";
       Object.values(grouped).forEach(function(g){
-        var recs=g.records;
-        function s(k){return recs.reduce(function(t,r){return t+(parseFloat(r[k])||0);},0);}
-        var tWork=s("work_value"),tNet=s("net_payment"),tRet=s("retention_amount");
-        var tDed=s("deduction"),tWd=s("withdrawn")||s("work_withdrawn"),tRef=s("refund"),tAdv=s("advance_deduction");
-        var sts=[...new Set(recs.map(function(r){return r.cert_status||r.status||"";}))].filter(Boolean);
-        var stD=sts.length===1?sts[0]:(sts.length>1?"Mixed":"—");
-        var fId=recs[0].id||recs[0].payment_id||"";
-        var cnt=recs.length;
-        var lbl=(g.sub||"")+" / "+(g.wt||"")+" ("+cnt+" cert"+(cnt!==1?"s":"")+ ")";
-        html+="<tr>"
-          +"<td class='td-company'>"+(g.company||"—")+"</td>"
-          +"<td>"+(g.sub||"—")+"</td>"
-          +"<td>"+(g.wt||"—")+"</td>"
-          +"<td class='td-num'>"+cnt+"</td>"
-          +"<td class='td-num'>"+fmt(tWork)+"</td>"
-          +"<td class='td-num'>"+fmt(tWd)+"</td>"
-          +"<td class='td-num'>"+fmt(tDed)+"</td>"
-          +"<td class='td-num'>"+fmt(tRef)+"</td>"
-          +"<td class='td-num'>"+fmt(tRet)+"</td>"
-          +"<td class='td-num'>"+fmt(tAdv)+"</td>"
-          +"<td class='td-net'>"+fmt(tNet)+"</td>"
-          +"<td>"+statusPill(stD)+"</td>"
-          +"<td><button class='btn-change' onclick='openStatusModal(\""+fId+"\",\""+sts[0]+"\",\""+lbl.replace(/"/g,"'")+"\")'>"
-          +"<svg width='9' height='9' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'/><path d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z'/></svg>"
-          +" Change</button></td>"
+        var recs = g.records;
+        var tWork = recs.reduce(function(s,r){ return s+(parseFloat(r.work_value)||0); },0);
+        var tNet  = recs.reduce(function(s,r){ return s+(parseFloat(r.net_payment)||0); },0);
+        var tRet  = recs.reduce(function(s,r){ return s+(parseFloat(r.retention_amount)||0); },0);
+        var tDed  = recs.reduce(function(s,r){ return s+(parseFloat(r.deduction)||0); },0);
+        var tWd   = recs.reduce(function(s,r){ return s+(parseFloat(r.withdrawn||r.work_withdrawn||0)); },0);
+        var tRef  = recs.reduce(function(s,r){ return s+(parseFloat(r.refund)||0); },0);
+        var tAdv  = recs.reduce(function(s,r){ return s+(parseFloat(r.advance_deduction)||0); },0);
+
+        /* Status: if all same show it, else "Mixed" */
+        var statuses = [...new Set(recs.map(function(r){ return r.cert_status||r.status||""; }).filter(Boolean))];
+        var stDisplay = statuses.length === 1 ? statuses[0] : (statuses.length > 1 ? "Mixed" : "—");
+
+        /* For the change button use the first record's ID (cert-level change opens a cert picker in future;
+           for now show the count of certs that would be affected) */
+        var firstId   = recs[0].id || recs[0].payment_id || "";
+        var certCount = recs.length;
+        var changeLabel = g.sub + " / " + g.wt + " ("+certCount+" cert"+(certCount!==1?"s":"")+ ")";
+
+        html += "<tr>"
+          +"<td>"+  (g.company||"—")      +"</td>"
+          +"<td>"+  (g.sub||"—")          +"</td>"
+          +"<td>"+  (g.wt||"—")           +"</td>"
+          +"<td style='font-family:var(--mono)'>"+certCount+"</td>"
+          +"<td style='font-family:var(--mono)'>"+fmtN(tWork)+"</td>"
+          +"<td style='font-family:var(--mono)'>"+fmtN(tWd)+"</td>"
+          +"<td style='font-family:var(--mono)'>"+fmtN(tDed)+"</td>"
+          +"<td style='font-family:var(--mono)'>"+fmtN(tRef)+"</td>"
+          +"<td style='font-family:var(--mono)'>"+fmtN(tRet)+"</td>"
+          +"<td style='font-family:var(--mono)'>"+fmtN(tAdv)+"</td>"
+          +"<td style='font-family:var(--mono);color:var(--green)'>"+fmtN(tNet)+"</td>"
+          +"<td>"+statusPill(stDisplay)+"</td>"
+          +"<td><button class='btn-ghost btn-sm' style='padding:3px 8px;font-size:10px' "
+            +"onclick='openStatusModal(\""+firstId+"\",\""+statuses[0]+"\",\""+changeLabel.replace(/"/g,"'")+"\")'>"
+            +"<svg width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'/><path d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z'/></svg>"
+            +" Change</button></td>"
           +"</tr>";
       });
-      tbody.innerHTML=html||"<tr><td colspan='13' style='text-align:center;color:var(--text3);padding:20px;font-family:var(--mono);font-size:11px'>No records match the current filters.</td></tr>";
-      observer.observe(tbody,{childList:true});
+
+      tbody.innerHTML = html || "<tr><td colspan='13' style='text-align:center;color:var(--text3);padding:18px'>No records match the current filters.</td></tr>";
+
+      observer.observe(tbody, { childList: true }); /* re-attach */
     }
 
-    /* ── Wrap loadDashboard to add extra charts + sparklines + meta ── */
-    var origLoad=window.loadDashboard;
-    window.loadDashboard=async function(){
-
-      /* Swap skeleton IDs — dashboard.js may use different IDs */
-      var skel=document.getElementById("dashboardSkeleton")||document.getElementById("dashSkeleton");
-      var cont=document.getElementById("dashboardContent")||document.getElementById("dashContent");
-
-      await origLoad();
-
-      /* Show our shell if dashboard.js showed a different one */
-      if(skel)skel.style.display="none";
-      if(cont){cont.style.display="block";}
-      document.getElementById("dashboardSkeleton").style.display="none";
-      document.getElementById("dashboardContent").style.display="block";
-
+    /* Initial strip update after data loads */
+    var origLoadDash = window.loadDashboard;
+    window.loadDashboard = async function(){
+      await origLoadDash();
       setTimeout(function(){
-        var raw=window.getReportSafeData?window.getReportSafeData():[];
-        updateStatusStrip(raw);
-        drawExtraCharts(raw);
-
-        /* Aggregation for breakdown + bubble */
-        var aggMap={};
-        raw.forEach(function(p){
-          var k=p.subcontractor_id+"_"+p.work_type;
-          if(!aggMap[k])aggMap[k]={subcontractor:p.subcontractor_name||"Unknown",total_work:0,total_net:0,total_retention:0,total_advance:0,total_deduction:0,total_refund:0,cert_count:0};
-          aggMap[k].total_work+=parseFloat(p.work_value)||0;
-          aggMap[k].total_net+=parseFloat(p.net_payment)||0;
-          aggMap[k].total_retention+=parseFloat(p.retention_amount)||0;
-          aggMap[k].total_advance+=parseFloat(p.advance_deduction)||0;
-          aggMap[k].total_deduction+=parseFloat(p.deduction)||0;
-          aggMap[k].total_refund+=parseFloat(p.refund)||0;
-          aggMap[k].cert_count++;
-        });
-        var agg=Object.values(aggMap);
-        drawBreakdownChart(agg);
-        drawBubbleChart(agg);
-
-        /* Sparklines from monthly totals */
-        var byDate={};
-        raw.forEach(function(r){
-          var d=(r.cert_date||r.entry_date||"").substring(0,7)||"?";
-          if(!byDate[d])byDate[d]={w:0,n:0};
-          byDate[d].w+=parseFloat(r.work_value)||0;
-          byDate[d].n+=parseFloat(r.net_payment)||0;
-        });
-        var months=Object.keys(byDate).sort();
-        var wVals=months.map(function(m){return byDate[m].w;});
-        var nVals=months.map(function(m){return byDate[m].n;});
-        if(wVals.length>1){
-          drawSparkline("spark_work",wVals,"rgb(245,158,11)");
-          drawSparkline("spark_net",nVals,"rgb(16,185,129)");
-        }
-
-        /* Meta line */
-        var uniqSubs=new Set(raw.map(function(r){return r.subcontractor_id;})).size;
-        var ce=document.getElementById("meta-certs"),se=document.getElementById("meta-subs");
-        if(ce)ce.textContent=raw.length;
-        if(se)se.textContent=uniqSubs;
-
-        /* Date range meta */
-        var dates=raw.map(function(r){return r.cert_date?r.cert_date.substring(0,10):"";}).filter(Boolean).sort();
-        var metaDate=document.getElementById("meta-date");
-        if(metaDate&&dates.length){
-          metaDate.textContent=dates[0]+" → "+dates[dates.length-1];
-        }
-
-        /* Net/Work ratio */
-        var tW=raw.reduce(function(s,r){return s+parseFloat(r.work_value||0);},0);
-        var tN=raw.reduce(function(s,r){return s+parseFloat(r.net_payment||0);},0);
-        var ratioEl=document.getElementById("mini_ratio");
-        if(ratioEl)ratioEl.textContent=tW>0?((tN/tW)*100).toFixed(1)+"%":"—";
-
-      },400);
+        var data = window.getReportSafeData ? window.getReportSafeData() : [];
+        updateStatusStrip(data);
+      }, 400);
     };
 
-    /* Active filter label */
-    var origApply=window.applyGlobalFilter;
-    window.applyGlobalFilter=function(data){
-      if(typeof origApply==="function")origApply(data);
-      var af=document.getElementById("activeFilter");
-      if(af&&data&&data.length){
-        var first=data[0];
-        af.textContent="Filtered: "+(first.company_name||first.subcontractor_name||"");
-        af.style.display="inline-flex";
-      }
-    };
-
-  },0);
+  }, 0);
 })();
 </script>
 
