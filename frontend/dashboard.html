@@ -1016,28 +1016,42 @@ function clickStatusCard(status,cardEl){
   openCertPanel(status,filtered);
 }
 
-/* ══════════════════
-   CERT SLIDE-OUT PANEL
-══════════════════ */
-function openCertPanel(status,certs){
-  var panel=document.getElementById("certPanel");
-  var overlay=document.getElementById("panelOverlay");
-  var title=document.getElementById("panelTitle");
-  var sub=document.getElementById("panelSub");
-  var body=document.getElementById("panelBody");
-  if(!panel)return;
-
-  title.textContent=status+" Certificates";
-  sub.textContent=certs.length+" certificate"+(certs.length!==1?"s":"")+" found";
-
+/* ══════════════════════════════════════
+   2. openCertPanel  — STATUS CARDS CLICK
+══════════════════════════════════════ */
+function openCertPanel(status, certs){
+  var panel   = document.getElementById("certPanel");
+  var overlay = document.getElementById("panelOverlay");
+  var title   = document.getElementById("panelTitle");
+  var sub     = document.getElementById("panelSub");
+  var body    = document.getElementById("panelBody");
+  if(!panel) return;
+ 
+  var isAdmin = localStorage.getItem("role") === "admin";
+ 
+  title.textContent = status+" Certificates";
+  sub.textContent   = certs.length+" certificate"+(certs.length!==1?"s":"")+" found";
+ 
   if(!certs.length){
-    body.innerHTML='<div class="panel-empty">No certificates found for <strong>'+status+'</strong></div>';
-  }else{
-    body.innerHTML=certs.map(function(c){
-      var certDate=c.cert_date?new Date(c.cert_date).toLocaleDateString():"—";
-      var curStatus=c.cert_status||c.status||"Approved";
-      var id=c.id||c.payment_id||"";
-      return'<div class="cert-row" id="cr-'+id+'">'+
+    body.innerHTML = '<div class="panel-empty">No certificates found for <strong>'+status+'</strong></div>';
+  } else {
+    body.innerHTML = certs.map(function(c){
+      var certDate  = c.cert_date ? new Date(c.cert_date).toLocaleDateString() : "—";
+      var curStatus = c.cert_status || c.status || "Approved";
+      var id        = c.id || c.payment_id || "";
+ 
+      var statusControls = isAdmin
+        ? '<select class="status-select-mini" id="sel-'+id+'">'+
+            '<option value="Approved"'       +(curStatus==="Approved"       ?" selected":"")+'>✓ Approved</option>'+
+            '<option value="Under Review"'   +(curStatus==="Under Review"   ?" selected":"")+'>⏳ Under Review</option>'+
+            '<option value="On Site"'        +(curStatus==="On Site"        ?" selected":"")+'>📍 On Site</option>'+
+            '<option value="Pending"'        +(curStatus==="Pending"        ?" selected":"")+'>◷ Pending</option>'+
+            '<option value="Rejected"'       +(curStatus==="Rejected"       ?" selected":"")+'>✕ Rejected</option>'+
+          '</select>'+
+          '<button class="btn-save-status" onclick="saveCertStatus(\''+id+'\',this)">Save</button>'
+        : '<span style="font-size:9px;font-family:var(--mono);color:var(--text3);background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:4px 10px;display:inline-flex;align-items:center;gap:4px;">🔒 View Only</span>';
+ 
+      return '<div class="cert-row" id="cr-'+id+'">'+
         '<div class="cert-row-hd">'+
           '<span class="cert-no">#'+(c.certificate_no||"—")+' '+(c.subcontractor_name||"—")+'</span>'+
           '<span class="cert-date">'+certDate+'</span>'+
@@ -1050,21 +1064,14 @@ function openCertPanel(status,certs){
         '<div class="cert-actions">'+
           '<div class="status-change-row">'+
             statusPillHTML(curStatus)+
-            '<select class="status-select-mini" id="sel-'+id+'">'+
-              '<option value="Approved"'+(curStatus==="Approved"?" selected":"")+'>✓ Approved</option>'+
-              '<option value="Under Review"'+(curStatus==="Under Review"?" selected":"")+'>⏳ Under Review</option>'+
-              '<option value="On Site"'+(curStatus==="On Site"?" selected":"")+'>📍 On Site</option>'+
-              '<option value="Pending"'+(curStatus==="Pending"?" selected":"")+'>◷ Pending</option>'+
-              '<option value="Rejected"'+(curStatus==="Rejected"?" selected":"")+'>✕ Rejected</option>'+
-            '</select>'+
-            '<button class="btn-save-status" onclick="saveCertStatus(\''+id+'\',this)">Save</button>'+
+            statusControls+
           '</div>'+
           '<span class="status-saved-msg" id="msg-'+id+'">✓ Saved</span>'+
         '</div>'+
       '</div>';
     }).join("");
   }
-
+ 
   overlay.classList.add("open");
   panel.classList.add("open");
 }
@@ -1088,42 +1095,62 @@ function statusPillHTML(s){
   return'<span class="st-pill '+x[0]+'">'+x[1]+" "+(s||"—")+"</span>";
 }
 
-/* Save cert status via PATCH — uses existing JWT token, no password needed */
-async function saveCertStatus(paymentId,btn){
-  var sel=document.getElementById("sel-"+paymentId);
-  var msgEl=document.getElementById("msg-"+paymentId);
-  if(!sel)return;
-  var newStatus=sel.value;
+/* ══════════════════════════════════════
+   1. saveCertStatus  — ADMIN ONLY GUARD
+══════════════════════════════════════ */
+async function saveCertStatus(paymentId, btn){
+  // ── ROLE GUARD ──
+  var role = localStorage.getItem("role");
+  if(role !== "admin"){
+    showToast("Access denied — admins only 🔒", "error");
+    addNotification("error", "Only admins can change certificate status", "🔒");
+    return;
+  }
+ 
+  var sel   = document.getElementById("sel-"+paymentId);
+  var msgEl = document.getElementById("msg-"+paymentId);
+  if(!sel) return;
+  var newStatus = sel.value;
   btn.classList.add("saving");
-  btn.textContent="…";
+  btn.textContent = "…";
   try{
-    var token=localStorage.getItem("token");
-    var res=await fetch("https://spms-backend-jxzn.onrender.com/api/payments/"+paymentId+"/status",{
-      method:"PATCH",
-      headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
-      body:JSON.stringify({cert_status:newStatus})
-    });
+    var token = localStorage.getItem("token");
+    var res = await fetch(
+      "https://spms-backend-jxzn.onrender.com/api/payments/"+paymentId+"/status",
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type":  "application/json",
+          "Authorization": "Bearer "+token
+        },
+        body: JSON.stringify({cert_status: newStatus})
+      }
+    );
     if(!res.ok){
-      var d=await res.json().catch(function(){return{};});
-      showToast("Failed: "+(d.message||"Server error"),"error");
-      addNotification("error","Status update failed for cert #"+paymentId,"❌");
-    }else{
+      var d = await res.json().catch(function(){return{};});
+      showToast("Failed: "+(d.message||"Server error"), "error");
+      addNotification("error", "Status update failed for cert #"+paymentId, "❌");
+    } else {
       // Update local data
       if(Array.isArray(window.__rawShadow)){
         window.__rawShadow.forEach(function(r){
-  if(String(r.id||r.payment_id)===String(paymentId)){
-    r.cert_status=newStatus;
-    r.status=newStatus; // ✅ already sets both, good
-  }
-});
+          if(String(r.id||r.payment_id) === String(paymentId)){
+            r.cert_status = newStatus;
+            r.status      = newStatus;
+          }
+        });
       }
-      if(msgEl){msgEl.classList.add("show");setTimeout(function(){msgEl.classList.remove("show");},2000);}
-      addNotification("status","Status changed to <strong>"+newStatus+"</strong> for cert #"+paymentId,"⚡");
-      // Re-render table
-      if(typeof window._dashRenderAll==="function")window._dashRenderAll();
+      if(msgEl){ msgEl.classList.add("show"); setTimeout(function(){msgEl.classList.remove("show");}, 2000); }
+      addNotification("status", "Status changed to <strong>"+newStatus+"</strong> for cert #"+paymentId, "⚡");
+      if(typeof window._dashRenderAll === "function") window._dashRenderAll();
     }
-  }catch(e){showToast("Network error","error");addNotification("error","Network error updating cert #"+paymentId,"❌");}
-  finally{btn.classList.remove("saving");btn.textContent="Save";}
+  } catch(e){
+    showToast("Network error", "error");
+    addNotification("error", "Network error updating cert #"+paymentId, "❌");
+  } finally {
+    btn.classList.remove("saving");
+    btn.textContent = "Save";
+  }
 }
 
 /* ══════════════════
@@ -1372,25 +1399,41 @@ function adaptChartsForTheme(){
   },0);
 })();
 
-/* ══════════════════
-   Open certs for group (from table View Certs button)
-══════════════════ */
-function openCertsForGroup(subName,wtName){
-  var raw=window.__rawShadow||[];
-  var certs=raw.filter(function(r){return(r.subcontractor_name||"")=== subName&&(r.work_type||"")===wtName;});
-  var title=subName+" · "+wtName;
-  document.getElementById("panelTitle").textContent=title;
-  document.getElementById("panelSub").textContent=certs.length+" certificate"+(certs.length!==1?"s":"");
-
-  var body=document.getElementById("panelBody");
+/* ══════════════════════════════════════
+   3. openCertsForGroup  — VIEW CERTS BUTTON
+══════════════════════════════════════ */
+function openCertsForGroup(subName, wtName){
+  var raw   = window.__rawShadow || [];
+  var certs = raw.filter(function(r){
+    return (r.subcontractor_name||"") === subName && (r.work_type||"") === wtName;
+  });
+ 
+  var isAdmin = localStorage.getItem("role") === "admin";
+ 
+  document.getElementById("panelTitle").textContent = subName+" · "+wtName;
+  document.getElementById("panelSub").textContent   = certs.length+" certificate"+(certs.length!==1?"s":"");
+ 
+  var body = document.getElementById("panelBody");
   if(!certs.length){
-    body.innerHTML='<div class="panel-empty">No certificates found.</div>';
-  }else{
-    body.innerHTML=certs.map(function(c){
-      var certDate=c.cert_date?new Date(c.cert_date).toLocaleDateString():"—";
-      var curStatus=c.cert_status||c.status||"Approved";
-      var id=c.id||c.payment_id||"";
-      return'<div class="cert-row" id="cr-'+id+'">'+
+    body.innerHTML = '<div class="panel-empty">No certificates found.</div>';
+  } else {
+    body.innerHTML = certs.map(function(c){
+      var certDate  = c.cert_date ? new Date(c.cert_date).toLocaleDateString() : "—";
+      var curStatus = c.cert_status || c.status || "Approved";
+      var id        = c.id || c.payment_id || "";
+ 
+      var statusControls = isAdmin
+        ? '<select class="status-select-mini" id="sel-'+id+'">'+
+            '<option value="Approved"'       +(curStatus==="Approved"       ?" selected":"")+'>✓ Approved</option>'+
+            '<option value="Under Review"'   +(curStatus==="Under Review"   ?" selected":"")+'>⏳ Under Review</option>'+
+            '<option value="On Site"'        +(curStatus==="On Site"        ?" selected":"")+'>📍 On Site</option>'+
+            '<option value="Pending"'        +(curStatus==="Pending"        ?" selected":"")+'>◷ Pending</option>'+
+            '<option value="Rejected"'       +(curStatus==="Rejected"       ?" selected":"")+'>✕ Rejected</option>'+
+          '</select>'+
+          '<button class="btn-save-status" onclick="saveCertStatus(\''+id+'\',this)">Save</button>'
+        : '<span style="font-size:9px;font-family:var(--mono);color:var(--text3);background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:4px 10px;display:inline-flex;align-items:center;gap:4px;">🔒 View Only</span>';
+ 
+      return '<div class="cert-row" id="cr-'+id+'">'+
         '<div class="cert-row-hd">'+
           '<span class="cert-no">Cert #'+(c.certificate_no||"—")+'</span>'+
           '<span class="cert-date">'+certDate+'</span>'+
@@ -1401,31 +1444,22 @@ function openCertsForGroup(subName,wtName){
           '<div class="cert-val-item"><div class="cert-val-lbl">Net Payment</div><div class="cert-val-num green">'+fmt(c.net_payment)+'</div></div>'+
         '</div>'+
         '<div style="margin-top:4px;font-size:9px;font-family:var(--mono);color:var(--text3)">'+
-          (c.comment?'💬 '+c.comment:'')+
+          (c.comment ? '💬 '+c.comment : '')+
         '</div>'+
         '<div class="cert-actions" style="margin-top:8px;">'+
           '<div class="status-change-row">'+
             '<span style="font-size:9px;font-family:var(--mono);color:var(--text3)">Status:</span>'+
             statusPillHTML(curStatus)+
-            '<select class="status-select-mini" id="sel-'+id+'">'+
-              '<option value="Approved"'+(curStatus==="Approved"?" selected":"")+'>✓ Approved</option>'+
-              '<option value="Under Review"'+(curStatus==="Under Review"?" selected":"")+'>⏳ Under Review</option>'+
-              '<option value="On Site"'+(curStatus==="On Site"?" selected":"")+'>📍 On Site</option>'+
-              '<option value="Pending"'+(curStatus==="Pending"?" selected":"")+'>◷ Pending</option>'+
-              '<option value="Rejected"'+(curStatus==="Rejected"?" selected":"")+'>✕ Rejected</option>'+
-            '</select>'+
-            '<button class="btn-save-status" onclick="saveCertStatus(\''+id+'\',this)">Save</button>'+
+            statusControls+
           '</div>'+
           '<span class="status-saved-msg" id="msg-'+id+'">✓ Saved</span>'+
         '</div>'+
       '</div>';
     }).join("");
   }
-
-  var overlay=document.getElementById("panelOverlay");
-  var panel=document.getElementById("certPanel");
-  overlay.classList.add("open");
-  panel.classList.add("open");
+ 
+  document.getElementById("panelOverlay").classList.add("open");
+  document.getElementById("certPanel").classList.add("open");
 }
 
 /* ══════════════════
