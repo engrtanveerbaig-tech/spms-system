@@ -1,1244 +1,687 @@
+/* ============================================================
+   SPMS v2 — payment.js  (merged: old API paths + new features)
+   New: cert_date, status (Approved/Under Review/On Site/Pending),
+        comment, date-range filter on table.
+   ============================================================ */
+
 function showTableSkeleton() {
-    const table = document.getElementById("table");
-    if (!table) return;
-
-    table.innerHTML = "";
-
-    for (let i = 0; i < 8; i++) {
-        const row = document.createElement("tr");
-
-        row.innerHTML = `
-            <td colspan="15">
-                <div class="skeleton skeleton-row"></div>
-            </td>
-        `;
-
-        table.appendChild(row);
-    }
+  const table = document.getElementById("table");
+  if (!table) return;
+  table.innerHTML = "";
+  for (let i = 0; i < 8; i++) {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td colspan="21"><div class="skeleton skeleton-row"></div></td>`;
+    table.appendChild(row);
+  }
 }
 
-if (!window.selectedProject) {
-    window.selectedProject = "";
-}
-if (!window.API) {
-    window.API = "https://spms-backend-jxzn.onrender.com";
-}
+if (!window.selectedProject) window.selectedProject = "";
+if (!window.API) window.API = "https://spms-backend-jxzn.onrender.com";
 window.originalData = window.originalData || [];
-const originalData = window.originalData;
+const originalData  = window.originalData;
+
 (function () {
 
-let editId = null;
-function formatNumber(n) {
-    return Number(n || 0).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+  let editId = null;
+
+  const STATUS_CFG = {
+    "Approved":     { color:"#10b981", bg:"rgba(16,185,129,.13)",  icon:"✓"  },
+    "Under Review": { color:"#f59e0b", bg:"rgba(245,158,11,.13)",  icon:"⏳" },
+    "On Site":      { color:"#3b82f6", bg:"rgba(59,130,246,.13)",  icon:"📍" },
+    "Pending":      { color:"#8b5cf6", bg:"rgba(139,92,246,.13)",  icon:"◷"  },
+    "Rejected":     { color:"#ef4444", bg:"rgba(239,68,68,.13)",   icon:"✕"  }
+  };
+
+  function statusBadge(s) {
+    const c = STATUS_CFG[s] || { color:"#4a5270", bg:"rgba(74,82,112,.12)", icon:"?" };
+    return `<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.03em;color:${c.color};background:${c.bg};border:1px solid ${c.color}22;white-space:nowrap">${c.icon} ${s||"—"}</span>`;
+  }
+
+  function fmt(n) {
+    return Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+
+  // ── INIT ─────────────────────────────────────────────────
+  function initPaymentPage() {
+    ["work","withdrawn","deduction","refund"].forEach(id => {
+      document.getElementById(id)?.addEventListener("input", calculate);
     });
-}
 
+    const certDateEl = document.getElementById("cert_date");
+    if (certDateEl && !certDateEl.value)
+      certDateEl.value = new Date().toISOString().slice(0,10);
 
-// INIT
-function initPaymentPage() {
+    document.getElementById("saveBtn")?.addEventListener("click", addPayment);
+    document.getElementById("subcontractor_form")?.addEventListener("change", onSubcontractorChange);
+    document.getElementById("work_type_form")?.addEventListener("change", loadSubcontractors);
+    document.getElementById("date_from")?.addEventListener("change", applyFilter);
+    document.getElementById("date_to")?.addEventListener("change", applyFilter);
 
-    const work = document.getElementById("work");
-    const withdrawn = document.getElementById("withdrawn");
-    const deduction = document.getElementById("deduction");
-    const refund = document.getElementById("refund");
-
-    const vat = document.getElementById("vat");
-    const retention = document.getElementById("retention");
-    const net = document.getElementById("net");
-
-    work.oninput = calculate;
-    withdrawn.oninput = calculate;
-    deduction.oninput = calculate;
-    refund.oninput = calculate;
-
-    document.getElementById("saveBtn").onclick = addPayment;
-
-    // 🔥 ADD THESE (MISSING)
     showTableSkeleton();
-    loadFullData(); 
-    loadSubcontractors();         // ✅ load dropdown
+    loadFullData();
+    loadSubcontractors();
 
-    document.getElementById("subcontractor_form")
-        ?.addEventListener("change", onSubcontractorChange);
+    setTimeout(() => {
+      const wt = document.getElementById("work_type_form")?.value;
+      if (wt) loadSubcontractors();
+    }, 200);
 
-    document.getElementById("work_type_form")
-        ?.addEventListener("change", loadSubcontractors);
+    initExportButton();
+  }
 
-    // ✅ AUTO LOAD FIRST SUBCONTRACTOR IF WORK TYPE ALREADY SELECTED
-setTimeout(() => {
-    const wt = document.getElementById("work_type_form").value;
-    if (wt) {
-        loadSubcontractors(); // will auto select first
-    }
-}, 200);
-
-initExportButton();
-}
-
-
-// ================= LOAD SUBS BY WORK TYPE =================
-async function loadSubcontractors() {
-
-    const work_type = document.getElementById("work_type_form").value;
-
-    const select = document.getElementById("subcontractor_form");
+  // ── LOAD SUBS BY WORK TYPE ───────────────────────────────
+  async function loadSubcontractors() {
+    const work_type = document.getElementById("work_type_form")?.value;
+    const select    = document.getElementById("subcontractor_form");
+    if (!select) return;
 
     if (!work_type) {
-        select.innerHTML = "<option>Select Work Type First</option>";
-        return;
+      select.innerHTML = "<option>Select Work Type First</option>";
+      return;
     }
 
-    const res = await fetch(`${API}/api/subcontractors/by-type/${work_type}`, {
-    headers: {
-        "Authorization": `Bearer ${localStorage.getItem("token")}`
-    }
-});
-if (!res.ok) {
-    console.error("Subcontractor API error:", await res.text());
-    return;
-}
+    const res = await fetch(`${window.API}/api/subcontractors/by-type/${work_type}`, {
+      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+    });
+    if (!res.ok) { console.error("Sub API error:", await res.text()); return; }
     const data = await res.json();
-
-if (!Array.isArray(data)) {
-    console.error("Invalid API response:", data);
-    return;
-}
+    if (!Array.isArray(data)) { console.error("Invalid sub response:", data); return; }
 
     select.innerHTML = "<option value=''>Select Subcontractor</option>";
-
     data.forEach(s => {
-       select.innerHTML += `<option value="${s.id}">
-    ${s.name} (${s.project}) - ${s.company_name}
-</option>`;
+      select.innerHTML += `<option value="${s.id}">${s.name} (${s.project}) - ${s.company_name}</option>`;
     });
-    // 🔥 AUTO SELECT FIRST + TRIGGER
-// ✅ ONLY AUTO SELECT IF NOTHING SELECTED
-if (!select.value && select.options.length > 1) {
-    select.value = select.options[1].value;
-    select.dispatchEvent(new Event("change"));
-}
 
-}
+    if (!select.value && select.options.length > 1) {
+      select.value = select.options[1].value;
+      select.dispatchEvent(new Event("change"));
+    }
+  }
 
+  // ── CALCULATE ────────────────────────────────────────────
+  function calculate() {
+    const work      = +(document.getElementById("work")?.value)      || 0;
+    const withdrawn = +(document.getElementById("withdrawn")?.value) || 0;
+    const deduction = +(document.getElementById("deduction")?.value) || 0;
+    const refund    = +(document.getElementById("refund")?.value)    || 0;
+    const after     = work - withdrawn - deduction + refund;
 
-// ================= CALCULATE =================
-function calculate() {
+    const retPct = window.currentRetention || 10;
+    let vatPct   = Number(window.currentVat); if (isNaN(vatPct)) vatPct = 0;
 
-    const after =
-        (+work.value || 0)
-        - (+withdrawn.value || 0)
-        - (+deduction.value || 0)
-        + (+refund.value || 0);
+    let advDeduction = 0, vatAmt = 0, retAmt = 0, netAmt = 0;
+    const hasAdv = window.currentAdvance && window.currentAdvance > 0 && after > 0;
 
-    const retentionPercent = window.currentRetention || 10;
-    let vatPercent = Number(window.currentVat);
-    if (isNaN(vatPercent)) vatPercent = 0;
-
-    let advanceDeduction = 0;
-    let vatAmount = 0;
-    let retentionAmount = 0;
-    let netAmount = 0;
-
-    // ================= 🔥 ADVANCE CONDITION =================
-    const hasAdvance =
-        window.currentAdvance &&
-        window.currentAdvance > 0 &&
-        after > 0; // ✅ VERY IMPORTANT
-
-    if (hasAdvance) {
-
-        // B = 25% of A
-        advanceDeduction = after * 0.25;
-
-        if (advanceDeduction > window.currentAdvance) {
-            advanceDeduction = window.currentAdvance;
-        }
-
-        // C = A - B
-        const afterAdvance = after - advanceDeduction;
-
-        // VAT on C
-        vatAmount = afterAdvance * (vatPercent / 100);
-
-        // Retention ALWAYS on A
-        retentionAmount = after * (retentionPercent / 100);
-
-        // NET
-        netAmount = afterAdvance + vatAmount - retentionAmount;
-
+    if (hasAdv) {
+      advDeduction = Math.min(after * 0.25, window.currentAdvance);
+      const afterAdv = after - advDeduction;
+      vatAmt = afterAdv * (vatPct / 100);
+      retAmt = after    * (retPct / 100);
+      netAmt = afterAdv + vatAmt - retAmt;
     } else {
-
-        // NO ADVANCE
-        vatAmount = after * (vatPercent / 100);
-
-        retentionAmount = after * (retentionPercent / 100);
-
-        netAmount = after + vatAmount - retentionAmount;
+      vatAmt = after * (vatPct / 100);
+      retAmt = after * (retPct / 100);
+      netAmt = after + vatAmt - retAmt;
     }
 
-    // ================= OUTPUT =================
-    vat.value = vatAmount.toFixed(2);
-    retention.value = retentionAmount.toFixed(2);
-    net.value = netAmount.toFixed(2);
+    const sv = (id, v) => { const el = document.getElementById(id); if (el) el.value = v.toFixed(2); };
+    sv("vat",               vatAmt);
+    sv("retention",         retAmt);
+    sv("net",               netAmt);
+    sv("advance_deduction", advDeduction);
+  }
 
-    const advField = document.getElementById("advance_deduction");
-    if (advField) {
-        advField.value = advanceDeduction.toFixed(2);
-    }
-}
+  // ── ADD / UPDATE ─────────────────────────────────────────
+  async function addPayment() {
+    const work      = +(document.getElementById("work")?.value)      || 0;
+    const withdrawn = +(document.getElementById("withdrawn")?.value) || 0;
+    const deduction = +(document.getElementById("deduction")?.value) || 0;
+    const refund    = +(document.getElementById("refund")?.value)    || 0;
+    const after     = work - withdrawn - deduction + refund;
 
-// ================= ADD / UPDATE =================
-async function addPayment() {
-
-    let advanceDeduction = 0; // ✅ MUST BE FIRST
-
-    const after =
-        (+work.value || 0)
-        - (+withdrawn.value || 0)
-        - (+deduction.value || 0)
-        + (+refund.value || 0);
-
-    // ✅ CALCULATE ADVANCE
-    if (
-    window.originalAdvance &&
-    window.originalAdvance > 0 &&
-    after > 0
-) {
-
-        advanceDeduction = after * 0.25;
-
-        if (advanceDeduction > window.currentAdvance) {
-            advanceDeduction = window.currentAdvance;
-        }
+    let advDeduction = 0;
+    if (window.originalAdvance && window.originalAdvance > 0 && after > 0) {
+      advDeduction = Math.min(after * 0.25, window.currentAdvance);
     }
 
-    let vatPercent = Number(window.currentVat);
-if (isNaN(vatPercent)) vatPercent = 0;
+    let vatPct   = Number(window.currentVat); if (isNaN(vatPct)) vatPct = 0;
+    let retPct   = window.currentRetention || 10;
+    let vatAmt   = 0, retAmt = 0, netAmt = 0;
+    const hasAdv = window.currentAdvance && window.currentAdvance > 0 && after > 0;
 
-let retentionPercent = window.currentRetention || 10;
+    if (hasAdv) {
+      const afterAdv = after - advDeduction;
+      vatAmt = afterAdv * (vatPct / 100);
+      retAmt = after    * (retPct / 100);
+      netAmt = afterAdv + vatAmt - retAmt;
+    } else {
+      vatAmt = after * (vatPct / 100);
+      retAmt = after * (retPct / 100);
+      netAmt = after + vatAmt - retAmt;
+    }
 
-let vatAmount = 0;
-let retentionAmount = 0;
-let netAmount = 0;
+    const subcontractorId = document.getElementById("subcontractor_form")?.value;
+    if (!subcontractorId) { alert("Please select subcontractor ❌"); return; }
 
-const hasAdvance =
-    window.currentAdvance &&
-    window.currentAdvance > 0 &&
-    after > 0;
+    const payload = {
+      subcontractor_id:  +subcontractorId,
+      certificate_no:    +(document.getElementById("certificate_no")?.value) || 0,
+      project_name:      document.getElementById("project_form")?.value      || "",
+      project_id:        1,
+      contract_number:   document.getElementById("contract_number")?.value   || "",
+      work_type:         document.getElementById("work_type_form")?.value     || "",
+      work_value:        work,
+      work_withdrawn:    withdrawn,
+      deduction,
+      refund,
+      after_deduction:   after,
+      vat_amount:        vatAmt,
+      retention_amount:  retAmt,
+      advance_deduction: advDeduction,
+      net_payment:       netAmt,
+      cert_date:         document.getElementById("cert_date")?.value          || new Date().toISOString().slice(0,10),
+      status:            document.getElementById("cert_status")?.value         || "Approved",
+      comment:           document.getElementById("cert_comment")?.value?.trim()|| ""
+    };
 
-if (hasAdvance) {
-
-    const afterAdvance = after - advanceDeduction;
-
-    vatAmount = afterAdvance * (vatPercent / 100);
-    retentionAmount = after * (retentionPercent / 100);
-
-    netAmount = afterAdvance + vatAmount - retentionAmount;
-
-} else {
-
-    vatAmount = after * (vatPercent / 100);
-    retentionAmount = after * (retentionPercent / 100);
-
-    netAmount = after + vatAmount - retentionAmount;
-}
-
-    const subcontractorId = document.getElementById("subcontractor_form").value;
-
-// ❌ STOP if not selected
-if (!subcontractorId) {
-    alert("Please select subcontractor ❌");
-    return;
-}
-
-// 🔥 GET PROJECT NAME FIRST (OUTSIDE data)
-const projectName = document.getElementById("project_form").value || "";
-
-const data = {
-    subcontractor_id: +document.getElementById("subcontractor_form").value || 0,
-
-    certificate_no: +document.getElementById("certificate_no").value || 0, // ✅ FIX
-
-    project_name: projectName,
-    project_id: 1,
-
-    contract_number: document.getElementById("contract_number").value || "",
-    work_type: document.getElementById("work_type_form").value || "",
-
-    work_value: +work.value || 0,
-    work_withdrawn: +withdrawn.value || 0,
-    deduction: +deduction.value || 0,
-    refund: +refund.value || 0,
-
-    after_deduction: after || 0,
-    vat_amount: vatAmount || 0,
-    retention_amount: retentionAmount || 0,
-    advance_deduction: advanceDeduction || 0,
-    net_payment: netAmount || 0
-};
-// 🔍 DEBUG
-console.log("FINAL DATA:", data);
-
-    let url = `${API}/api/payments/add`;
-let method = "POST";
-
-if (editId) {
-    url = `${API}/api/payments/update/${editId}`;
-    method = "PUT";
-}
+    let url = `${window.API}/api/payments/add`, method = "POST";
+    if (editId) { url = `${window.API}/api/payments/update/${editId}`; method = "PUT"; }
 
     const res = await fetch(url, {
-    method: method,
-        headers: {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${localStorage.getItem("token")}`
-},
-        body: JSON.stringify(data)
+      method,
+      headers: { "Content-Type":"application/json", "Authorization":`Bearer ${localStorage.getItem("token")}` },
+      body: JSON.stringify(payload)
     });
+    if (!res.ok) { alert("Save failed ❌"); return; }
 
-    if (!res.ok) {
-    alert("Save failed ❌");
-    return;
-}
+    const msgEl = document.getElementById("msg");
+    if (msgEl) { msgEl.innerText = "Saved ✓"; setTimeout(() => { msgEl.innerText = ""; }, 3000); }
 
-    document.getElementById("msg").innerText = await res.text();
+    const currentSub = document.getElementById("subcontractor_form")?.value;
+    const wasEdit    = !!editId;
+    editId           = null;
 
-    
+    const saveBtn = document.getElementById("saveBtn");
+    if (saveBtn) saveBtn.innerText = "Save Payment Certificate";
 
-    // ✅ SAVE FIRST
-const currentSub = document.getElementById("subcontractor_form").value;
+    ["work","withdrawn","deduction","refund","cert_comment","vat","retention","net","advance_deduction"].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = "";
+    });
+    const statusEl = document.getElementById("cert_status"); if (statusEl) statusEl.value = "Approved";
+    const dateEl   = document.getElementById("cert_date");   if (dateEl)   dateEl.value   = new Date().toISOString().slice(0,10);
 
-// store mode BEFORE reset
-const isEdit = !!editId;
-
-// 🔥 RESET EDIT MODE FIRST
-editId = null;
-document.getElementById("saveBtn").innerText = "Save Payment";
-
-// 🔥 CLEAR FORM
-document.querySelectorAll("input").forEach(i => i.value = "");
-
-// reload subcontractors ONLY for ADD
-if (!isEdit) {
-    await loadSubcontractors();
-
-    const select = document.getElementById("subcontractor_form");
-
-    if (currentSub) {
-        select.value = currentSub;
-        select.dispatchEvent(new Event("change"));
+    if (!wasEdit) {
+      await loadSubcontractors();
+      const sel = document.getElementById("subcontractor_form");
+      if (sel && currentSub) { sel.value = currentSub; sel.dispatchEvent(new Event("change")); }
     }
-}
 
-// reload table
-// ✅ DO NOT reload everything
-console.log("Payment saved, no full reload");
-// ✅ SEND TO DASHBOARD (NO RELOAD)
-if (window.updateDashboardLive) {
+    await loadFullData();
+  }
 
-    const newRow = {
-    ...data,
-    company_name: document.querySelector("#subcontractor_form option:checked")?.text || "",
-    subcontractor_name: document.querySelector("#subcontractor_form option:checked")?.text || "",
-    created_at: new Date().toISOString()
-};
+  // ── LOAD FULL DATA ───────────────────────────────────────
+  async function loadFullData() {
+    const res = await fetch(`${window.API}/api/payments/all-full`, {
+      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+    });
+    if (!res.ok) { console.error("Payment API error:", await res.text()); return; }
+    const data = await res.json();
+    if (!Array.isArray(data)) { console.error("Invalid response:", data); return; }
 
-    originalData.push(newRow);
+    originalData.length = 0;
+    originalData.push(...data);
+    originalData.sort((a, b) => Number(a.certificate_no) - Number(b.certificate_no));
 
-// ✅ ONLY ADD NEW ROW (NO FULL RENDER)
-appendRow(newRow);
-}
-}
+    populateFilters(originalData);
+    loadBulkOptions();
+    renderTable(originalData);
+  }
 
-// ================= LOAD =================
-async function loadFullData() {
-    const token = localStorage.getItem("token");
-
-const res = await fetch(`${window.API}/api/payments/all-full`, {
-    headers: {
-        "Authorization": `Bearer ${token}`
-    }
-});
-    if (!res.ok) {
-    console.error("Payment API error:", await res.text());
-    return;
-}
-
-const data = await res.json();
-
-if (!Array.isArray(data)) {
-    console.error("Invalid API response:", data);
-    return;
-}
-originalData.length = 0;
-originalData.push(...data);
-
-originalData.sort((a, b) =>
-    Number(a.certificate_no) - Number(b.certificate_no)
-);
-
-populateFilters(originalData);
-loadBulkOptions();
-
-renderTable(originalData);
-}
-let currentPage = 1;
-
-function loadBulkOptions() {
-
-    const companies = [...new Set(originalData.map(p => p.company_name))];
-
+  // ── BULK OPTIONS ─────────────────────────────────────────
+  function loadBulkOptions() {
+    const companies     = [...new Set(originalData.map(p => p.company_name))];
     const companySelect = document.getElementById("bulk_company");
-    const subSelect = document.getElementById("bulk_sub");
-
+    const subSelect     = document.getElementById("bulk_sub");
     if (!companySelect || !subSelect) return;
 
-    // COMPANY
     companySelect.innerHTML = "<option value=''>Select Company</option>";
+    companies.forEach(c => { companySelect.innerHTML += `<option>${c}</option>`; });
 
-    companies.forEach(c => {
-        companySelect.innerHTML += `<option>${c}</option>`;
-    });
-
-    // WHEN COMPANY CHANGE → LOAD SUBS
     companySelect.onchange = function () {
+      const co     = this.value;
+      const unique = [...new Set(originalData.filter(p => p.company_name===co).map(p => p.subcontractor_name))];
+      subSelect.innerHTML = "<option value=''>Select Subcontractor</option>";
+      unique.forEach(s => { subSelect.innerHTML += `<option>${s}</option>`; });
 
-    const selectedCompany = this.value;
-
-    const subs = originalData
-        .filter(p => p.company_name === selectedCompany)
-        .map(p => p.subcontractor_name);
-
-    const uniqueSubs = [...new Set(subs)];
-
-    subSelect.innerHTML = "<option value=''>Select Subcontractor</option>";
-
-    uniqueSubs.forEach(s => {
-        subSelect.innerHTML += `<option>${s}</option>`;
-    });
-
-    // ✅ MOVE OUTSIDE LOOP
-    subSelect.onchange = function () {
-
-        const selectedSub = subSelect.value;
-
-        const works = originalData
-            .filter(p =>
-                p.company_name === selectedCompany &&
-                p.subcontractor_name === selectedSub
-            )
-            .map(p => p.work_type);
-
-        const uniqueWorks = [...new Set(works)];
-
-        const workSelect = document.getElementById("bulk_work");
-
-        if (!workSelect) return;
-
-        workSelect.innerHTML = "<option value=''>Select Work Type</option>";
-
-        uniqueWorks.forEach(w => {
-            workSelect.innerHTML += `<option>${w}</option>`;
-        });
+      subSelect.onchange = function () {
+        const su     = subSelect.value;
+        const works  = [...new Set(originalData.filter(p => p.company_name===co && p.subcontractor_name===su).map(p => p.work_type))];
+        const workSel = document.getElementById("bulk_work");
+        if (!workSel) return;
+        workSel.innerHTML = "<option value=''>Select Work Type</option>";
+        works.forEach(w => { workSel.innerHTML += `<option>${w}</option>`; });
+      };
     };
-};
-}
+  }
 
+  // ── APPLY FILTER ─────────────────────────────────────────
+  window.applyFilter = function () {
+    const f     = id => document.getElementById(id)?.value || "";
+    const dFrom = f("date_from");
+    const dTo   = f("date_to");
 
-// ================= APPLY FILTER =================
-function applyFilter() {
-
-    const f = id => document.getElementById(id)?.value;
-
-    const isAllEmpty = ![
-    "f_scid","f_project","f_contract","f_company","f_sub","f_work","f_cert",
-    "f_workval","f_withdrawn","f_deduction","f_refund",
-    "f_after","f_vat","f_retention","f_advance","f_net","f_date"
-].some(id => document.getElementById(id)?.value);
+    const allEmpty = [
+      "f_scid","f_project","f_contract","f_company","f_sub","f_work","f_cert",
+      "f_workval","f_withdrawn","f_deduction","f_refund",
+      "f_after","f_vat","f_retention","f_advance","f_net","f_date","f_status"
+    ].every(id => !document.getElementById(id)?.value) && !dFrom && !dTo;
 
     let data = originalData;
 
-    // ✅ IF ANY FILTER SELECTED → FILTER DATA
-    if (!isAllEmpty) {
-        data = originalData.filter(p =>
-    (!f("f_scid") || p.subcontractor_id == f("f_scid")) &&
-    (!f("f_project") || p.project_name == f("f_project")) &&
-    (!f("f_contract") || p.contract_number == f("f_contract")) &&
-    (!f("f_company") || p.company_name == f("f_company")) &&
-    (!f("f_sub") || p.subcontractor_name == f("f_sub")) &&
-    (!f("f_work") || p.work_type == f("f_work")) &&
-    (!f("f_cert") || p.certificate_no == f("f_cert")) &&
-
-    (!f("f_workval") || p.work_value == f("f_workval")) &&
-    (!f("f_withdrawn") || p.work_withdrawn == f("f_withdrawn")) &&
-    (!f("f_deduction") || p.deduction == f("f_deduction")) &&
-    (!f("f_refund") || p.refund == f("f_refund")) &&
-    (!f("f_after") || p.after_deduction == f("f_after")) &&
-    (!f("f_vat") || p.vat_amount == f("f_vat")) &&
-    (!f("f_retention") || p.retention_amount == f("f_retention")) &&
-    (!f("f_advance") || p.advance_deduction == f("f_advance")) &&
-    (!f("f_net") || p.net_payment == f("f_net")) &&
-
-    (!f("f_date") || new Date(p.created_at).toISOString().slice(0,10) === f("f_date"))
-);
+    if (!allEmpty) {
+      data = originalData.filter(p => {
+        const pDate  = (p.cert_date || p.created_at || "").slice(0,10);
+        return (
+          (!f("f_scid")     || p.subcontractor_id     == f("f_scid")) &&
+          (!f("f_project")  || p.project_name         == f("f_project")) &&
+          (!f("f_contract") || p.contract_number       == f("f_contract")) &&
+          (!f("f_company")  || p.company_name          == f("f_company")) &&
+          (!f("f_sub")      || p.subcontractor_name    == f("f_sub")) &&
+          (!f("f_work")     || p.work_type             == f("f_work")) &&
+          (!f("f_cert")     || p.certificate_no        == f("f_cert")) &&
+          (!f("f_workval")  || p.work_value            == f("f_workval")) &&
+          (!f("f_withdrawn")|| p.work_withdrawn        == f("f_withdrawn")) &&
+          (!f("f_deduction")|| p.deduction             == f("f_deduction")) &&
+          (!f("f_refund")   || p.refund                == f("f_refund")) &&
+          (!f("f_after")    || p.after_deduction       == f("f_after")) &&
+          (!f("f_vat")      || p.vat_amount            == f("f_vat")) &&
+          (!f("f_retention")|| p.retention_amount      == f("f_retention")) &&
+          (!f("f_advance")  || p.advance_deduction     == f("f_advance")) &&
+          (!f("f_net")      || p.net_payment           == f("f_net")) &&
+          (!f("f_status")   || p.status                == f("f_status")) &&
+          (!f("f_date")     || (p.created_at||"").slice(0,10) === f("f_date")) &&
+          (!dFrom || pDate >= dFrom) &&
+          (!dTo   || pDate <= dTo)
+        );
+      });
     }
 
-   if (!isAllEmpty) {
-    updateDependentFilters(data);
-} else {
-    // ✅ FIX: restore full dropdowns when reset
-    populateFilters(originalData);
-}
+    if (!allEmpty) updateDependentFilters(data); else populateFilters(originalData);
+    renderTable(data);
+  };
 
-renderTable(data);
-}
-function getFilteredDataForExport(data) {
-
-    const f = id => document.getElementById(id)?.value;
-
-    // ✅ MOVE FUNCTION HERE (OUTSIDE filter)
-    const formatDate = d => new Date(d).toISOString().slice(0,10);
-
-    return data.filter(p =>
-        (!f("f_scid") || p.subcontractor_id == f("f_scid")) &&
-        (!f("f_project") || p.project_name == f("f_project")) &&
-        (!f("f_contract") || p.contract_number == f("f_contract")) &&
-        (!f("f_company") || p.company_name == f("f_company")) &&
-        (!f("f_sub") || p.subcontractor_name == f("f_sub")) &&
-        (!f("f_work") || p.work_type == f("f_work")) &&
-        (!f("f_cert") || p.certificate_no == f("f_cert")) &&
-
-        (!f("f_workval") || p.work_value == f("f_workval")) &&
-        (!f("f_withdrawn") || p.work_withdrawn == f("f_withdrawn")) &&
-        (!f("f_deduction") || p.deduction == f("f_deduction")) &&
-        (!f("f_refund") || p.refund == f("f_refund")) &&
-        (!f("f_after") || p.after_deduction == f("f_after")) &&
-        (!f("f_vat") || p.vat_amount == f("f_vat")) &&
-        (!f("f_retention") || p.retention_amount == f("f_retention")) &&
-        (!f("f_advance") || p.advance_deduction == f("f_advance")) &&
-        (!f("f_net") || p.net_payment == f("f_net")) &&
-
-        (!f("f_date") || formatDate(p.created_at) === f("f_date"))
-    );
-}
-
-function resetFilter() {
-    filter_sub.value = "";
-    filter_project.value = "";
-    renderTable(originalData);
-}
-
-// ================= RENDER =================
-function renderTable(data) {
-
+  // ── RENDER TABLE ─────────────────────────────────────────
+  function renderTable(data) {
     const table = document.getElementById("table");
+    if (!table) return;
     table.innerHTML = "";
 
-    let t_work=0,t_withdrawn=0,t_deduction=0,t_refund=0,
-    t_after=0,t_vat=0,t_retention=0,t_advance=0,t_net=0;
+    let t = { work:0, wd:0, ded:0, ref:0, after:0, vat:0, ret:0, adv:0, net:0 };
 
     data.forEach(p => {
+      t.work  += +p.work_value       || 0;
+      t.wd    += +p.work_withdrawn   || 0;
+      t.ded   += +p.deduction        || 0;
+      t.ref   += +p.refund           || 0;
+      t.after += +p.after_deduction  || 0;
+      t.vat   += +p.vat_amount       || 0;
+      t.ret   += +p.retention_amount || 0;
+      t.adv   += +p.advance_deduction|| 0;
+      t.net   += +p.net_payment      || 0;
 
-        t_work += +p.work_value || 0;
-        t_withdrawn += +p.work_withdrawn || 0;
-        t_deduction += +p.deduction || 0;
-        t_refund += +p.refund || 0;
-        t_after += +p.after_deduction || 0;
-        t_vat += +p.vat_amount || 0;
-        t_retention += +p.retention_amount || 0;
-        t_advance += +p.advance_deduction || 0;
-        t_net += +p.net_payment || 0;
+      const certDate    = p.cert_date  ? new Date(p.cert_date).toLocaleDateString()  : "—";
+      const createdDate = p.created_at ? new Date(p.created_at).toLocaleDateString() : "—";
+      const netColor    = p.net_payment < 0 ? "#ef4444" : "#10b981";
+      const commentIcon = p.comment
+        ? `<span title="${(p.comment||"").replace(/"/g,"&quot;")}" style="cursor:help;color:#f59e0b;font-size:13px">💬</span>&nbsp;`
+        : "";
+      const commentText = p.comment
+        ? `<span style="color:var(--text3);font-size:10px">${p.comment.slice(0,36)}${p.comment.length>36?"…":""}</span>`
+        : "";
 
-        const row = document.createElement("tr");
-
-        row.innerHTML =
-        "<td>"+p.subcontractor_id+"</td>"+   // ✅ NEW COLUMN
-            "<td>"+p.project_name+"</td>"+
-            "<td>"+(p.contract_number || "")+"</td>"+
-            "<td>"+(p.company_name || "")+"</td>"+ 
-            "<td>"+p.subcontractor_name+"</td>"+
-            "<td>"+p.work_type+"</td>"+
-            "<td>"+p.certificate_no+"</td>"+
-            "<td>"+formatNumber(p.work_value)+"</td>"+
-            "<td>"+formatNumber(p.work_withdrawn)+"</td>"+
-            "<td>"+formatNumber(p.deduction)+"</td>"+
-            "<td>"+formatNumber(p.refund)+"</td>"+
-            "<td>"+formatNumber(p.after_deduction)+"</td>"+
-            "<td>"+formatNumber(p.vat_amount)+"</td>"+
-            "<td>"+formatNumber(p.retention_amount)+"</td>"+
-            "<td>"+formatNumber(p.advance_deduction || 0)+"</td>"+   // ✅ NEW
-            "<td style='color:" + (p.net_payment < 0 ? "red" : "black") + "'>"
-+ formatNumber(p.net_payment) +
-"</td>"+
-            "<td>"+new Date(p.created_at).toLocaleDateString()+"</td>"+
-            "<td>"+
-                "<button onclick='editPayment("+p.id+")'>Edit</button> " +
-"<button onclick='deletePayment("+p.id+")'>Delete</button>"+
-            "</td>";
-
-        table.appendChild(row);
-        document.getElementById("t_cer").innerText = data.length;
+      const row = document.createElement("tr");
+      row.innerHTML =
+        `<td style="font-family:var(--mono)">${p.subcontractor_id||"—"}</td>`+
+        `<td>${p.project_name||"—"}</td>`+
+        `<td style="font-family:var(--mono)">${p.contract_number||"—"}</td>`+
+        `<td>${p.company_name||"—"}</td>`+
+        `<td>${p.subcontractor_name||"—"}</td>`+
+        `<td>${p.work_type||"—"}</td>`+
+        `<td style="font-family:var(--mono)">${p.certificate_no||"—"}</td>`+
+        `<td style="font-family:var(--mono)">${fmt(p.work_value)}</td>`+
+        `<td style="font-family:var(--mono)">${fmt(p.work_withdrawn)}</td>`+
+        `<td style="font-family:var(--mono)">${fmt(p.deduction)}</td>`+
+        `<td style="font-family:var(--mono)">${fmt(p.refund)}</td>`+
+        `<td style="font-family:var(--mono)">${fmt(p.after_deduction)}</td>`+
+        `<td style="font-family:var(--mono)">${fmt(p.vat_amount)}</td>`+
+        `<td style="font-family:var(--mono)">${fmt(p.retention_amount)}</td>`+
+        `<td style="font-family:var(--mono)">${fmt(p.advance_deduction||0)}</td>`+
+        `<td style="font-family:var(--mono);color:${netColor};font-weight:600">${fmt(p.net_payment)}</td>`+
+        `<td style="white-space:nowrap">${certDate}</td>`+
+        `<td style="white-space:nowrap">${createdDate}</td>`+
+        `<td>${statusBadge(p.status)}</td>`+
+        `<td style="max-width:130px;white-space:normal">${commentIcon}${commentText}</td>`+
+        `<td>`+
+          `<button onclick="editPayment(${p.id})">Edit</button>`+
+          `<button onclick="deletePayment(${p.id})">Delete</button>`+
+        `</td>`;
+      table.appendChild(row);
     });
 
-    // TOTALS
-    t_work = t_work || 0;
+    const setT = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+    setT("t_cer",       data.length);
+    setT("t_work",      fmt(t.work));
+    setT("t_withdrawn", fmt(t.wd));
+    setT("t_deduction", fmt(t.ded));
+    setT("t_refund",    fmt(t.ref));
+    setT("t_after",     fmt(t.after));
+    setT("t_vat",       fmt(t.vat));
+    setT("t_retention", fmt(t.ret));
+    setT("t_advance",   fmt(t.adv));
+    setT("t_net",       fmt(t.net));
+  }
 
-    document.getElementById("t_work").innerText = formatNumber(t_work);
-document.getElementById("t_withdrawn").innerText = formatNumber(t_withdrawn);
-document.getElementById("t_deduction").innerText = formatNumber(t_deduction);
-document.getElementById("t_refund").innerText = formatNumber(t_refund);
-document.getElementById("t_after").innerText = formatNumber(t_after);
-document.getElementById("t_vat").innerText = formatNumber(t_vat);
-document.getElementById("t_retention").innerText = formatNumber(t_retention);
-document.getElementById("t_advance").innerText = formatNumber(t_advance);
-document.getElementById("t_net").innerText = formatNumber(t_net);
-}
-function appendRow(p) {
-
-    const table = document.getElementById("table");
-
-    const row = document.createElement("tr");
-
-    row.innerHTML =
-        "<td>"+p.subcontractor_id+"</td>"+
-        "<td>"+p.project_name+"</td>"+
-        "<td>"+(p.contract_number || "")+"</td>"+
-        "<td>"+(p.company_name || "")+"</td>"+
-        "<td>"+p.subcontractor_name+"</td>"+
-        "<td>"+p.work_type+"</td>"+
-        "<td>"+p.certificate_no+"</td>"+
-        "<td>"+formatNumber(p.work_value)+"</td>"+
-        "<td>"+formatNumber(p.work_withdrawn)+"</td>"+
-        "<td>"+formatNumber(p.deduction)+"</td>"+
-        "<td>"+formatNumber(p.refund)+"</td>"+
-        "<td>"+formatNumber(p.after_deduction)+"</td>"+
-        "<td>"+formatNumber(p.vat_amount)+"</td>"+
-        "<td>"+formatNumber(p.retention_amount)+"</td>"+
-        "<td>"+formatNumber(p.advance_deduction || 0)+"</td>"+
-        "<td>"+formatNumber(p.net_payment)+"</td>"+
-        "<td>"+new Date(p.created_at).toLocaleDateString()+"</td>"+
-        "<td>" +
-"<button onclick='editPayment("+p.id+")'>Edit</button> " +
-"<button onclick='deletePayment("+p.id+")'>Delete</button>" +
-"</td>";
-    table.appendChild(row);
-}
-
-// ================= EDIT =================
-function editPayment(id) {
-
+  // ── EDIT ─────────────────────────────────────────────────
+  window.editPayment = function (id) {
     const p = originalData.find(x => x.id === id);
-
+    if (!p) return;
     editId = id;
 
-    document.getElementById("saveBtn").innerText = "Update Payment";
+    const saveBtn = document.getElementById("saveBtn");
+    if (saveBtn) saveBtn.innerText = "Update Certificate";
 
-    document.getElementById("project_form").value = p.project_id || "";
-    document.getElementById("contract_number").value = p.contract_number;
+    const wtEl = document.getElementById("work_type_form");
+    if (wtEl) { wtEl.value = p.work_type || ""; wtEl.dispatchEvent(new Event("change")); }
 
-    work.value = p.work_value;
-    withdrawn.value = p.work_withdrawn;
-    deduction.value = p.deduction;
-    refund.value = p.refund;
+    setTimeout(async () => {
+      const subEl = document.getElementById("subcontractor_form");
+      if (subEl) { subEl.value = p.subcontractor_id; await onSubcontractorChange(); }
 
-    calculate();
-}
+      const sv = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ""; };
+      sv("work",           p.work_value);
+      sv("withdrawn",      p.work_withdrawn);
+      sv("deduction",      p.deduction);
+      sv("refund",         p.refund);
+      sv("certificate_no", p.certificate_no);
+      sv("cert_date",      (p.cert_date||"").slice(0,10) || new Date().toISOString().slice(0,10));
+      sv("cert_status",    p.status  || "Approved");
+      sv("cert_comment",   p.comment || "");
 
-// ================= DELETE =================
-async function deletePayment(id) {
+      calculate();
+      document.querySelector(".pay-sec")?.scrollIntoView({ behavior:"smooth" });
+    }, 400);
+  };
 
-    if (!confirm("Delete?")) return;
-
-    const res = await fetch(`${API}/api/payments/delete/${id}`, {
-        method: "DELETE",
-        headers: {
-            "Authorization": `Bearer ${localStorage.getItem("token")}`
-        }
-    });
-
-    if (!res.ok) {
-        alert("Delete failed ❌");
-        return;
-    }
-
-    // ✅ REMOVE FROM ARRAY (CORRECT WAY)
-    const index = originalData.findIndex(x => x.id === id);
-    if (index !== -1) {
-        originalData.splice(index, 1);
-    }
-
-    // ✅ RE-RENDER TABLE
-    renderTable(originalData);
-}
-
-// ================= PRINT =================
-function printPayment(id) {
-
+  // ── DELETE ───────────────────────────────────────────────
+  window.deletePayment = async function (id) {
     const p = originalData.find(x => x.id === id);
+    if (!confirm(`Delete certificate #${p?.certificate_no||id}?`)) return;
 
-    const win = window.open("", "_blank");
-
-    win.document.write("<h2>Payment Certificate</h2>");
-    win.document.write("<p><b>Work Type:</b> "+p.work_type+"</p>");
-    win.document.write("<p><b>Subcontractor:</b> "+p.subcontractor_name+"</p>");
-    win.document.write("<p><b>Project:</b> "+p.project_name+"</p>");
-    win.document.write("<p><b>Contract:</b> "+p.contract_number+"</p>");
-    win.document.write("<p><b>Net:</b> "+p.net_payment+"</p>");
-
-    win.document.close();
-    setTimeout(()=>win.print(),300);
-}
-
-// ================= EXPORT =================
-function initExportButton() {
-    const btn = document.getElementById("exportBtn");
-    if (!btn) return;
-
-    btn.onclick = async function () {
-
-    const filtered = getFilteredDataForExport(originalData);
-
-    // ✅ SORT (PROJECT → WORK → SUB → CERT)
-    filtered.sort((a, b) =>
-        a.project_name.localeCompare(b.project_name) ||
-        a.work_type.localeCompare(b.work_type) ||
-        a.subcontractor_name.localeCompare(b.subcontractor_name) ||
-        Number(a.certificate_no) - Number(b.certificate_no)
-    );
-
-    if (!filtered.length) {
-        alert("No data to export");
-        return;
-    }
-
-    // ✅ GROUPING (PROJECT + WORK + SUB)
-    const groups = {};
-
-    filtered.forEach(p => {
-        const key = `${p.project_name}__${p.work_type}__${p.subcontractor_id}`;
-
-        if (!groups[key]) {
-            groups[key] = [];
-        }
-
-        groups[key].push(p);
+    const res = await fetch(`${window.API}/api/payments/delete/${id}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
     });
+    if (!res.ok) { alert("Delete failed ❌"); return; }
 
-    // ================= HTML START =================
-    let html = `
-    <html>
-    <head>
-    <style>
-    @page {
-    size: A4;
-    margin: 15mm;
-}
+    const idx = originalData.findIndex(x => x.id === id);
+    if (idx !== -1) originalData.splice(idx, 1);
+    renderTable(originalData);
+  };
 
-body {
-    font-family: Arial;
-    padding: 10px;
-    font-size: 11px;
-}
-
-h1 {
-    text-align: center;
-    color: #1f4e79;
-    font-size: 22px;
-}
-
-h2 {
-    color: #1f4e79;
-    margin: 5px 0;
-}
-
-h3 {
-    color: #dba512;
-    margin: 5px 0;
-}
-
-h4 {
-    margin: 5px 0;
-}
-
-table {
-    border-collapse: collapse;
-    width: 100%;
-    margin-top: 8px;
-    page-break-inside: avoid;
-}
-
-th {
-    background: #1f4e79;
-    color: white;
-}
-
-td, th {
-
-    border: 1px solid #ccc;
-    padding:3px 4px;
-    text-align: center;
-    font-size: 10px;
-}
-    .report-block {
-    page-break-inside: avoid;
-    margin-bottom: 15px;
-}
-
-.total {
-    font-weight: bold;
-    background: #f0f0f0;
-}
-
-/* ✅ PAGE BREAK */
-.page {
-    page-break-inside: avoid;
-    margin-bottom: 10px;
-}
-
-/* ✅ HIDE EXTRA SPACE */
-@media print {
-
-    @page {
-        size: A4;
-        margin: 6.35mm;
-    }
-    table {
-        width: 100% !important;
-        border-collapse: collapse;
-    }
-
-    th {
-        background: #1f4e79 !important;
-        color: white !important;
-
-        /* 🔥 FORCE COLOR PRINT */
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-
-    td, th {
-        border: 1px solid #ccc;
-        padding: 4px;
-        text-align: center;
-    }
-
-    /* 🔥 FORCE COLORS FOR ALL */
-    * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
-
-    /* 🔥 PAGE BREAK */
-    .page {
-        page-break-after: always;
-    }
-}
-        h1 { text-align:center; color:#1f4e79; font-size: 40px; }
-        h2 { color:#1f4e79; margin-top:8px; }
-        h3 { color:#dba512; margin:4px 0; font-size:20px; }
-        h4 { color:#333; margin:3px 0; }
-
-        table { border-collapse:collapse; width:100%; margin-top:10px; }
-        th { background:#1f4e79; color:white; }
-        p { margin:3px 0; }
-h3, h4 { margin:5px 0; }
-        td, th { border:1px solid #ccc;  padding:4px; text-align:center; font-size:12px; }
-
-        .total { font-weight:bold; background:#f0f0f0; }
-
-        .footer {
-            margin-top: 10px;
-            font-size: 10px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 40px;
-        }
-
-        .page { page-break-after: always; }
-    
-    
-    </style>
-    </head>
-    <body>
-
-    <div style="border-bottom:2px dashed #ccc; padding-bottom:10px; margin-bottom:20px;">
-
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-            <h2 style="margin:0; color:#1f4e79;">Payment Certificate Report</h2>
-            <p><b>Date:</b> ${new Date().toLocaleDateString()}</p>
-        </div>
-
-       
-</div>
-    `;
-
-    // ================= LOOP GROUPS =================
-    Object.values(groups).forEach(records => {
-
-        const first = records[0];
-
-        let t = {
-    work:0, withdrawn:0, deduction:0,
-    refund:0, after:0, vat:0,
-    retention:0, advance:0, net:0
-};
-
-        records.forEach(p => {
-            t.work += +p.work_value || 0;
-            t.withdrawn += +p.work_withdrawn || 0;
-            t.deduction += +p.deduction || 0;
-            t.refund += +p.refund || 0;
-            t.after += +p.after_deduction || 0;
-            t.vat += +p.vat_amount || 0;
-            t.retention += +p.retention_amount || 0;
-            t.advance += +p.advance_deduction || 0;
-            t.net += +p.net_payment || 0;
-        });
-
-        html += `
-<div class="report-block">
-
-    <h3 style="color:#dba512;">Project: ${first.project_name}</h3>
-
-<div style="font-size:13px; line-height:1.6; margin-bottom:6px;">
-
-    <b>Subcontractor:</b> 
-    <span style="color:#d35400;">${first.subcontractor_name}</span>
-    &nbsp;&nbsp; | &nbsp;&nbsp;
-    <b>Work:</b> ${first.work_type}
-
-    <br>
-
-    <b>Company:</b> ${first.company_name}
-    &nbsp;&nbsp; | &nbsp;&nbsp;
-    <b>Contract:</b> ${first.contract_number}
-
-    <br>
-
-    <b>Phone:</b> ${first.phone || '-'}
-    &nbsp;&nbsp; | &nbsp;&nbsp;
-    <b>Email:</b> ${first.email || '-'}
-
-    <br>
-
-    <b>VAT:</b> ${first.vat_number || '-'}
-    &nbsp;&nbsp; | &nbsp;&nbsp;
-    <b>CR:</b> ${first.cr_number || '-'}
-
-</div>
-
-${(() => {
-    const initial = Number(first.initial_advance || 0);
-const remaining = Number(first.advance_remaining || 0);
-
-    return `
-<p style="font-size:13px; margin:4px 0;">
-    <b>Initial Adv:</b> ${initial.toFixed(2)}
-    &nbsp;&nbsp; | &nbsp;&nbsp;
-    <b>Remaining:</b> ${remaining.toFixed(2)}
-</p>
-`;
-})()}
-    <h4>Summary</h4>
-    <table>
-        <tr>
-            <th>Total Work</th>
-            <th>Withdrawn</th>
-            <th>Deduction</th>
-            <th>Refund</th>
-            <th>After</th>
-            <th>VAT</th>
-            <th>Retention</th>
-            <th>Net</th>
-
-        </tr>
-        <tr>
-            <td>${formatNumber(t.work.toFixed(2))}</td>
-            <td>${formatNumber(t.withdrawn.toFixed(2))}</td>
-            <td>${formatNumber(t.deduction.toFixed(2))}</td>
-            <td>${formatNumber(t.refund.toFixed(2))}</td>
-            <td>${formatNumber(t.after.toFixed(2))}</td>
-            <td>${formatNumber(t.vat.toFixed(2))}</td>
-            <td>${formatNumber(t.retention.toFixed(2))}</td>
-            <td>${formatNumber(t.net.toFixed(2))}</td>
-        </tr>
-    </table>
-
-    <h4>Details</h4>
-    <table>
-        <tr>
-            <th>Cert No</th>
-            <th>Project</th>
-            <th>Work</th>
-            <th>Withdrawn</th>
-            <th>Deduction</th>
-            <th>Refund</th>
-            <th>After</th>
-            <th>VAT</th>
-            <th>Retention</th>
-<th>Advance</th>
-<th>Net</th>
-        </tr>
-
-        ${records.map(p => `
-        <tr>
-            <td>${p.certificate_no}</td>
-            <td>${p.project_name}</td>
-            <td>${formatNumber(p.work_value)}</td>
-            <td>${formatNumber(p.work_withdrawn)}</td>
-            <td>${formatNumber(p.deduction)}</td>
-            <td>${formatNumber(p.refund)}</td>
-            <td>${formatNumber(p.after_deduction)}</td>
-            <td>${formatNumber(p.vat_amount)}</td>
-            <td>${formatNumber(p.retention_amount)}</td>
-            <td>${formatNumber(p.advance_deduction || 0)}</td>
-            <td>${formatNumber(p.net_payment)}</td>
-        </tr>
-        `).join("")}
-
-        <tr class="total">
-            <td colspan="2">TOTAL</td>
-            <td>${formatNumber(t.work.toFixed(2))}</td>
-            <td>${formatNumber(t.withdrawn.toFixed(2))}</td>
-            <td>${formatNumber(t.deduction.toFixed(2))}</td>
-            <td>${formatNumber(t.refund.toFixed(2))}</td>
-            <td>${formatNumber(t.after.toFixed(2))}</td>
-            <td>${formatNumber(t.vat.toFixed(2))}</td>
-            <td>${formatNumber(t.retention.toFixed(2))}</td>
-            <td>${formatNumber(t.advance.toFixed(2))}</td>
-            <td>${formatNumber(t.net.toFixed(2))}</td>
-            <td></td>
-        </tr>
-    </table>
-
-    <div class="footer">
-        <span>Prepared by: Eng. Tanveer Ahmad</span>
-    </div>
-
-</div>
-<br>
-`;
-    });
-
-    html += `</body></html>`;
-
-    const win = window.open("", "", "width=900,height=700");
-win.document.write(html);
-win.document.close();
-
-}; // ✅ CLOSE onclick properly
-}
-async function onSubcontractorChange() {
-
-    const id = document.getElementById("subcontractor_form").value;
+  // ── ON SUB CHANGE ────────────────────────────────────────
+  async function onSubcontractorChange() {
+    const id = document.getElementById("subcontractor_form")?.value;
     if (!id) return;
 
-    const res = await fetch(`${API}/api/subcontractors/${id}`, {
-    headers: {
-        "Authorization": `Bearer ${localStorage.getItem("token")}`
-    }
-});
-    if (!res.ok) {
-    console.error("Subcontractor details error:", await res.text());
-    return;
-}
+    const res = await fetch(`${window.API}/api/subcontractors/${id}`, {
+      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+    });
+    if (!res.ok) { console.error("Sub details error:", await res.text()); return; }
+    const d = await res.json();
 
-const d = await res.json();
+    window.currentRetention = Number(d.retention_percent || 10);
+    window.currentVat       = Number(d.vat_percent); if (isNaN(window.currentVat)) window.currentVat = 0;
+    const advAmt            = Number(d.advance_amount || 0);
+    const advRem            = Number(d.advance_remaining ?? advAmt ?? 0);
+    window.originalAdvance  = advAmt;
+    window.currentAdvance   = advRem;
 
-    let retentionPercent = Number(d.retention_percent || 10);
-    window.currentVat = 0; // reset first
-window.currentVat = Number(d.vat_percent);
-
-if (isNaN(window.currentVat)) {
-    window.currentVat = 0;
-}
-if (isNaN(window.currentVat)) window.currentVat = 0;
-let advanceAmount = Number(d.advance_amount || 0);
-let advanceRemaining = Number(d.advance_remaining ?? advanceAmount ?? 0);
-
-    window.originalAdvance = advanceAmount;
-    window.currentRetention = retentionPercent;
-    window.currentAdvance = advanceRemaining;
-
-    // UI
-    document.getElementById("advance_remaining").value =
-        (advanceRemaining || 0).toFixed(2);
-
-    document.getElementById("retention_percent_display").value =
-        (retentionPercent || 0) + "%";
-
-    document.getElementById("contract_number").value =
-        d.contract_no || "";
+    const sv = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+    sv("advance_remaining",         (advRem||0).toFixed(2));
+    sv("retention_percent_display", (window.currentRetention||0)+"%");
+    sv("contract_number",            d.contract_no || "");
 
     window.selectedProject = d.project || "";
-    document.getElementById("project_form").value = selectedProject;
+    sv("project_form", window.selectedProject);
 
-    // CERTIFICATE
-    const workType = document.getElementById("work_type_form").value;
-    if (!workType) return;
-    const payments = originalData;
-
-    const filtered = payments.filter(p =>
-    p.subcontractor_id == id &&
-    p.project_name == selectedProject &&
-    p.work_type == workType
-);
-
-// 🔥 GET MAX CERTIFICATE NUMBER
-const maxCert = filtered.reduce((max, p) => {
-    return Math.max(max, Number(p.certificate_no) || 0);
-}, 0);
-
-// ✅ NEXT CERT NUMBER
-document.getElementById("certificate_no").value = maxCert + 1;
-
-    // 🔥 MOST IMPORTANT
-    calculate();
-}
-
-function populateFilters(data) {
-
-    const map = [
-    {id:"f_scid", key:"subcontractor_id"},   // ✅ NEW
-    {id:"f_project", key:"project_name"},
-    {id:"f_contract", key:"contract_number"},
-    {id:"f_company", key:"company_name"},     // ✅ ADD
-    {id:"f_sub", key:"subcontractor_name"},
-    {id:"f_work", key:"work_type"},
-    {id:"f_cert", key:"certificate_no"},      // ✅ ADD
-    {id:"f_workval", key:"work_value"},
-    {id:"f_withdrawn", key:"work_withdrawn"},
-    {id:"f_deduction", key:"deduction"},
-    {id:"f_refund", key:"refund"},
-    {id:"f_after", key:"after_deduction"},
-    {id:"f_vat", key:"vat_amount"},
-    {id:"f_retention", key:"retention_amount"},
-    {id:"f_advance", key:"advance_deduction"}, // ✅ ADD
-    {id:"f_net", key:"net_payment"},
-    {id:"f_date", key:"created_at"}
-];
-
-    map.forEach(f => {
-        const select = document.getElementById(f.id);
-
-        if (!select) return;
-
-        const currentValue = select.value;
-
-select.innerHTML = '<option value="">All</option>';
-
-        const values = [...new Set(data.map(x => x[f.key]).filter(v => v))];
-
-        values.forEach(v => {
-            select.innerHTML += `<option value="${v}">${v}</option>`;
-        });
-        // ✅ restore previous selection if still valid
-if (currentValue && values.includes(currentValue)) {
-    select.value = currentValue;
-}
-    });
-}
-function updateDependentFilters(filteredData) {
-
-    // 🔥 SAVE CURRENT FILTER VALUES FIRST
-    const currentFilters = {
-        f_company: document.getElementById("f_company")?.value,
-        f_sub: document.getElementById("f_sub")?.value,
-        f_work: document.getElementById("f_work")?.value,
-        f_contract: document.getElementById("f_contract")?.value,
-        f_cert: document.getElementById("f_cert")?.value
-    };
-
-    const map = [
-        {id:"f_company", key:"company_name"},
-        {id:"f_sub", key:"subcontractor_name"},
-        {id:"f_work", key:"work_type"},
-        {id:"f_contract", key:"contract_number"},
-        {id:"f_cert", key:"certificate_no"}
-    ];
-
-    map.forEach(f => {
-
-        const select = document.getElementById(f.id);
-        if (!select) return;
-
-        const values = [...new Set(
-            filteredData.map(x => x[f.key]).filter(v => v)
-        )];
-
-        // rebuild options
-        select.innerHTML = '<option value="">All</option>' +
-            values.map(v => `<option value="${v}">${v}</option>`).join("");
-
-        // 🔥 RESTORE PREVIOUS VALUE (IMPORTANT)
-        if (currentFilters[f.id] && values.includes(currentFilters[f.id])) {
-            select.value = currentFilters[f.id];
-        }
-    });
-}
-
-
-async function bulkDelete() {
-
-    const subName = document.getElementById("bulk_sub").value;
-    const work = document.getElementById("bulk_work").value;
-    const from = +document.getElementById("from_cert").value;
-    const to = +document.getElementById("to_cert").value;
-
-    if (!subName || !work || !from || !to) {
-        alert("Fill all fields");
-        return;
+    const workType = document.getElementById("work_type_form")?.value;
+    if (workType) {
+      const certs   = originalData.filter(p =>
+        p.subcontractor_id == id &&
+        p.project_name     == window.selectedProject &&
+        p.work_type        == workType
+      );
+      const maxCert = certs.reduce((mx, p) => Math.max(mx, Number(p.certificate_no)||0), 0);
+      sv("certificate_no", maxCert + 1);
     }
+
+    calculate();
+  }
+
+  // ── POPULATE FILTERS ─────────────────────────────────────
+  function populateFilters(data) {
+    const map = [
+      {id:"f_scid",      key:"subcontractor_id"},
+      {id:"f_project",   key:"project_name"},
+      {id:"f_contract",  key:"contract_number"},
+      {id:"f_company",   key:"company_name"},
+      {id:"f_sub",       key:"subcontractor_name"},
+      {id:"f_work",      key:"work_type"},
+      {id:"f_cert",      key:"certificate_no"},
+      {id:"f_workval",   key:"work_value"},
+      {id:"f_withdrawn", key:"work_withdrawn"},
+      {id:"f_deduction", key:"deduction"},
+      {id:"f_refund",    key:"refund"},
+      {id:"f_after",     key:"after_deduction"},
+      {id:"f_vat",       key:"vat_amount"},
+      {id:"f_retention", key:"retention_amount"},
+      {id:"f_advance",   key:"advance_deduction"},
+      {id:"f_net",       key:"net_payment"},
+      {id:"f_status",    key:"status"},
+      {id:"f_date",      key:"created_at"}
+    ];
+    map.forEach(f => {
+      const sel = document.getElementById(f.id);
+      if (!sel) return;
+      const cur  = sel.value;
+      const vals = [...new Set(data.map(x =>
+        f.key === "created_at" ? (x[f.key]||"").slice(0,10) : x[f.key]
+      ).filter(v => v !== null && v !== undefined && v !== ""))].sort();
+      sel.innerHTML = '<option value="">All</option>' + vals.map(v => `<option value="${v}">${v}</option>`).join("");
+      if (cur && vals.includes(cur)) sel.value = cur;
+    });
+  }
+
+  function updateDependentFilters(filteredData) {
+    const saved = {};
+    ["f_company","f_sub","f_work","f_contract","f_cert","f_status"].forEach(id => {
+      saved[id] = document.getElementById(id)?.value;
+    });
+    [{id:"f_company",key:"company_name"},{id:"f_sub",key:"subcontractor_name"},
+     {id:"f_work",key:"work_type"},{id:"f_contract",key:"contract_number"},
+     {id:"f_cert",key:"certificate_no"},{id:"f_status",key:"status"}
+    ].forEach(f => {
+      const sel = document.getElementById(f.id); if (!sel) return;
+      const vals = [...new Set(filteredData.map(x => x[f.key]).filter(v => v))];
+      sel.innerHTML = '<option value="">All</option>' + vals.map(v => `<option value="${v}">${v}</option>`).join("");
+      if (saved[f.id] && vals.includes(saved[f.id])) sel.value = saved[f.id];
+    });
+  }
+
+  // ── BULK DELETE ──────────────────────────────────────────
+  window.bulkDelete = async function () {
+    const subName = document.getElementById("bulk_sub")?.value;
+    const work    = document.getElementById("bulk_work")?.value;
+    const from    = +document.getElementById("from_cert")?.value;
+    const to      = +document.getElementById("to_cert")?.value;
+
+    if (!subName || !work || !from || !to) { alert("Fill all fields"); return; }
 
     const record = originalData.find(p =>
-    p.subcontractor_name === subName &&
-    p.work_type === work &&
-    p.company_name === document.getElementById("bulk_company").value
-);
-
-    if (!record) {
-        alert("No matching data found");
-        return;
-    }
-
+      p.subcontractor_name === subName &&
+      p.work_type          === work &&
+      p.company_name       === document.getElementById("bulk_company")?.value
+    );
+    if (!record) { alert("No matching data found"); return; }
     if (!confirm(`Delete certificates ${from} → ${to}?`)) return;
 
-    const res = await fetch(`${API}/api/payments/bulk-delete`, {
-    method: "DELETE",
-    headers: {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${localStorage.getItem("token")}`
-},
-    body: JSON.stringify({
+    const res = await fetch(`${window.API}/api/payments/bulk-delete`, {
+      method: "DELETE",
+      headers: { "Content-Type":"application/json", "Authorization":`Bearer ${localStorage.getItem("token")}` },
+      body: JSON.stringify({
         subcontractor_id: record.subcontractor_id,
-        work_type: work,
-        project_name: record.project_name,
-        from_cert: from,
-        to_cert: to
-    })
-});
-
-    const msg = await res.text();
-    alert(msg);
+        work_type:        work,
+        project_name:     record.project_name,
+        from_cert:        from,
+        to_cert:          to
+      })
+    });
+    alert(await res.text());
     await loadFullData();
-}
-window.initPaymentPage = initPaymentPage;
+  };
 
-// ================= GLOBAL FIX =================
-window.applyFilter = applyFilter;
-window.bulkDelete = bulkDelete;
-window.deletePayment = deletePayment;
-window.editPayment = editPayment;
-window.printPayment = printPayment;
-window.renderTable = renderTable;
+  // ── PRINT ────────────────────────────────────────────────
+  window.printPayment = function (id) {
+    const p = originalData.find(x => x.id === id);
+    if (!p) return;
+    const win = window.open("", "_blank");
+    win.document.write(`
+      <h2>Payment Certificate</h2>
+      <p><b>Work Type:</b> ${p.work_type}</p>
+      <p><b>Subcontractor:</b> ${p.subcontractor_name}</p>
+      <p><b>Project:</b> ${p.project_name}</p>
+      <p><b>Contract:</b> ${p.contract_number}</p>
+      <p><b>Certificate #:</b> ${p.certificate_no}</p>
+      <p><b>Cert Date:</b> ${p.cert_date ? new Date(p.cert_date).toLocaleDateString() : "—"}</p>
+      <p><b>Status:</b> ${p.status || "—"}</p>
+      <p><b>Comment:</b> ${p.comment || "—"}</p>
+      <p><b>Net Payment:</b> ${p.net_payment}</p>
+    `);
+    win.document.close();
+    setTimeout(() => win.print(), 300);
+  };
 
-window.applyGlobalFilter = function(filteredData) {
-    renderTable(filteredData);
-};
+  // ── EXPORT ───────────────────────────────────────────────
+  function getFilteredDataForExport() {
+    const f    = id => document.getElementById(id)?.value || "";
+    const dF   = f("date_from"), dT = f("date_to");
+    return originalData.filter(p => {
+      const pDate = (p.cert_date || p.created_at || "").slice(0,10);
+      return (
+        (!f("f_scid")     || p.subcontractor_id    == f("f_scid")) &&
+        (!f("f_project")  || p.project_name         == f("f_project")) &&
+        (!f("f_contract") || p.contract_number       == f("f_contract")) &&
+        (!f("f_company")  || p.company_name          == f("f_company")) &&
+        (!f("f_sub")      || p.subcontractor_name    == f("f_sub")) &&
+        (!f("f_work")     || p.work_type             == f("f_work")) &&
+        (!f("f_cert")     || p.certificate_no        == f("f_cert")) &&
+        (!f("f_status")   || p.status                == f("f_status")) &&
+        (!dF || pDate >= dF) && (!dT || pDate <= dT)
+      );
+    });
+  }
+
+  function initExportButton() {
+    const btn = document.getElementById("exportBtn");
+    if (!btn) return;
+    btn.onclick = function () {
+      const filtered = getFilteredDataForExport();
+      filtered.sort((a,b) =>
+        (a.project_name||"").localeCompare(b.project_name||"") ||
+        (a.work_type||"").localeCompare(b.work_type||"") ||
+        (a.subcontractor_name||"").localeCompare(b.subcontractor_name||"") ||
+        Number(a.certificate_no) - Number(b.certificate_no)
+      );
+      if (!filtered.length) { alert("No data to export"); return; }
+
+      const groups = {};
+      filtered.forEach(p => {
+        const key = `${p.project_name}__${p.work_type}__${p.subcontractor_id}`;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(p);
+      });
+
+      const sColor = s => (STATUS_CFG[s]?.color || "#333");
+
+      let html = `<html><head><style>
+        @page{size:A4;margin:12mm}
+        body{font-family:Arial;padding:10px;font-size:12px}
+        h1{text-align:center;color:#1f4e79;font-size:20px}
+        h3{color:#dba512;margin:5px 0}h4{margin:6px 0 3px}
+        table{border-collapse:collapse;width:100%;margin-top:8px;page-break-inside:avoid}
+        th{background:#1f4e79;color:#fff;padding:4px 6px;font-size:11px}
+        td,th{border:1px solid #ccc;padding:3px 5px;text-align:center;font-size:11px}
+        .tot{font-weight:bold;background:#eef0f8}
+        .page{page-break-after:always}
+        @media print{th,td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+        *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
+      </style></head><body>`;
+
+      Object.values(groups).forEach(records => {
+        const first = records[0];
+        let t = {work:0,wd:0,ded:0,ref:0,after:0,vat:0,ret:0,adv:0,net:0};
+        records.forEach(p => {
+          t.work  += +p.work_value||0;  t.wd   += +p.work_withdrawn||0;
+          t.ded   += +p.deduction||0;   t.ref  += +p.refund||0;
+          t.after += +p.after_deduction||0; t.vat += +p.vat_amount||0;
+          t.ret   += +p.retention_amount||0; t.adv += +p.advance_deduction||0;
+          t.net   += +p.net_payment||0;
+        });
+
+        html += `<div class="page">
+          <h1>📊 Payment Certificate Report</h1>
+          <h3>Project: ${first.project_name}</h3>
+          <div style="font-size:12px;line-height:1.7;margin-bottom:6px">
+            <b>Subcontractor:</b> <span style="color:#d35400">${first.subcontractor_name}</span>
+            &nbsp;|&nbsp;<b>Work:</b> ${first.work_type}<br>
+            <b>Company:</b> ${first.company_name||"—"} &nbsp;|&nbsp;<b>Contract:</b> ${first.contract_number||"—"}<br>
+            <b>Phone:</b> ${first.phone||"—"} &nbsp;|&nbsp;<b>Email:</b> ${first.email||"—"}<br>
+            <b>VAT No:</b> ${first.vat_number||"—"} &nbsp;|&nbsp;<b>CR:</b> ${first.cr_number||"—"}
+          </div>
+          <p style="font-size:12px;margin:4px 0">
+            <b>Initial Advance:</b> ${Number(first.initial_advance||0).toFixed(2)}
+            &nbsp;|&nbsp;<b>Remaining:</b> ${Number(first.advance_remaining||0).toFixed(2)}
+          </p>
+          <h4>Summary</h4>
+          <table><tr><th>Total Work</th><th>Withdrawn</th><th>Deduction</th><th>Refund</th><th>After</th><th>VAT</th><th>Retention</th><th>Net</th></tr>
+          <tr><td>${fmt(t.work)}</td><td>${fmt(t.wd)}</td><td>${fmt(t.ded)}</td><td>${fmt(t.ref)}</td><td>${fmt(t.after)}</td><td>${fmt(t.vat)}</td><td>${fmt(t.ret)}</td><td>${fmt(t.net)}</td></tr></table>
+          <h4>Details</h4>
+          <table>
+            <tr><th>Cert#</th><th>Work</th><th>Withdrawn</th><th>Deduction</th><th>Refund</th><th>After</th><th>VAT</th><th>Retention</th><th>Advance</th><th>Net</th><th>Cert Date</th><th>Status</th><th>Comment</th></tr>
+            ${records.map(p => `<tr>
+              <td>${p.certificate_no}</td><td>${fmt(p.work_value)}</td><td>${fmt(p.work_withdrawn)}</td>
+              <td>${fmt(p.deduction)}</td><td>${fmt(p.refund)}</td><td>${fmt(p.after_deduction)}</td>
+              <td>${fmt(p.vat_amount)}</td><td>${fmt(p.retention_amount)}</td>
+              <td>${fmt(p.advance_deduction||0)}</td><td>${fmt(p.net_payment)}</td>
+              <td>${p.cert_date ? new Date(p.cert_date).toLocaleDateString() : "—"}</td>
+              <td><b style="color:${sColor(p.status)}">${p.status||"—"}</b></td>
+              <td style="text-align:left;font-size:10px">${p.comment||""}</td>
+            </tr>`).join("")}
+            <tr class="tot"><td>TOTAL</td><td>${fmt(t.work)}</td><td>${fmt(t.wd)}</td><td>${fmt(t.ded)}</td><td>${fmt(t.ref)}</td><td>${fmt(t.after)}</td><td>${fmt(t.vat)}</td><td>${fmt(t.ret)}</td><td>${fmt(t.adv)}</td><td>${fmt(t.net)}</td><td colspan="3"></td></tr>
+          </table>
+          <p style="margin-top:10px;font-size:10px;color:#888">Prepared by: Eng. Tanveer Ahmad &nbsp;·&nbsp; SPMS v2.0 &nbsp;·&nbsp; ${new Date().toLocaleDateString()}</p>
+        </div>`;
+      });
+
+      html += "</body></html>";
+      const win = window.open("","","width=960,height=750");
+      win.document.write(html); win.document.close();
+    };
+  }
+
+  // ── GLOBALS ──────────────────────────────────────────────
+  window.initPaymentPage   = initPaymentPage;
+  window.applyGlobalFilter = function(fd) { renderTable(fd); };
+  window.renderTable       = renderTable;
 
 })();

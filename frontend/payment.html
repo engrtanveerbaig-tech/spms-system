@@ -1,362 +1,277 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Dashboard</title>
-<!-- ================= STYLE ================= -->
- <link rel="stylesheet" href="./css/style.css">
- <style>
+<meta charset="UTF-8"><title>Payment Certificates</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+body{margin:0;background:var(--night);}
+#work{color:var(--green);font-family:var(--mono);font-size:15px;font-weight:600;background:rgba(16,185,129,.05);border-color:rgba(16,185,129,.25);}
+#saveBtn{width:100%;padding:13px;font-size:14px;font-weight:600;}
+.skeleton-row{height:34px;background:linear-gradient(90deg,var(--card) 25%,var(--card2) 50%,var(--card) 75%);background-size:800px 100%;animation:shimmer 1.6s infinite;border-radius:4px;margin-bottom:4px;}
+@keyframes shimmer{0%{background-position:-800px 0}100%{background-position:800px 0}}
 
-/* ================= BASE ================= */
-body{
-    font-family: 'Segoe UI';
-    margin:0;
-}
+/* Status badge in form select */
+#cert_status option[value="Approved"]     { color: #10b981; }
+#cert_status option[value="Under Review"] { color: #f59e0b; }
+#cert_status option[value="On Site"]      { color: #3b82f6; }
+#cert_status option[value="Pending"]      { color: #8b5cf6; }
+#cert_status option[value="Rejected"]     { color: #ef4444; }
 
-/* ================= CONTAINER ================= */
-.container{
-    margin:20px;
-    padding:20px;
-    border-radius:14px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.08);
-}
-
-/* ================= HEADINGS ================= */
-.container h2,
-.container h3{
-    position:sticky;
-    top:0;
-    background: var(--card-bg);
-    z-index:20;
-    padding:10px 0;
-}
-
-/* ================= FORM ================= */
-.form-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:12px;
-}
-
-input,select{
-    width:100%;
-    padding:10px;
-    border-radius:10px;
-}
-
-/* ================= BUTTON ================= */
-button{
-    margin-top:10px;
-    padding:10px 14px;
-    border:none;
-    border-radius:10px;
-    background:linear-gradient(135deg,#7c1d6f,#ec4899);
-    color:white;
-    cursor:pointer;
-}
-
-/* ================= TABLE ================= */
-.table-container{
-    max-height:500px;
-    overflow:auto;
-    border-radius:12px;
-}
-
-/* TABLE */
-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-/* CELLS */
-th,td{
-    padding:10px;
-    text-align:center;
-}
-
-/* FILTER ROW */
-thead tr:first-child th{
-    background:rgba(163, 154, 154, 0.08);
-    position:sticky;
-    top:0;
-    z-index:10;
-}
-
-/* HEADER ROW */
-thead tr:nth-child(2) th{
-    background:#1f4e79;
-    color:white;
-    position:sticky;
-    top:40px;
-    z-index:9;
-}
-
-/* BODY */
-tbody tr:hover{
-    background:#aeb2b7;
-}
-
-/* FOOTER */
-tfoot td{
-    font-weight:bold;
-    background:#f8fafc;
-}
-.card{
-    background: var(--card-bg, #fff);
-    padding:18px;
-    border-radius:16px;
-    box-shadow:0 6px 20px rgba(0,0,0,0.06);
-    margin-bottom:15px;
-}
-
-.card h3{
-    margin-bottom:10px;
-}
-
+/* Date range picker */
+.date-range-wrap{display:flex;align-items:center;gap:8px;}
+.date-range-wrap input[type=date]{flex:1;min-width:120px;}
+.date-sep{font-size:11px;color:var(--text3);font-weight:600;flex-shrink:0;}
+.date-range-box{background:var(--card2);border:1px solid var(--borderb);border-radius:var(--rsm);padding:8px 12px;}
+.date-range-display{font-size:10px;color:var(--text3);margin-top:5px;font-family:var(--mono);}
+#date_range_label{color:var(--violet);font-size:11px;}
 </style>
 </head>
-</head>
 <body>
-<!-- ================= FORM ================= -->
-<div class="container">
+<div style="padding:0 24px 32px;">
 
-<h2>💰 SC Payment Certificate Record</h2>
+  <!-- Header -->
+  <div class="page-hd">
+    <div><div class="page-title">💳 Payment Certificates</div><div class="page-sub">Record and manage subcontractor payment certificates</div></div>
+    <button class="btn-secondary btn-sm" id="exportBtn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Generate Report
+    </button>
+  </div>
 
-<!-- ================= CARD: CONTRACT ================= -->
-<div class="card">
-<h3>📄 Contract Details</h3>
+  <!-- Contract Details -->
+  <div class="pay-sec">
+    <div class="pay-sec-hd">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Contract Details
+    </div>
+    <div class="form-grid">
+      <div class="col-4"><label>Contract No</label><input id="contract_number" readonly></div>
+      <div class="col-4"><label>Remaining Advance</label><input id="advance_remaining" readonly class="hi"></div>
+      <div class="col-4"><label>Retention %</label><input id="retention_percent_display" readonly class="hi"></div>
+    </div>
+  </div>
 
-<div class="form-grid">
-
-<div>
-<label>Contract No</label>
-<input id="contract_number" readonly>
-</div>
-
-<div>
-<label>Remaining Advance</label>
-<input id="advance_remaining" readonly>
-</div>
-
-<div>
-<label>Retention %</label>
-<input id="retention_percent_display" readonly>
-</div>
-
-</div>
-</div>
-
-
-<!-- ================= CARD: READ ONLY ================= -->
-<div class="card">
-<h3>📊 Financial Summary</h3>
-
-<div class="form-grid">
-
-<div>
-<label>VAT</label>
-<input id="vat" readonly>
-</div>
-
-<div>
-<label>Retention</label>
-<input id="retention" readonly>
-</div>
-
-<div>
-<label>Advance Deduction</label>
-<input id="advance_deduction" readonly>
-</div>
-
-<div>
-<label>Net</label>
-<input id="net" readonly>
-</div>
-
-</div>
-</div>
-<!-- ================= CARD: SELECTION ================= -->
-<div class="card">
-<h3>📌 Selection</h3>
-
-<div class="form-grid">
-
-<div>
-<label>Work Type</label>
-<select id="work_type_form">
-            <option value="">Select Work Type</option>
-            <option>Concrete & Masonry</option>
-            <option>Masonry</option>
-            <option>Plaster</option>
-            <option>Paint</option>
-            <option>Tiles</option>
-            <option>Insulation</option>
-            <option>Electrical</option>
-            <option>Mechanical</option>
+  <!-- Selection -->
+  <div class="pay-sec">
+    <div class="pay-sec-hd">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Selection
+    </div>
+    <div class="form-grid">
+      <div class="col-3">
+        <label>Work Type</label>
+        <select id="work_type_form">
+          <option value="">Select Work Type</option>
+          <option>Concrete &amp; Masonry</option><option>Masonry</option><option>Plaster</option>
+          <option>Paint</option><option>Tiles</option><option>Insulation</option>
+          <option>Electrical</option><option>Mechanical</option>
         </select>
+      </div>
+      <div class="col-3"><label>Subcontractor</label><select id="subcontractor_form"></select></div>
+      <div class="col-3"><label>Project</label><input id="project_form" readonly></div>
+      <div class="col-3"><label>Certificate No</label><input id="certificate_no" readonly class="hi"></div>
+    </div>
+  </div>
+
+  <!-- Payment Entry -->
+  <div class="pay-sec">
+    <div class="pay-sec-hd">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      Payment Entry
+    </div>
+    <div class="form-grid">
+      <div class="col-3"><label>Certified Amount</label><input id="work" placeholder="0.00"></div>
+      <div class="col-3"><label>Deduction</label><input id="deduction" placeholder="0.00"></div>
+      <div class="col-3"><label>Work Withdrawn</label><input id="withdrawn" placeholder="0.00"></div>
+      <div class="col-3"><label>Refund</label><input id="refund" placeholder="0.00"></div>
+    </div>
+  </div>
+
+  <!-- Certificate Meta (NEW) -->
+  <div class="pay-sec">
+    <div class="pay-sec-hd">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Certificate Details &amp; Status
+    </div>
+    <div class="form-grid">
+      <div class="col-3">
+        <label>Certificate Date</label>
+        <input type="date" id="cert_date">
+      </div>
+      <div class="col-3">
+        <label>Status</label>
+        <select id="cert_status">
+          <option value="Approved">✓ Approved</option>
+          <option value="Under Review">⏳ Under Review</option>
+          <option value="On Site">📍 On Site</option>
+          <option value="Pending">◷ Pending</option>
+          <option value="Rejected">✕ Rejected</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label>Comment / Note</label>
+        <input type="text" id="cert_comment" placeholder="e.g. Certificate at site awaiting engineer signature…">
+      </div>
+    </div>
+  </div>
+
+  <!-- Financial Summary -->
+  <div class="pay-sec">
+    <div class="pay-sec-hd">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Computed Financial Summary
+    </div>
+    <div class="form-grid">
+      <div class="col-3"><label>VAT Amount</label><input id="vat" readonly class="hi"></div>
+      <div class="col-3"><label>Retention</label><input id="retention" readonly class="hi"></div>
+      <div class="col-3"><label>Advance Deduction</label><input id="advance_deduction" readonly class="hi"></div>
+      <div class="col-3"><label>Net Payment</label><input id="net" readonly class="hi"></div>
+    </div>
+  </div>
+
+  <p id="msg"></p>
+  <button id="saveBtn" class="btn-primary btn-full">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    Save Payment Certificate
+  </button>
+
+  <!-- Bulk Delete -->
+  <div class="bulk-sec" style="margin-top:22px;">
+    <div class="bulk-title">⚠ Bulk Delete Certificates</div>
+    <div class="form-grid">
+      <div class="col-3"><select id="bulk_company"><option value="">Select Company</option></select></div>
+      <div class="col-3"><select id="bulk_sub"><option value="">Select Subcontractor</option></select></div>
+      <div class="col-2"><select id="bulk_work"><option value="">Work Type</option></select></div>
+      <div class="col-2"><input id="from_cert" type="number" placeholder="From Cert #"></div>
+      <div class="col-2"><input id="to_cert"   type="number" placeholder="To Cert #"></div>
+      <div class="col-12" style="margin-top:4px;">
+        <button class="btn-danger btn-sm" onclick="bulkDelete()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Delete Range
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Records Table -->
+  <div style="margin-top:10px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;flex-wrap:wrap;gap:8px;">
+      <span style="font-size:12px;font-weight:600;color:var(--text2)">Payment Records</span>
+
+      <!-- DATE RANGE FILTER (NEW) -->
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div class="date-range-box">
+          <label style="font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;display:block">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Date Range (Cert Date)
+          </label>
+          <div class="date-range-wrap">
+            <input type="date" id="date_from" title="From date" oninput="updateDateRangeLabel()">
+            <span class="date-sep">→</span>
+            <input type="date" id="date_to"   title="To date"   oninput="updateDateRangeLabel()">
+            <button class="btn-ghost btn-sm" onclick="clearDateRange()" title="Clear dates" style="padding:6px 8px">✕</button>
+          </div>
+          <div class="date-range-display" id="date_range_label"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-box">
+      <table>
+        <thead>
+          <!-- Filter Row -->
+          <tr>
+            <th><select id="f_scid"      onchange="applyFilter()"><option value="">All</option></select></th>
+            <th><select id="f_project"   onchange="applyFilter()"><option value="">All</option></select></th>
+            <th><select id="f_contract"  onchange="applyFilter()"><option value="">All</option></select></th>
+            <th><select id="f_company"   onchange="applyFilter()"><option value="">All</option></select></th>
+            <th><select id="f_sub"       onchange="applyFilter()"><option value="">All</option></select></th>
+            <th><select id="f_work"      onchange="applyFilter()"><option value="">All</option></select></th>
+            <th><select id="f_cert"      onchange="applyFilter()"><option value="">All</option></select></th>
+            <th><select id="f_workval"   onchange="applyFilter()"><option value="">All</option></select></th>
+            <th><select id="f_withdrawn" onchange="applyFilter()"><option value="">All</option></select></th>
+            <th><select id="f_deduction" onchange="applyFilter()"><option value="">All</option></select></th>
+            <th><select id="f_refund"    onchange="applyFilter()"><option value="">All</option></select></th>
+            <th><select id="f_after"     onchange="applyFilter()"><option value="">All</option></select></th>
+            <th><select id="f_vat"       onchange="applyFilter()"><option value="">All</option></select></th>
+            <th><select id="f_retention" onchange="applyFilter()"><option value="">All</option></select></th>
+            <th><select id="f_advance"   onchange="applyFilter()"><option value="">All</option></select></th>
+            <th><select id="f_net"       onchange="applyFilter()"><option value="">All</option></select></th>
+            <th>—</th><!-- cert_date: filtered via date range picker above -->
+            <th><select id="f_date"      onchange="applyFilter()"><option value="">All</option></select></th>
+            <th>
+              <select id="f_status" onchange="applyFilter()">
+                <option value="">All</option>
+                <option value="Approved">Approved</option>
+                <option value="Under Review">Under Review</option>
+                <option value="On Site">On Site</option>
+                <option value="Pending">Pending</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </th>
+            <th>—</th>
+            <th></th>
+          </tr>
+          <!-- Label Row -->
+          <tr>
+            <th>SC ID</th><th>Project</th><th>Contract</th><th>Company</th>
+            <th>Subcontractor</th><th>Work Type</th><th>Cert #</th>
+            <th>Work Value</th><th>Withdrawn</th><th>Deduction</th>
+            <th>Refund</th><th>After(-)</th><th>VAT</th>
+            <th>Retention</th><th>Advance</th><th>Net</th>
+            <th>Cert Date</th><th>Entry Date</th><th>Status</th>
+            <th>Comment</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="table"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="6" style="text-align:left">TOTAL</td>
+            <td id="t_cer">0</td>
+            <td id="t_work">0</td><td id="t_withdrawn">0</td>
+            <td id="t_deduction">0</td><td id="t_refund">0</td>
+            <td id="t_after">0</td><td id="t_vat">0</td>
+            <td id="t_retention">0</td><td id="t_advance">0</td>
+            <td id="t_net">0</td>
+            <td>—</td><td>—</td><td>—</td><td>—</td><td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
 </div>
 
-<div>
-<label>Subcontractor</label>
-<select id="subcontractor_form"></select>
-</div>
+<script>
+// Date range label updater
+function updateDateRangeLabel() {
+  const from  = document.getElementById("date_from")?.value;
+  const to    = document.getElementById("date_to")?.value;
+  const label = document.getElementById("date_range_label");
+  if (!label) return;
+  if (from && to) {
+    const fStr = new Date(from).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"});
+    const tStr = new Date(to).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"});
+    label.innerHTML = `<span id="date_range_label" style="color:var(--violet)">📅 ${fStr}</span><br><span style="color:var(--text3)">↳ ${tStr}</span>`;
+  } else if (from) {
+    label.innerHTML = `<span style="color:var(--violet)">📅 From: ${new Date(from).toLocaleDateString()}</span>`;
+  } else if (to) {
+    label.innerHTML = `<span style="color:var(--violet)">📅 To: ${new Date(to).toLocaleDateString()}</span>`;
+  } else {
+    label.innerHTML = "";
+  }
+  if (typeof applyFilter === "function") applyFilter();
+}
 
-<div>
-<label>Project</label>
-<input id="project_form" readonly>
-</div>
-
-<div>
-<label>Certificate No</label>
-<input id="certificate_no" readonly>
-</div>
-
-</div>
-</div>
-
-<!-- ================= CARD: PAYMENT ================= -->
-<div class="card">
-<h3>💰 Payment Entry</h3>
-
-<div class="form-grid">
-
-<div >
-<label >Certified Amount</label>
-<input id="work" style="background: linear-gradient(135deg,#abc4a8,#ffffff); font-weight: 900;">
-</div>
-
-<div>
-<label>Deduction</label>
-<input id="deduction">
-</div>
-
-<div>
-<label>Work Withdrawn</label>
-<input id="withdrawn">
-</div>
-
-<div>
-<label>Refund</label>
-<input id="refund">
-</div>
-
-
-
-</div>
-</div>
-
-
-<!-- ================= ACTION ================= -->
-<div style="margin-top:15px;">
-<button id="saveBtn" style="width:100%;">Save Payment</button>
-</div>
-
-<p id="msg"></p>
-
-</div>
-
-<!-- ================= RECORD ================= -->
-<div class="container">
-
-<h3>📊 Payment Records</h3>
-<button id="exportBtn">Generate Report</button>
-
-</div>
-
-<!-- ================= BULK DELETE ================= -->
-<div class="container">
-
-<h3>🗑️ Bulk Delete Certificates</h3>
-
-<div class="form-grid">
-
-<select id="bulk_company"></select>
-<select id="bulk_sub"></select>
-<select id="bulk_work"></select>  <!-- ✅ MUST EXIST -->
-<input id="from_cert" type="number" placeholder="From Cert No">
-<input id="to_cert" type="number" placeholder="To Cert No">
-
-<button onclick="bulkDelete()">Delete Range</button>
-</div>
-
-<!-- ================= TABLE ================= -->
- <div class="table-container">
-<table>
-
-<thead>
-
-<!-- FILTER ROW -->
-<tr>
-<th><select id="f_scid" onchange="applyFilter()"><option value="">All</option></select></th>
-<th><select id="f_project" onchange="applyFilter()"><option value="">All</option></select></th>
-<th><select id="f_contract" onchange="applyFilter()"><option value="">All</option></select></th>
-<th><select id="f_company" onchange="applyFilter()"><option value="">All</option></select></th>
-<th><select id="f_sub" onchange="applyFilter()"><option value="">All</option></select></th>
-<th><select id="f_work" onchange="applyFilter()"><option value="">All</option></select></th>
-<th><select id="f_cert" onchange="applyFilter()"><option value="">All</option></select></th>
-
-<th><select id="f_workval" onchange="applyFilter()"><option value="">All</option></select></th>
-<th><select id="f_withdrawn" onchange="applyFilter()"><option value="">All</option></select></th>
-<th><select id="f_deduction" onchange="applyFilter()"><option value="">All</option></select></th>
-<th><select id="f_refund" onchange="applyFilter()"><option value="">All</option></select></th>
-<th><select id="f_after" onchange="applyFilter()"><option value="">All</option></select></th>
-<th><select id="f_vat" onchange="applyFilter()"><option value="">All</option></select></th>
-<th><select id="f_retention" onchange="applyFilter()"><option value="">All</option></select></th>
-<th><select id="f_advance" onchange="applyFilter()"><option value="">All</option></select></th>
-<th><select id="f_net" onchange="applyFilter()"><option value="">All</option></select></th>
-<th><select id="f_date" onchange="applyFilter()"><option value="">All</option></select></th>
-<th></th>
-</tr>
-
-<!-- HEADER -->
-<tr>
-<th>SC ID</th>
-<th>Project</th>
-<th>Contract</th>
-<th>Company</th>
-<th>Subcontractor</th>
-<th>Work Type</th>
-<th>Cert No</th>
-<th>Work</th>
-<th>Withdrawn</th>
-<th>Deduction</th>
-<th>Refund</th>
-<th>After(-)</th>
-<th>VAT</th>
-<th>Retention</th>
-<th>Advance</th>
-<th>Net</th>
-<th>Date</th>
-<th>Actions</th>
-</tr>
-
-</thead>
-
-<tbody id="table"></tbody>
-
-<tfoot>
-<tr>
-<td colspan="6">TOTAL</td>
-<td id="t_cer">0</td>
-<td id="t_work">0</td>
-<td id="t_withdrawn">0</td>
-<td id="t_deduction">0</td>
-<td id="t_refund">0</td>
-<td id="t_after">0</td>
-<td id="t_vat">0</td>
-<td id="t_retention">0</td>
-<td id="t_advance">0</td>
-<td id="t_net">0</td>
-<td>-</td>
-<td></td>
-</tr>
-</tfoot>
-
-</table>
-</div>
-
-</div>
-
-<!-- ================= JS ================= -->
-
+function clearDateRange() {
+  const f = document.getElementById("date_from");
+  const t = document.getElementById("date_to");
+  const l = document.getElementById("date_range_label");
+  if (f) f.value = "";
+  if (t) t.value = "";
+  if (l) l.innerHTML = "";
+  if (typeof applyFilter === "function") applyFilter();
+}
+</script>
 </body>
 </html>

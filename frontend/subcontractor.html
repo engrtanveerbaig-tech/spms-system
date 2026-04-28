@@ -1,348 +1,97 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Subcontractor System</title>
-<link rel="stylesheet" href="./css/style.css">
-
-<style>
-
-/* ================= BASE ================= */
-body{
-    font-family:'Segoe UI';
-    margin:0;
-}
-
-/* ================= CONTAINER ================= */
-.container{
-    padding:20px;
-}
-
-/* ================= CARD ================= */
-.card{
-    padding:20px;
-    border-radius:14px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.08);
-    margin-bottom:20px;
-}
-
-/* ================= TITLE ================= */
-.section-title{
-    margin-bottom:15px;
-}
-
-/* ================= GRID ================= */
-.form-grid{
-    align-items: start;
-    display:grid;
-    gap:12px;
-}
-
-/* ================= INPUT ================= */
-input,select{
-    width:100%;
-    padding:10px;
-    border-radius:10px;
-}
-
-/* ===== CHECKBOX PERFECT ALIGNMENT ===== */
-.checkbox-fix{
-    display:flex;
-    align-items:flex-end;
-    height:100%;
-}
-
-.checkbox-label{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    height:42px;
-    cursor:pointer;
-    color:var(--text);
-    font-size:14px;
-}
-
-/* FIX SMALL CHECKBOX SIZE */
-.checkbox-label input[type="checkbox"]{
-    width:18px;
-    height:18px;
-    cursor:pointer;
-}
-
-/* ================= BUTTON ================= */
-.form-actions{
-    grid-column:1/-1;
-}
-
-button{
-    padding:10px 14px;
-    border:none;
-    border-radius:10px;
-    background:linear-gradient(135deg,#7c1d6f,#ec4899);
-    color:white;
-    cursor:pointer;
-}
-
-/* ================= TABLE ================= */
-.table-container{
-    max-height:500px;
-    overflow:auto;
-}
-
-/* TABLE */
-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-th,td{
-    padding:10px;
-    text-align:center;
-}
-
-/* FILTER ROW */
-thead tr:first-child th{
-    background: rgba(163, 154, 154, 0.08);
-    position:sticky;
-    top:0;
-    z-index:10;
-}
-
-/* HEADER */
-thead tr:nth-child(2) th{
-    background:#1f4e79;
-    color:white;
-    position:sticky;
-    top:40px;
-    z-index:9;
-}
-
-/* HOVER */
-tbody tr:hover{
-    background:#aeb2b7;
-}
-
-</style>
+<meta charset="UTF-8"><title>Subcontractors</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>body{margin:0;background:var(--night);}</style>
 </head>
 <body>
+<div style="padding:0 24px 32px;">
 
-<div class="content">
+  <div class="page-hd">
+    <div><div class="page-title">👷 Subcontractor Records</div><div class="page-sub">Manage subcontractor accounts, contracts and advance payments</div></div>
+  </div>
 
-<div class="container">
+  <!-- Form -->
+  <div class="prem-card">
+    <div class="prem-grid">
 
-<!-- ================= FORM ================= -->
-<div class="card premium-card">
+      <!-- LEFT -->
+      <div class="form-sec">
+        <div class="sec-title">Account Opening Detail</div>
+        <div style="display:flex;flex-direction:column;gap:11px;">
+          <div><label>Project</label><select id="project"><option value="" disabled selected></option><option>Sadayem</option><option>Makkah</option><option>Madinah</option></select></div>
+          <div><label>Work Type</label><select id="work_type"><option value="" disabled selected></option><option>Concrete &amp; Masonry</option><option>Masonry</option><option>Plaster</option><option>Paint</option><option>Tiles</option><option>Insulation</option><option>Electrical</option><option>Mechanical</option></select></div>
+          <div><label>Retention %</label><select id="retention_percent"><option value="10">10%</option><option value="5">5%</option><option value="0">0%</option></select></div>
+          <div><label>VAT %</label><select id="vat_percent"><option value="15">15%</option><option value="0">0%</option></select></div>
+          <div class="cb-box"><label><input type="checkbox" id="has_advance"><span>Has Advance Payment</span></label></div>
+          <div><label>Advance Amount</label><input id="advance_amount" placeholder="0.00"></div>
+        </div>
+      </div>
 
-<h2 class="section-title">📋 Subcontractor (SC) Record</h2>
+      <!-- RIGHT -->
+      <div class="form-sec">
+        <div class="sec-title">Contract Details</div>
+        <div style="display:flex;flex-direction:column;gap:11px;">
+          <div><label>Contract No</label><input id="contract_no" placeholder="e.g. SC-2024-001"></div>
+          <div><label>Company Name</label><input id="company" placeholder="Company name"></div>
+          <div><label>Email</label><input type="email" id="email" placeholder="contact@company.com"><div id="email_error">Invalid email format</div></div>
+          <div><label>CR Number</label><input id="cr" placeholder="Commercial registration"></div>
+          <div><label>VAT Number</label><input id="vat_number" placeholder="Tax registration number"></div>
+        </div>
+      </div>
 
-<div class="premium-grid">
+      <!-- FULL -->
+      <div class="form-sec full">
+        <div class="sec-title">Site Supervisor Detail</div>
+        <div class="form-row">
+          <div><label>Subcontractor Name</label><input id="subcontractor_name" placeholder="Full name"></div>
+          <div><label>Phone</label><input id="phone" placeholder="+966 5x xxx xxxx"></div>
+          <div></div>
+        </div>
+      </div>
 
-<!-- LEFT -->
-<div class="form-section">
+      <!-- Actions -->
+      <div class="form-actions">
+        <p id="msg"></p>
+        <button id="mainBtn" class="btn-primary btn-full" onclick="save()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Subcontractor</button>
+      </div>
 
-<h4 class="form-section-title">Account Opening Detail</h4>
+    </div>
+  </div>
 
-<div class="input-group">
-<select id="project" required>
-<option value="" disabled selected></option>
-<option>Sadayem</option>
-<option>Makkah</option>
-<option>Madinah</option>
-</select>
-<label>Project</label>
+  <!-- Table -->
+  <div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;">
+      <span style="font-size:12px;font-weight:600;color:var(--text2)">Subcontractor Directory</span>
+    </div>
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr>
+            <th><select id="f_project" onchange="filterTable()"><option value="">All</option><option value="Sadayem">Sadayem</option><option value="Makkah">Makkah</option><option value="Madinah">Madinah</option></select></th>
+            <th><select id="f_work" onchange="filterTable()"><option value="">All</option><option>Concrete &amp; Masonry</option><option>Masonry</option><option>Plaster</option><option>Paint</option><option>Tiles</option><option>Insulation</option><option>Electrical</option><option>Mechanical</option></select></th>
+            <th><select id="f_name" onchange="filterTable()"><option value="">All</option></select></th>
+            <th><select id="f_contract" onchange="filterTable()"><option value="">All</option></select></th>
+            <th><select id="f_company" onchange="filterTable()"><option value="">All</option></select></th>
+            <th><select id="f_phone" onchange="filterTable()"><option value="">All</option></select></th>
+            <th><select id="f_email" onchange="filterTable()"><option value="">All</option></select></th>
+            <th><select id="f_vat" onchange="filterTable()"><option value="">All</option></select></th>
+            <th><select id="f_cr" onchange="filterTable()"><option value="">All</option></select></th>
+            <th><select id="f_iban" onchange="filterTable()"><option value="">All</option></select></th>
+            <th></th>
+          </tr>
+          <tr>
+            <th>Project</th><th>Work Type</th><th>Name</th><th>Contract</th>
+            <th>Company</th><th>Phone</th><th>Email</th><th>VAT No</th>
+            <th>CR No</th><th>Advance Remaining</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="table"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
-
-<div class="input-group">
-<select id="work_type" required>
-<option value="" disabled selected></option>
-<option>Concrete & Masonry</option>
-<option>Masonry</option>
-<option>Plaster</option>
-<option>Paint</option>
-<option>Tiles</option>
-<option>Insulation</option>
-<option>Electrical</option>
-<option>Mechanical</option>
-</select>
-<label>Work Type</label>
-</div>
-
-<div class="input-group">
-<select id="retention_percent" required>
-<option value="10">10%</option>
-<option value="5">5%</option>
-<option value="0">0%</option>
-</select>
-<label>Retention</label>
-</div>
-
-<div class="input-group">
-<select id="vat_percent" required>
-<option value="15">15%</option>
-<option value="0">0%</option>
-</select>
-<label>VAT</label>
-</div>
-
-<div class="checkbox-box">
-<label>
-<input type="checkbox" id="has_advance">
-<span>Has Advance Payment</span>
-</label>
-</div>
-
-<div class="input-group">
-<input id="advance_amount" placeholder=" ">
-<label>Advance Amount</label>
-</div>
-
-</div>
-
-<!-- RIGHT -->
-<div class="form-section">
-
-<h4 class="form-section-title">Contract Details</h4>
-
-
-
-<div class="input-group">
-<input id="contract_no" placeholder=" ">
-<label>Contract No</label>
-</div>
-
-<div class="input-group">
-<input id="company" placeholder=" ">
-<label>Company Name</label>
-</div>
-
-<div class="input-group">
-<input type="email" id="email" placeholder=" ">
-<label>Email</label>
-</div>
-
-<div class="input-group">
-<input id="cr" placeholder=" ">
-<label>CR</label>
-</div>
-
-<div class="input-group">
-<input id="vat_number" placeholder=" ">
-<label>VAT Number</label>
-</div>
-
-</div>
-
-<!-- FULL WIDTH -->
-<div class="form-section full">
-
-<h4 class="form-section-title">Site Supervisor Detail</h4>
-
-<div class="form-row">
-
-<div class="input-group">
-<input id="subcontractor_name" placeholder=" ">
-<label>Subcontractor Name</label>
-</div>
-
-<div class="input-group">
-<input id="phone" placeholder=" ">
-<label>Phone</label>
-</div>
-
-
-
-</div>
-
-</div>
-
-<!-- BUTTON -->
-<div class="form-actions">
-<button id="mainBtn" onclick="save()">➕ Add Subcontractor</button>
-</div>
-
-</div>
-
-</div>
-
-</div>
-</div>
-
-<p id="msg"></p>
-
-</div>
-
-<!-- ================= FILTER + TABLE CARD ================= -->
-<div class="card">
-
-<h3 class="section-title">🔎 Filters</h3>
-
-<div class="table-container">
-
-<table>
-
-<thead>
-
-<!-- FILTER ROW -->
-<tr>
-<th>
-<select id="f_project" onchange="filterTable()">
-<option value="">All</option>
-<option value="1">Sadayem</option>
-<option value="2">Makkah</option>
-<option value="3">Madinah</option>
-</select>
-</th>
-
-<th>
-<select id="f_work" onchange="filterTable()">
-<option value="">All</option>
-<option>Concrete & Masonry</option>
-<option>Masonry</option>
-<option>Plaster</option>
-<option>Paint</option>
-<option>Tiles</option>
-<option>Insulation</option>
-<option>Electrical</option>
-<option>Mechanical</option>
-</select>
-</th>
-
-<th><select id="f_name" onchange="filterTable()"><option value="">All</option></select></th>
-<th><select id="f_contract" onchange="filterTable()"><option value="">All</option></select></th>
-<th><select id="f_company" onchange="filterTable()"><option value="">All</option></select></th>
-<th><select id="f_phone" onchange="filterTable()"><option value="">All</option></select></th>
-<th><select id="f_email" onchange="filterTable()"><option value="">All</option></select></th>
-<th><select id="f_vat" onchange="filterTable()"><option value="">All</option></select></th>
-<th><select id="f_cr" onchange="filterTable()"><option value="">All</option></select></th>
-<th><select id="f_iban" onchange="filterTable()"><option value="">All</option></select></th>
-<th></th>
-</tr>
-
-<!-- HEADER -->
-<tr>
-<th>Project</th>
-<th>Work Type</th>
-<th>Name</th>
-<th>Contract</th>
-<th>Company</th>
-<th>Phone</th>
-<th>Email</th>
-<th>VAT</th>
-<th>CR</th>
-<th>Adv. Amount</th>
-<th>Actions</th>
-</tr>
-
-</thead>
-
-<tbody id="table"></tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</div>
-
 </body>
 </html>

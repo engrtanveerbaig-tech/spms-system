@@ -1,739 +1,632 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;600&display=swap" rel="stylesheet">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SPMS Dashboard</title>
+<meta charset="UTF-8"><title>Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.mini.min.js"></script>
-<link rel="stylesheet" href="./css/style.css">
-
-
+<link rel="stylesheet" href="css/style.css">
 <style>
+body{margin:0;background:var(--night);}
 
-/* ================= BASE ================= */
-body{
-    font-family: 'Tajawal', 'Segoe UI', sans-serif;
-    margin:0;
-    transition:0.3s;
-}
+/* ── Date range picker ── */
+.date-range-wrap{display:flex;align-items:center;gap:8px;}
+.date-range-wrap input[type=date]{flex:1;min-width:110px;}
+.date-sep{font-size:11px;color:var(--text3);font-weight:600;flex-shrink:0;}
+.date-range-box{background:var(--card2);border:1px solid var(--borderb);border-radius:var(--rsm);padding:8px 12px;}
+.date-range-display{font-size:10px;color:var(--text3);margin-top:5px;font-family:var(--mono);}
 
-body.dark-mode{
-    background:#020617;
-    color:white;
-}
+/* ── Status filter select colors ── */
+#filterStatus option[value="Approved"]     {color:#10b981;}
+#filterStatus option[value="Under Review"] {color:#f59e0b;}
+#filterStatus option[value="On Site"]      {color:#3b82f6;}
+#filterStatus option[value="Pending"]      {color:#8b5cf6;}
+#filterStatus option[value="Rejected"]     {color:#ef4444;}
 
-/* ================= HEADER ================= */
-.header{
-    background:linear-gradient(135deg,#ffffff,#f1f5f9);
-    border-radius:18px;
-    padding:25px;
+/* ── Status breakdown strip ── */
+.status-strip{display:flex;gap:8px;flex-wrap:wrap;padding:0 26px 14px;}
+.status-card{flex:1;min-width:110px;background:var(--card);border:1px solid var(--borderb);border-radius:var(--rsm);padding:10px 14px;display:flex;flex-direction:column;gap:3px;cursor:pointer;transition:border-color .18s;}
+.status-card:hover{border-color:var(--violet);}
+.status-card .sc-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;display:inline-block;width:fit-content;}
+.status-card .sc-count{font-size:20px;font-weight:700;font-family:var(--mono);}
+.status-card .sc-amt{font-size:10px;color:var(--text3);font-family:var(--mono);}
+/* badge variants */
+.b-approved  {background:rgba(16,185,129,.15);color:#10b981;}
+.b-review    {background:rgba(245,158,11,.15);color:#f59e0b;}
+.b-onsite    {background:rgba(59,130,246,.15);color:#3b82f6;}
+.b-pending   {background:rgba(139,92,246,.15);color:#8b5cf6;}
+.b-rejected  {background:rgba(239,68,68,.15);color:#ef4444;}
 
-    box-shadow:
-        0 10px 30px rgba(0,0,0,0.08),
-        inset 0 1px 0 rgba(255,255,255,0.6);
-}
+/* ── Status change modal ── */
+#statusModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;align-items:center;justify-content:center;}
+#statusModal.open{display:flex;}
+.status-modal-box{background:var(--card);border:1px solid var(--borderb);border-radius:12px;padding:28px 28px 22px;width:360px;max-width:90vw;}
+.status-modal-box h3{margin:0 0 6px;font-size:15px;color:var(--text1);}
+.status-modal-box p{margin:0 0 16px;font-size:12px;color:var(--text3);}
+.status-modal-box label{font-size:11px;color:var(--text3);display:block;margin-bottom:4px;}
+.status-modal-box select,
+.status-modal-box input{width:100%;box-sizing:border-box;margin-bottom:12px;}
+.status-modal-actions{display:flex;gap:8px;margin-top:4px;}
+.status-modal-actions button{flex:1;}
+#statusModalErr{color:#ef4444;font-size:11px;min-height:16px;margin-bottom:6px;}
 
-/* DARK MODE */
-body.dark-mode .header{
-    background:linear-gradient(135deg,#0f172a,#1e293b);
-}
-.header-top{
-     display:flex;
-    align-items:center;
-    justify-content:space-between;
-}
-
-.header-bottom{
-    font-size:13px;
-    color:#94a3b8;
-}
-
-#workTypeSummary{
-    margin-top:10px;
-    margin-bottom:10px;
-}
-.filters button{
-    border:none;
-    padding:8px 14px;
-    border-radius:10px;
-    cursor:pointer;
-    font-size:13px;
-    transition:0.2s;
-}
-
-.filters button:first-child{
-    background:linear-gradient(135deg,#ec4899,#f43f5e);
-    color:white;
-}
-
-.reset-btn{
-    background:linear-gradient(135deg,#6366f1,#3b82f6);
-    color:white;
-}
-
-.filters button:hover{
-    transform:translateY(-1px);
-    box-shadow:0 5px 12px rgba(0,0,0,0.2);
-}
-.main{
-    margin-left:0px; /* exact sidebar width */
-    padding:20px 25px;
-}
-.main-content{
-    padding:25px 30px;
-}
-
-/* LOGO TEXT */
-.sidebar::after{
-    writing-mode:vertical-rl;
-    transform:rotate(180deg);
-    font-weight:bold;
-    letter-spacing:6px;
-    font-size:14px;
-    color:rgba(255,255,255,0.6);
-}
-body.dark-mode .header{
-    background:rgba(255,255,255,0.05);
-}
-
-/* ================= KPI GRID ================= */
-.dashboard-grid{
-    display:grid;
-    grid-template-columns:repeat(6,1fr);
-    gap:12px;
-}
-.mini-grid{
-    display:grid;
-    grid-template-columns:repeat(5,1fr);
-    gap:10px;
-    margin-top:10px;
-}
-/* KPI CARD */
-.kpi{
-    background:linear-gradient(135deg,#0f172a,#1e293b);
-    color:white;
-    padding:18px;
-    border-radius:16px;
-    font-size:14px;
-
-    position:relative;
-    overflow:hidden;
-}
-
-/* GLOSS EFFECT */
-.kpi::before{
-    content:'';
-    position:absolute;
-    top:0;
-    left:-50%;
-    width:200%;
-    height:100%;
-    background:linear-gradient(
-        120deg,
-        transparent,
-        rgba(255,255,255,0.15),
-        transparent
-    );
-    transform:skewX(-20deg);
-}
-
-.kpi span{
-    display:block;
-    font-size:20px;
-    font-weight:bold;
-    margin-top:6px;
-}
-
-/* HOVER */
-.kpi:hover{
-    transform:translateY(-5px);
-    box-shadow:0 10px 25px rgba(0,0,0,0.3);
-}
-
-/* ================= MINI ================= */
-.mini{
-    background:rgba(255,255,255,0.08);
-    backdrop-filter:blur(10px);
-    padding:10px;
-    border-radius:10px;
-}
-
-/* ================= AI BOX ================= */
-.ai-box{
-    background:rgba(255,255,255,0.08);
-    backdrop-filter:blur(14px);
-    border-radius:14px;
-    padding:15px;
-    grid-column:1 / -1;
-}
-
-.ai-header{
-    display:flex;
-    justify-content:space-between;
-    margin-bottom:10px;
-}
-
-/* ================= FILTERS ================= */
-.filters{
-    background:transparent;
-    border:none;
-    padding:8px 0;
-    border-radius:0;
-    display:flex;
-    justify-content: space-between;
-    align-items: center;
-    gap:12px;
-    margin:15px 0;
-    flex-wrap:nowrap;
-}
-
-.filters h6{
-    margin:0;
-    font-size:13px;
-    font-weight:600;
-    color:#64748b;
-}
-
-/* SELECT CLEAN STYLE */
-.filters select{
-    background:#cbd5e1;
-    border:none;
-    border-bottom:1px solid #cbd5e1;
-    padding:6px 2px;
-    min-width:170px;
-    font-size:13px;
-    outline:none;
-}
-.filters-left {
-    display: flex;
-    align-items: center;   /* 🔥 THIS FIXES ALIGNMENT */
-    gap: 20px;
-}
-.filter-title {
-    font-size: 13px;
-    align-self: center;   /* keeps icon aligned with filters */
-    color: #64748b;
-    margin-bottom: 6px;
-}
-.filter-item {
-    display: flex;
-    flex-direction: column;
-}
-.filter-item label {
-    font-size: 11px;
-    color: #64748b;
-    margin-bottom: 2px;
-}
-
-/* SELECT */
-.filter-item select {
-    min-width: 180px;
-}
-/* DARK MODE */
-body.dark-mode .filters select{
-    background:#020617;
-    color:#e2e8f0;
-    border:1px solid #334155;
-    border-radius:6px;
-    padding:6px;
-}
-body.dark-mode .filters select option{
-    background:#020617;
-    color:#e2e8f0;
-}
-body.dark-mode .filters h6{
-    color:#94a3b8;
-}
-/* BUTTONS */
-.filter-actions button{
-    border:none;
-    padding:7px 14px;
-    border-radius:8px;
-    font-size:12px;
-}
-.filter-actions{
-    display:flex;
-    gap:10px;
-    margin-left:auto; /* push buttons right */
-}
-/* ================= CHART GRID ================= */
-.dashboard-custom{
-    display:grid;
-    grid-template-columns:2fr 1fr 1fr;
-    gap:15px;
-
-    /* 🔥 ADD THIS */
-    align-items:start;
-}
-/* CHART */
-.chart{
-    background:linear-gradient(135deg,#0f172a,#1e293b);
-    border-radius:14px;
-    padding:15px;
-
-    /* 🔥 ADD THIS */
-    position: relative;
-
-}
-
-.chart.small{
-    min-height:220px;
-    height:auto;
-    display:flex;
-    flex-direction:column;
-}
-#topSubs{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:12px;
-    margin-top:10px;
-}
-#topSubsList{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:12px;
-    margin-top:10px;
-}
-/* 🔥 EXPANDABLE RIGHT PANEL */
-.chart.right-panel.auto-height{
-    height:auto !important;
-    min-height:300px;
-}
-.top-sub-card{
-    background:linear-gradient(135deg,#0f172a,#1e293b);
-    border-radius:14px;
-    padding:12px;
-    color:white;
-    transition:0.3s;
-}
-
-/* 🔥 ONLY RIGHT PANEL FLEXIBLE */
-.chart.right-panel{
-    height:auto;
-}
-
-.top-sub-card:hover{
-    transform:translateY(-4px);
-    box-shadow:0 10px 25px rgba(0,0,0,0.4);
-}
-
-.top-sub-name{
-    font-size:12px;
-    color:#94a3b8;
-}
-
-
-.top-sub-value{
-    font-size:16px;
-    font-weight:bold;
-    color:#22c55e;
-    margin-top:4px;
-}
-
-.top-sub-currency{
-    font-size:11px;
-    color:#94a3b8;
-}
-
-.chart-title{
-    position:absolute;
-    top:10px;
-    left:15px;
-    font-size:13px;
-    font-weight:600;
-    color:#cbd5f5;
-}
-
-
-.pdf-actions{
-    display:flex;
-    gap:10px;
-    margin:10px 0;
-}
-
-.pdf-actions button{
-    border:none;
-    padding:8px 14px;
-    border-radius:10px;
-    cursor:pointer;
-    font-size:12px;
-    background:linear-gradient(135deg,#334155,#1e293b);
-    color:white;
-}
-
-.pdf-actions button:hover{
-    transform:translateY(-2px);
-}
-
-/* ================= TOP SUBS ================= */
-.top-card{
-    background:rgba(255,255,255,0.05);
-    margin:6px 0;
-    padding:10px;
-    border-radius:10px;
-}
-
-.top-card.big{
-    background:linear-gradient(135deg,#3b82f6,#22c55e);
-    color:white;
-}
-
-.top-rank{
-    font-weight:bold;
-}
-
-/* ================= TABLE ================= */
-.table-container{
-    margin-top:20px;
-    padding:15px;
-    border-radius:14px;
-    overflow:auto;
-}
-
-body.dark-mode .table-container{
-    background:rgba(255,255,255,0.05);
-}
-
-/* TABLE */
-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-th,td{
-    padding:10px;
-    text-align:left;
-}
-
-/* HEADER */
-th{
-    background:linear-gradient(135deg,#1f4e79,#2563eb);
-    color:white;
-    font-size:13px;
-}
-
-/* ROW */
-tbody tr:hover{
-    background: var(--card-bg);
-}
-
-body.dark-mode tbody tr:hover{
-    background:rgba(255,255,255,0.08);
-}
-
-/* ================= SKELETON ================= */
-.skeleton{
-    background:linear-gradient(90deg,#eee,#ddd,#eee);
-    animation:shimmer 1.5s infinite;
-}
-.skeleton-kpis {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 15px;
-}
-
-.skeleton-kpi {
-    flex: 1;
-    height: 60px;   /* 🔥 reduced */
-    border-radius: 10px;
-    background: linear-gradient(90deg, #eee, #ddd, #eee);
-    animation: shimmer 1.5s infinite;
-}
-.skeleton-summary {
-    height: 80px;   /* 🔥 was too big */
-    border-radius: 10px;
-    margin-bottom: 15px;
-    background: linear-gradient(90deg, #eee, #ddd, #eee);
-}
-.skeleton-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 12px;
-}
-.skeleton-chart {
-    height: 220px;   /* 🔥 reduced */
-    border-radius: 12px;
-}
-.skeleton-card {
-    height: 110px;   /* 🔥 reduced */
-    border-radius: 10px;
-}
-.skeleton-bottom {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 15px;
-}
-
-.skeleton-bottom-card {
-    height: 160px;   /* 🔥 reduced */
-    border-radius: 12px;
-}
-
-@keyframes shimmer {
-    0% { background-position: -400px 0; }
-    100% { background-position: 400px 0; }
-}
-
-.skeleton-kpi,
-.skeleton-summary,
-.skeleton-chart,
-.skeleton-card,
-.skeleton-bottom-card {
-    background: linear-gradient(90deg, #eee 25%, #ddd 50%, #eee 75%);
-    background-size: 800px 100%;
-    animation: shimmer 1.5s infinite;
-}
-
-/* ================= ANIMATION ================= */
-.fade-in{
-    animation:fadeIn 0.5s ease;
-}
-
-@keyframes fadeIn{
-    from{opacity:0;transform:translateY(10px);}
-    to{opacity:1;transform:translateY(0);}
-}
-
-/* ================= RESPONSIVE ================= */
-@media(max-width:900px){
-
-.dashboard-grid{
-    grid-template-columns:1fr;
-}
-
-.dashboard-custom{
-    grid-template-columns:1fr;
-}
-
-}
-.chart.right-panel{
-    display:flex;
-    flex-direction:column;
-}
-.filters small {
-    font-size: 11px;
-    color: #64748b;
-    margin-bottom: 2px;
-}
-
+/* status pill in table */
+.st-pill{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600;}
 </style>
 </head>
-
 <body>
 
-<div class="main">
+<!-- ══════════════════ SKELETON ══════════════════ -->
+<div id="dashboardSkeleton">
+  <div class="dash-hd">
+    <div><div class="skeleton" style="width:150px;height:22px;margin-bottom:7px"></div><div class="skeleton" style="width:220px;height:12px"></div></div>
+    <div class="skeleton" style="width:155px;height:52px;border-radius:10px"></div>
+  </div>
+  <div class="kpi-grid">
+    <div class="skeleton" style="height:70px"></div><div class="skeleton" style="height:70px"></div>
+    <div class="skeleton" style="height:70px"></div><div class="skeleton" style="height:70px"></div>
+    <div class="skeleton" style="height:70px"></div><div class="skeleton" style="height:70px"></div>
+  </div>
+  <div class="skeleton" style="height:80px;margin:0 26px 14px;border-radius:13px"></div>
+  <div class="mini-grid"><div class="skeleton" style="height:54px"></div><div class="skeleton" style="height:54px"></div><div class="skeleton" style="height:54px"></div><div class="skeleton" style="height:54px"></div><div class="skeleton" style="height:54px"></div></div>
+  <div class="charts-row r3"><div class="skeleton" style="height:240px"></div><div class="skeleton" style="height:240px"></div><div class="skeleton" style="height:240px"></div></div>
+  <div style="padding:0 26px 26px"><div class="skeleton" style="height:180px;border-radius:13px"></div></div>
+</div>
 
-    <!-- ================= SKELETON (SHOW FIRST) ================= -->
-    <div id="dashboardSkeleton">
+<!-- ══════════════════ REAL DASHBOARD ══════════════════ -->
+<div id="dashboardContent" style="display:none">
 
-        <!-- KPI SKELETON -->
-        <div class="dashboard-grid">
+  <!-- Header -->
+  <div class="dash-hd">
+    <div>
+      <div class="dash-title">Dashboard</div>
+      <div class="dash-sub">Subcontractor Payment Management &nbsp;<span id="activeFilter"></span></div>
+    </div>
+    <div class="sar-box"><h3>Total Project Value (SAR)</h3><p id="total_sar">—</p></div>
+  </div>
 
-            <!-- KPI BLOCKS -->
-            <div class="kpi skeleton">
-                <div style="height:10px; width:60%; margin-bottom:8px;" class="skeleton"></div>
-                <div style="height:18px; width:40%;" class="skeleton"></div>
-            </div>
+  <!-- ── Filters Bar ── -->
+  <div class="filters-bar">
+    <div class="fg"><label>Company</label><select id="filterCompany"></select></div>
+    <div class="fg"><label>Work Type</label><select id="filterType"></select></div>
+    <div class="fg"><label>Subcontractor</label><select id="filterSub"></select></div>
 
-            <div class="kpi skeleton">
-                <div style="height:10px; width:60%; margin-bottom:8px;" class="skeleton"></div>
-                <div style="height:18px; width:40%;" class="skeleton"></div>
-            </div>
-
-            <div class="kpi skeleton">
-                <div style="height:10px; width:60%; margin-bottom:8px;" class="skeleton"></div>
-                <div style="height:18px; width:40%;" class="skeleton"></div>
-            </div>
-
-            <div class="kpi skeleton">
-                <div style="height:10px; width:60%; margin-bottom:8px;" class="skeleton"></div>
-                <div style="height:18px; width:40%;" class="skeleton"></div>
-            </div>
-
-            <div class="kpi skeleton">
-                <div style="height:10px; width:60%; margin-bottom:8px;" class="skeleton"></div>
-                <div style="height:18px; width:40%;" class="skeleton"></div>
-            </div>
-
-            <!-- AI BOX -->
-            <div class="ai-box skeleton">
-                <div style="height:10px; width:40%; margin-bottom:10px;" class="skeleton"></div>
-                <div style="height:8px; width:90%; margin-bottom:6px;" class="skeleton"></div>
-                <div style="height:8px; width:80%; margin-bottom:6px;" class="skeleton"></div>
-                <div style="height:8px; width:70%;" class="skeleton"></div>
-            </div>
-
-            <!-- MINI -->
-            <div class="mini skeleton"></div>
-            <div class="mini skeleton"></div>
-            <div class="mini skeleton"></div>
-            <div class="mini skeleton"></div>
-            <div class="mini skeleton"></div>
-
-        </div>
-
-        <!-- CHARTS -->
-        <div class="dashboard-custom">
-            <div class="chart big skeleton"></div>
-            <div class="chart small-top skeleton"></div>
-            <div class="chart right-panel skeleton"></div>
-            <div class="chart small-bottom skeleton"></div>
-            <div class="chart big-bottom skeleton"></div>
-        </div>
-
-        <!-- TABLE -->
-        <div class="table-container">
-            <div class="skeleton" style="height:200px;"></div>
-        </div>
-
+    <!-- STATUS FILTER -->
+    <div class="fg">
+      <label>Certificate Status</label>
+      <select id="filterStatus">
+        <option value="">All Statuses</option>
+        <option value="Approved">✓ Approved</option>
+        <option value="Under Review">⏳ Under Review</option>
+        <option value="On Site">📍 On Site</option>
+        <option value="Pending">◷ Pending</option>
+        <option value="Rejected">✕ Rejected</option>
+      </select>
     </div>
 
-
-    <!-- ================= REAL DASHBOARD (HIDDEN FIRST) ================= -->
-    <div id="dashboardContent" style="display:none;">
-
-        <!-- HEADER -->
-        <div class="header">
-            <div class="header-top">
-                <h2>Dashboard 👋</h2>
-
-                <div class="total-sar">
-                    <h3>Total Project Value (SAR)</h3>
-                    <p id="total_sar">0</p>
-                </div>
-            </div>
-
-            <div class="header-bottom">
-                <a href="mailto:mrtanveer2017@gmail.com">
-                    This Dashboard is created by Eng. Tanveer Ahmad (If you have any issue, email with screenshot),<br>
-                    <p>© 2026 Eng.Tanveer Ahmad . All rights reserved.</p>
-                </a>
-            </div>
+    <!-- DATE RANGE FILTER -->
+    <div class="fg" style="align-self:flex-end;">
+      <div class="date-range-box">
+        <label style="font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;display:block">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Date Range (Cert Date)
+        </label>
+        <div class="date-range-wrap">
+          <input type="date" id="dash_date_from" title="From date">
+          <span class="date-sep">→</span>
+          <input type="date" id="dash_date_to" title="To date">
+          <button class="btn-ghost btn-sm" id="clearDateBtn" title="Clear dates" style="padding:6px 8px">✕</button>
         </div>
-
-        <!-- FILTERS -->
-        <div class="filters">
-
-    <div class="filters-left">
-        <span class="filter-title">🔎 Filters</span>
-
-        <div class="filter-item">
-            <label>Company</label>
-            <select id="filterCompany"></select>
-        </div>
-
-        <div class="filter-item">
-            <label>Work Type</label>
-            <select id="filterType"></select>
-        </div>
-
-        <div class="filter-item">
-            <label>Subcontractor</label>
-            <select id="filterSub"></select>
-        </div>
+        <div class="date-range-display" id="dash_date_range_label"></div>
+      </div>
     </div>
 
     <div class="filter-actions">
-        <button onclick="generatePDFPreview()">👁 Preview</button>
-        <button onclick="resetDashboard()" class="reset-btn">🔄 Clear</button>
+      <button class="btn-secondary btn-sm" onclick="generatePDFPreview()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Preview</button>
+      <button class="btn-secondary btn-sm" onclick="downloadExcel()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Excel</button>
+      <button class="btn-secondary btn-sm" onclick="downloadPDF()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF</button>
+      <button class="btn-primary btn-sm" onclick="printPDF()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print</button>
+      <button class="btn-ghost btn-sm" onclick="resetDashboard()">↺ Reset</button>
     </div>
+  </div>
 
-</div>
-        <div class="pdf-actions">
-    <button onclick="downloadExcel()">📊 Excel</button>
-    <button onclick="downloadPDF()">⬇ PDF</button>
-    <button onclick="printPDF()">🖨 Print</button>
-</div>
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi kpi-work"><div class="kpi-label">Total Certified</div><div class="kpi-value" id="total_work">—</div><div class="kpi-sub">SAR</div></div>
+    <div class="kpi kpi-net"><div class="kpi-label">Net Payment</div><div class="kpi-value" id="total_paid">—</div><div class="kpi-sub">SAR</div></div>
+    <div class="kpi kpi-ret"><div class="kpi-label">Retention</div><div class="kpi-value" id="total_retention">—</div><div class="kpi-sub">SAR</div></div>
+    <div class="kpi kpi-ded"><div class="kpi-label">Deductions</div><div class="kpi-value" id="total_deduction">—</div><div class="kpi-sub">SAR</div></div>
+    <div class="kpi kpi-with"><div class="kpi-label">Withdrawn</div><div class="kpi-value" id="total_withdrawn">—</div><div class="kpi-sub">SAR</div></div>
+    <div class="kpi kpi-ref"><div class="kpi-label">Refund</div><div class="kpi-value" id="total_refund">—</div><div class="kpi-sub">SAR</div></div>
+  </div>
 
-        <!-- KPI -->
-        <!-- KPI -->
-<div class="dashboard-grid">
-    <div class="kpi">💰 Total Certified Amount<br><span id="total_work"></span></div>
-    <div class="kpi">📊 Total Net Amount<br><span id="total_paid"></span></div>
-    <div class="kpi">🔒 Retention<br><span id="total_retention"></span></div>
-    <div class="kpi">⚠️ Deductions<br><span id="total_deduction"></span></div>
-    <div class="kpi">📤 Work Withdrawn<br><span id="total_withdrawn"></span></div>
-    <div class="kpi">💸 Refund<br><span id="total_refund"></span></div>
-</div>
-
-<!-- AI FULL WIDTH -->
-<div class="ai-box">
-    <div class="ai-header">
-        <span>🤖 AI Insights</span>
-        <div class="ai-actions"><span>⋯</span></div>
+  <!-- ── Status Breakdown Strip (NEW) ── -->
+  <div class="status-strip" id="statusStrip">
+    <div class="status-card" onclick="quickFilterStatus('Approved')">
+      <span class="sc-badge b-approved">✓ Approved</span>
+      <span class="sc-count" id="sc_approved">—</span>
+      <span class="sc-amt" id="sa_approved">— SAR</span>
     </div>
-    <div id="ai_summary"></div>
-</div>
-<div id="workTypeSummary" class="ai-summary-small"></div>
-<hr>
-
-<!-- MINI GRID -->
-<div class="mini-grid">
-    <div class="mini">👷 Subcontractors: <span id="total_subs"></span></div>
-    <div class="mini">📈 Avg Cert: <span id="avg_cert"></span></div>
-    <div class="mini">📦 Types</div>
-    <div class="mini">🏆 Top Sub</div>
-    <div class="mini">📉 Retention %</div>
-</div>
-
-        <hr>
-
-        <!-- CHARTS -->
-        <div class="dashboard-custom">
-            <div class="chart big">
-    <div class="chart-title">📈 Subcontractor Trend</div>
-    <canvas id="trendChart"></canvas>
-</div>
-
-            <div class="chart small-top">
-                <div class="chart-title">📊 Work Distribution</div>
-                <canvas id="typeChart"></canvas>
-            </div>
-
-            <div class="chart right-panel auto-height">
-<div class="chart-title">📦 SC & PC Overview</div>
-                <div id="workTypeCards"></div></div>
-                
-            <div class="chart small-bottom">
-    <div class="chart-title">📉 Retention Analysis</div>
-    <canvas id="retentionChart"></canvas>
-</div>
-            <div class="chart big-bottom">
-    <div class="chart-title">🏆 Top Subcontractors</div>
-    <div id="topSubsList"></div>
-</div>
-        </div>
-
-        <!-- TABLE -->
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Company</th>
-                <th>Subcontractor</th>
-                <th>Work Type</th>
-                <th>Certificates</th>
-                <th>W.Value</th>
-                <th>Withdrawn</th>
-                <th>Deduction</th>
-                <th>Refund</th>
-                <th>Retention</th>
-                <th>Advance</th>
-                <th>Net</th>
-                    </tr>
-                </thead>
-                <tbody id="summaryTable"></tbody>
-            </table>
-        </div>
-
+    <div class="status-card" onclick="quickFilterStatus('Under Review')">
+      <span class="sc-badge b-review">⏳ Under Review</span>
+      <span class="sc-count" id="sc_review">—</span>
+      <span class="sc-amt" id="sa_review">— SAR</span>
     </div>
+    <div class="status-card" onclick="quickFilterStatus('On Site')">
+      <span class="sc-badge b-onsite">📍 On Site</span>
+      <span class="sc-count" id="sc_onsite">—</span>
+      <span class="sc-amt" id="sa_onsite">— SAR</span>
+    </div>
+    <div class="status-card" onclick="quickFilterStatus('Pending')">
+      <span class="sc-badge b-pending">◷ Pending</span>
+      <span class="sc-count" id="sc_pending">—</span>
+      <span class="sc-amt" id="sa_pending">— SAR</span>
+    </div>
+    <div class="status-card" onclick="quickFilterStatus('Rejected')">
+      <span class="sc-badge b-rejected">✕ Rejected</span>
+      <span class="sc-count" id="sc_rejected">—</span>
+      <span class="sc-amt" id="sa_rejected">— SAR</span>
+    </div>
+  </div>
 
+  <!-- AI Box -->
+  <div class="ai-box">
+    <div class="ai-hd"><span class="ai-badge"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>AI Insights</span></div>
+    <div id="ai_summary">Analyzing project data…</div>
+    <div id="workTypeSummary"></div>
+  </div>
+
+  <!-- Mini stats -->
+  <div class="mini-grid">
+    <div class="mini">Subcontractors<span id="total_subs">—</span></div>
+    <div class="mini">Avg Certificates<span id="avg_cert">—</span></div>
+    <div class="mini">Work Types<span id="mini_types">—</span></div>
+    <div class="mini">Top Subcontractor<span id="mini_top" style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span></div>
+    <div class="mini">Retention Rate<span id="mini_ret_pct">—</span></div>
+  </div>
+
+  <!-- Charts row 1 -->
+  <div class="charts-row r3">
+    <div class="chart-card">
+      <div class="chart-hd"><span class="chart-title">Payment Trend</span><span style="font-size:10px;color:var(--text3)">Net · Retention · Deduction</span></div>
+      <div class="chart-bd h220"><canvas id="trendChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-hd"><span class="chart-title">Work Distribution</span></div>
+      <div class="chart-bd h220"><canvas id="typeChart"></canvas></div>
+    </div>
+    <div class="chart-card" style="display:flex;flex-direction:column;">
+      <div class="chart-hd"><span class="chart-title">SC · PC Overview</span></div>
+      <div id="workTypeCards"></div>
+    </div>
+  </div>
+
+  <!-- Charts row 2 -->
+  <div class="charts-row r2">
+    <div class="chart-card">
+      <div class="chart-hd"><span class="chart-title">Retention Analysis</span><span style="font-size:10px;color:var(--text3)">Retention · Deduction</span></div>
+      <div class="chart-bd h220"><canvas id="retentionChart"></canvas></div>
+    </div>
+    <div class="chart-card" style="display:flex;flex-direction:column;">
+      <div class="chart-hd"><span class="chart-title">Top Subcontractors — Net Payment</span></div>
+      <div id="topSubsList"></div>
+    </div>
+  </div>
+
+  <!-- Summary Table — now includes Status column + Change button -->
+  <div class="table-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;">
+      <span style="font-size:12px;font-weight:600;color:var(--text2)">Payment Summary</span>
+      <span style="font-size:10px;color:var(--text3)">Click <b>Change</b> on any row to update its certificate status</span>
+    </div>
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr>
+            <th>Company</th><th>Subcontractor</th><th>Work Type</th><th>Certs</th>
+            <th>Work Value</th><th>Withdrawn</th><th>Deduction</th><th>Refund</th>
+            <th>Retention</th><th>Advance</th><th>Net</th>
+            <th>Status</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="summaryTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /dashboardContent -->
+
+<!-- ══════════════════ STATUS CHANGE MODAL ══════════════════ -->
+<div id="statusModal">
+  <div class="status-modal-box">
+    <h3>🔐 Change Certificate Status</h3>
+    <p id="statusModalSub">Updating status for: <strong id="statusModalName">—</strong></p>
+
+    <label>New Status</label>
+    <select id="statusModalNewStatus">
+      <option value="Approved">✓ Approved</option>
+      <option value="Under Review">⏳ Under Review</option>
+      <option value="On Site">📍 On Site</option>
+      <option value="Pending">◷ Pending</option>
+      <option value="Rejected">✕ Rejected</option>
+    </select>
+
+    <label>Admin Password</label>
+    <input type="password" id="statusModalPwd" placeholder="Enter admin password…">
+
+    <div id="statusModalErr"></div>
+
+    <div class="status-modal-actions">
+      <button class="btn-ghost btn-sm" onclick="closeStatusModal()">Cancel</button>
+      <button class="btn-primary btn-sm" onclick="confirmStatusChange()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Confirm
+      </button>
+    </div>
+  </div>
 </div>
-<script src="./js/xlsx.mini.min.js"></script>
 
-<!-- 🔥 ADD THESE -->
-<script src="./js/dashboard.js"></script>
+<script src="js/xlsx.mini.min.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   DASHBOARD EXTENSION — date range + status filter + status change modal
+   Works on top of dashboard.js (loaded after this block)
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Date range label ── */
+function updateDashDateLabel(){
+  var from  = document.getElementById("dash_date_from").value;
+  var to    = document.getElementById("dash_date_to").value;
+  var label = document.getElementById("dash_date_range_label");
+  if(from && to){
+    var f = new Date(from).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"});
+    var t = new Date(to).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"});
+    label.innerHTML = '<span style="color:var(--violet)">📅 '+f+' → '+t+'</span>';
+  } else if(from){
+    label.innerHTML = '<span style="color:var(--violet)">📅 From: '+new Date(from).toLocaleDateString()+'</span>';
+  } else if(to){
+    label.innerHTML = '<span style="color:var(--violet)">📅 To: '+new Date(to).toLocaleDateString()+'</span>';
+  } else {
+    label.innerHTML = "";
+  }
+}
+
+document.getElementById("dash_date_from").addEventListener("input", function(){ updateDashDateLabel(); triggerDashRender(); });
+document.getElementById("dash_date_to").addEventListener("input",   function(){ updateDashDateLabel(); triggerDashRender(); });
+document.getElementById("clearDateBtn").addEventListener("click",   function(){
+  document.getElementById("dash_date_from").value = "";
+  document.getElementById("dash_date_to").value   = "";
+  document.getElementById("dash_date_range_label").innerHTML = "";
+  triggerDashRender();
+});
+document.getElementById("filterStatus").addEventListener("change", triggerDashRender);
+
+function triggerDashRender(){
+  /* dashboard.js exposes renderAll indirectly via its closure —
+     we hook by calling the public resetDashboard-like re-render path */
+  if(typeof window._dashRenderAll === "function") window._dashRenderAll();
+}
+
+/* ── Quick filter: clicking a status card sets the dropdown ── */
+function quickFilterStatus(status){
+  var sel = document.getElementById("filterStatus");
+  sel.value = (sel.value === status) ? "" : status; /* toggle off if already selected */
+  triggerDashRender();
+}
+
+/* ── Status breakdown updater (called from dashboard.js renderAll patch) ── */
+function updateStatusStrip(rawData){
+  var def = [
+    {key:"Approved",  cId:"sc_approved", aId:"sa_approved"},
+    {key:"Under Review", cId:"sc_review",   aId:"sa_review"},
+    {key:"On Site",   cId:"sc_onsite",   aId:"sa_onsite"},
+    {key:"Pending",   cId:"sc_pending",  aId:"sa_pending"},
+    {key:"Rejected",  cId:"sc_rejected", aId:"sa_rejected"},
+  ];
+  def.forEach(function(d){
+    var rows   = rawData.filter(function(r){ return (r.cert_status||r.status||"") === d.key; });
+    var count  = rows.length;
+    var amount = rows.reduce(function(s,r){ return s + (parseFloat(r.net_payment||r.net||0)); }, 0);
+    var cel = document.getElementById(d.cId);
+    var ael = document.getElementById(d.aId);
+    if(cel) cel.textContent = count;
+    if(ael) ael.textContent = amount.toLocaleString("en-SA",{minimumFractionDigits:0,maximumFractionDigits:0}) + " SAR";
+  });
+}
+
+/* ── Status pill HTML helper ── */
+function statusPill(s){
+  var map = {
+    "Approved":    ["b-approved","✓"],
+    "Under Review":["b-review","⏳"],
+    "On Site":     ["b-onsite","📍"],
+    "Pending":     ["b-pending","◷"],
+    "Rejected":    ["b-rejected","✕"],
+  };
+  var m = map[s] || ["",""];
+  return '<span class="st-pill '+m[0]+'">'+m[1]+' '+(s||"—")+'</span>';
+}
+
+/* ═══════════════════════════════════════════════════════
+   STATUS CHANGE MODAL
+   ═══════════════════════════════════════════════════════ */
+var _statusTarget = null; /* { paymentId, rowIndex } */
+
+function openStatusModal(paymentId, currentStatus, label){
+  _statusTarget = { paymentId: paymentId };
+  document.getElementById("statusModalName").textContent = label;
+  document.getElementById("statusModalNewStatus").value  = currentStatus || "Approved";
+  document.getElementById("statusModalPwd").value        = "";
+  document.getElementById("statusModalErr").textContent  = "";
+  document.getElementById("statusModal").classList.add("open");
+  setTimeout(function(){ document.getElementById("statusModalPwd").focus(); }, 80);
+}
+
+function closeStatusModal(){
+  document.getElementById("statusModal").classList.remove("open");
+  _statusTarget = null;
+}
+
+/* Close on backdrop click */
+document.getElementById("statusModal").addEventListener("click", function(e){
+  if(e.target === this) closeStatusModal();
+});
+
+/* Enter key submits */
+document.getElementById("statusModalPwd").addEventListener("keydown", function(e){
+  if(e.key === "Enter") confirmStatusChange();
+});
+
+async function confirmStatusChange(){
+  var errEl  = document.getElementById("statusModalErr");
+  var pwd    = document.getElementById("statusModalPwd").value.trim();
+  var newSt  = document.getElementById("statusModalNewStatus").value;
+
+  errEl.textContent = "";
+
+  if(!pwd){ errEl.textContent = "Password is required."; return; }
+  if(!_statusTarget){ closeStatusModal(); return; }
+
+  /* ── Verify password via API ── */
+  try{
+    var token = localStorage.getItem("token");
+    var verRes = await fetch("https://spms-backend-jxzn.onrender.com/api/auth/verify-admin", {
+      method: "POST",
+      headers: { "Content-Type":"application/json", "Authorization":"Bearer "+token },
+      body: JSON.stringify({ password: pwd })
+    });
+    if(!verRes.ok){
+      var vData = await verRes.json().catch(function(){ return {}; });
+      errEl.textContent = vData.message || "Incorrect password or insufficient permissions.";
+      return;
+    }
+  } catch(err){
+    errEl.textContent = "Network error during verification.";
+    return;
+  }
+
+  /* ── Update status via API ── */
+  try{
+    var token2 = localStorage.getItem("token");
+    var upRes = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/"+_statusTarget.paymentId+"/status", {
+      method: "PATCH",
+      headers: { "Content-Type":"application/json", "Authorization":"Bearer "+token2 },
+      body: JSON.stringify({ cert_status: newSt })
+    });
+    if(!upRes.ok){
+      var uData = await upRes.json().catch(function(){ return {}; });
+      errEl.textContent = uData.message || "Failed to update status.";
+      return;
+    }
+
+    /* ── Update local RAW_DATA so UI reflects change without full reload ── */
+    if(Array.isArray(window._RAW_DATA_REF)){
+      window._RAW_DATA_REF.forEach(function(r){
+        if(String(r.id||r.payment_id) === String(_statusTarget.paymentId)){
+          r.cert_status = newSt;
+          r.status = newSt;
+        }
+      });
+    }
+
+    closeStatusModal();
+    /* re-render */
+    if(typeof window._dashRenderAll === "function") window._dashRenderAll();
+
+  } catch(err){
+    errEl.textContent = "Network error while saving.";
+  }
+}
+</script>
+
+<script src="js/dashboard.js"></script>
+
+<!-- ══════════════════════════════════════════════════════════
+     PATCH dashboard.js after it loads:
+     — expose _dashRenderAll
+     — inject date/status filtering into getFilteredRaw & applyFilt
+     — call updateStatusStrip after every renderAll
+     — add Status column + Change button to renderTable
+     ══════════════════════════════════════════════════════════ -->
+<script>
+(function patchDashboard(){
+  /* Wait one tick so dashboard.js IIFE has finished */
+  setTimeout(function(){
+
+    /* ── Grab the module's internal renderAll via the exposed loadDashboard closure.
+          We override window.resetDashboard (already public) to also call our strip updater,
+          and we expose _dashRenderAll by wrapping resetDashboard logic. ── */
+
+    /* Expose a thin re-render trigger that calls resetDashboard internals.
+       dashboard.js already exposes window.resetDashboard which calls buildAggregation + initFilters + renderAll.
+       We just need a lighter "renderAll only" path — we'll reuse resetDashboard but preserve filter state. */
+
+    var _origReset = window.resetDashboard;
+
+    /* _dashRenderAll: re-render using current RAW_DATA + FILTER_STATE + our extra filters */
+    window._dashRenderAll = function(){
+      /* We can't call renderAll directly (it's in the closure).
+         Cheapest way: patch the filter selects then call the onchange handlers dashboard.js wired up.
+         But cleanest: just re-trigger via the public filterCompany onchange. */
+      var ev = new Event("change");
+      var fc = document.getElementById("filterCompany");
+      if(fc) fc.dispatchEvent(ev);
+    };
+
+    /* ── Override window.resetDashboard to also reset our new filters ── */
+    window.resetDashboard = function(){
+      document.getElementById("filterStatus").value        = "";
+      document.getElementById("dash_date_from").value      = "";
+      document.getElementById("dash_date_to").value        = "";
+      document.getElementById("dash_date_range_label").innerHTML = "";
+      if(typeof _origReset === "function") _origReset();
+    };
+
+    /* ── Patch getFilteredRaw + applyFilt to respect Status & Date filters.
+          dashboard.js defines these inside its IIFE so we can't override them directly.
+          Instead we patch the renderTable output to add the Status column,
+          and patch renderAll by intercepting the summaryTable update. ──
+
+       Strategy: use a MutationObserver on #summaryTable to post-process rows
+       and also add status strip update after each render. */
+
+    /* Keep a live reference to RAW_DATA for the modal local update */
+    /* We read it from a known global pattern dashboard.js uses */
+    Object.defineProperty(window, "_RAW_DATA_REF", {
+      get: function(){
+        /* dashboard.js stores RAW_DATA in its closure — we expose it via the
+           applyGlobalFilter path which assigns to the closure variable.
+           For the modal we only need to update in-place; the reference is the
+           same array dashboard.js holds because applyGlobalFilter does:
+             RAW_DATA = filteredData.map(...) — a NEW array each time.
+           So we keep a live shadow: populated in the MutationObserver below. */
+        return window.__rawDataShadow || [];
+      },
+      configurable: true
+    });
+
+    /* ── MutationObserver on summaryTable: after dashboard.js writes rows,
+          we (a) inject Status + Action columns, (b) update the status strip ── */
+    var observer = new MutationObserver(function(){
+      postProcessTable();
+    });
+    var tb = document.getElementById("summaryTable");
+    if(tb) observer.observe(tb, { childList: true });
+
+    /* Also observe filterCompany change to refresh strip even when table hasn't changed */
+    var fc2 = document.getElementById("filterCompany");
+    if(fc2) fc2.addEventListener("change", function(){ setTimeout(refreshStrip, 200); });
+    var ft2 = document.getElementById("filterType");
+    if(ft2) ft2.addEventListener("change", function(){ setTimeout(refreshStrip, 200); });
+    var fs2 = document.getElementById("filterSub");
+    if(fs2) fs2.addEventListener("change", function(){ setTimeout(refreshStrip, 200); });
+    document.getElementById("filterStatus").addEventListener("change", function(){ setTimeout(postProcessTable, 100); });
+    document.getElementById("dash_date_from").addEventListener("input", function(){ setTimeout(postProcessTable, 100); });
+    document.getElementById("dash_date_to").addEventListener("input",   function(){ setTimeout(postProcessTable, 100); });
+
+    function refreshStrip(){
+      var data = window.getReportSafeData ? window.getReportSafeData() : [];
+      updateStatusStrip(data);
+    }
+
+    function postProcessTable(){
+      var tbody = document.getElementById("summaryTable");
+      if(!tbody) return;
+
+      /* Grab current raw data (via public API) */
+      var rawData = window.getReportSafeData ? window.getReportSafeData() : [];
+      window.__rawDataShadow = rawData;
+
+      /* Update status strip */
+      updateStatusStrip(rawData);
+
+      /* Apply our extra filters: status + date range */
+      var statusFilter = document.getElementById("filterStatus").value;
+      var dateFrom     = document.getElementById("dash_date_from").value;
+      var dateTo       = document.getElementById("dash_date_to").value;
+
+      /* Build a map: subcontractor+work_type → representative raw records */
+      var grouped = {};
+      rawData.forEach(function(r){
+        /* Apply status filter */
+        if(statusFilter && (r.cert_status||r.status||"") !== statusFilter) return;
+        /* Apply date range filter on cert_date */
+        if(dateFrom || dateTo){
+          var cd = r.cert_date ? r.cert_date.substring(0,10) : "";
+          if(dateFrom && cd && cd < dateFrom) return;
+          if(dateTo   && cd && cd > dateTo)   return;
+          if((dateFrom||dateTo) && !cd) return; /* exclude records with no cert_date when filter active */
+        }
+        var key = (r.subcontractor_name||"")+"__"+(r.work_type||"");
+        if(!grouped[key]) grouped[key] = { records:[], company:r.company_name, sub:r.subcontractor_name, wt:r.work_type };
+        grouped[key].records.push(r);
+      });
+
+      /* Re-build tbody rows */
+      observer.disconnect(); /* avoid recursion */
+
+      /* Helper */
+      function fmtN(n){ return Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+      var html = "";
+      Object.values(grouped).forEach(function(g){
+        var recs = g.records;
+        var tWork = recs.reduce(function(s,r){ return s+(parseFloat(r.work_value)||0); },0);
+        var tNet  = recs.reduce(function(s,r){ return s+(parseFloat(r.net_payment)||0); },0);
+        var tRet  = recs.reduce(function(s,r){ return s+(parseFloat(r.retention_amount)||0); },0);
+        var tDed  = recs.reduce(function(s,r){ return s+(parseFloat(r.deduction)||0); },0);
+        var tWd   = recs.reduce(function(s,r){ return s+(parseFloat(r.withdrawn||r.work_withdrawn||0)); },0);
+        var tRef  = recs.reduce(function(s,r){ return s+(parseFloat(r.refund)||0); },0);
+        var tAdv  = recs.reduce(function(s,r){ return s+(parseFloat(r.advance_deduction)||0); },0);
+
+        /* Status: if all same show it, else "Mixed" */
+        var statuses = [...new Set(recs.map(function(r){ return r.cert_status||r.status||""; }).filter(Boolean))];
+        var stDisplay = statuses.length === 1 ? statuses[0] : (statuses.length > 1 ? "Mixed" : "—");
+
+        /* For the change button use the first record's ID (cert-level change opens a cert picker in future;
+           for now show the count of certs that would be affected) */
+        var firstId   = recs[0].id || recs[0].payment_id || "";
+        var certCount = recs.length;
+        var changeLabel = g.sub + " / " + g.wt + " ("+certCount+" cert"+(certCount!==1?"s":"")+ ")";
+
+        html += "<tr>"
+          +"<td>"+  (g.company||"—")      +"</td>"
+          +"<td>"+  (g.sub||"—")          +"</td>"
+          +"<td>"+  (g.wt||"—")           +"</td>"
+          +"<td style='font-family:var(--mono)'>"+certCount+"</td>"
+          +"<td style='font-family:var(--mono)'>"+fmtN(tWork)+"</td>"
+          +"<td style='font-family:var(--mono)'>"+fmtN(tWd)+"</td>"
+          +"<td style='font-family:var(--mono)'>"+fmtN(tDed)+"</td>"
+          +"<td style='font-family:var(--mono)'>"+fmtN(tRef)+"</td>"
+          +"<td style='font-family:var(--mono)'>"+fmtN(tRet)+"</td>"
+          +"<td style='font-family:var(--mono)'>"+fmtN(tAdv)+"</td>"
+          +"<td style='font-family:var(--mono);color:var(--green)'>"+fmtN(tNet)+"</td>"
+          +"<td>"+statusPill(stDisplay)+"</td>"
+          +"<td><button class='btn-ghost btn-sm' style='padding:3px 8px;font-size:10px' "
+            +"onclick='openStatusModal(\""+firstId+"\",\""+statuses[0]+"\",\""+changeLabel.replace(/"/g,"'")+"\")'>"
+            +"<svg width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'/><path d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z'/></svg>"
+            +" Change</button></td>"
+          +"</tr>";
+      });
+
+      tbody.innerHTML = html || "<tr><td colspan='13' style='text-align:center;color:var(--text3);padding:18px'>No records match the current filters.</td></tr>";
+
+      observer.observe(tbody, { childList: true }); /* re-attach */
+    }
+
+    /* Initial strip update after data loads */
+    var origLoadDash = window.loadDashboard;
+    window.loadDashboard = async function(){
+      await origLoadDash();
+      setTimeout(function(){
+        var data = window.getReportSafeData ? window.getReportSafeData() : [];
+        updateStatusStrip(data);
+      }, 400);
+    };
+
+  }, 0);
+})();
+</script>
+
 </body>
 </html>
-

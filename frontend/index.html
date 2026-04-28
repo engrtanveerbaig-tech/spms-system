@@ -1,533 +1,118 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SPMS System</title>
-
-<!-- ✅ EXTERNAL CSS -->
-<script>
-if (!localStorage.getItem("role")) {
-    window.location.href = "login.html";
-}
-</script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>if (!localStorage.getItem("role")) window.location.href = "login.html";</script>
+<link rel="stylesheet" href="css/style.css">
 <style>
-    /* ================= GLOBAL ================= */
-body {
-    margin: 0;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    display: flex;
-}
-
-/* ================= PREMIUM SIDEBAR ================= */
-.sidebar{
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 80px;
-    height: 100vh;
-
-    background: linear-gradient(180deg, #7c1d6f, #db2777);
-
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; /* 🔥 KEY FIX */
-
-    padding: 20px 10px;
-
-    box-shadow: 6px 0 25px rgba(0,0,0,0.4);
-}
-/* ICON CONTAINER */
-.sidebar-content {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    align-items: center;
-}
-
-/* LOGO TEXT */
-.logo{
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-
-    font-size: 14px;
-    font-weight: bold;
-    letter-spacing: 6px;
-
-    color: rgba(255,255,255,0.6);
-}
-.logout-icon{
-    background: rgba(239,68,68,0.2);
-}
-
-.logout-icon:hover{
-    background: linear-gradient(135deg,#ef4444,#dc2626);
-}
-
-/* ICON BUTTON */
-.menu-item {
-    width: 52px;
-    height: 52px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 16px;
-    font-size: 22px;
-    cursor: pointer;
-
-    background: rgba(255,255,255,0.15);
-
-    backdrop-filter: blur(10px);
-
-    transition: 0.3s;
-}
-
-/* HOVER EFFECT */
-.menu-item:hover {
-    transform: translateY(-3px) scale(1.05);
-    background: linear-gradient(135deg, #3b82f6, #22c55e);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-}
-/* ACTIVE ICON */
-.menu-item.active {
-    background: linear-gradient(135deg, #3b82f6, #22c55e);
-    box-shadow: 0 0 15px rgba(59,130,246,0.6);
-}
-
-/* ICON STYLE */
-.menu-item span {
-    pointer-events: none;
-}
-/* ================= CONTENT ================= */
-.content {
-    margin-left: 80px;   /* 🔥 IMPORTANT FIX */
-    padding: 20px;
-    background: var(--card-bg);
-}
-
-/* LOGOUT BUTTON */
-.logout {
-    width: 100%;
-    padding: 10px;
-    border-radius: 12px;
-
-    background: rgba(0,0,0,0.2);
-    border: none;
-    color: white;
-    cursor: pointer;
-
-    transition: 0.3s;
-}
-
-.logout:hover {
-    background: var(--card-bg);
-    color: #db2777;
-}
-
-/* ================= SEARCH MODAL ================= */
-.search-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    backdrop-filter: blur(8px);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 99999;
-}
-
-/* ===== BOX ===== */
-.search-box {
-    background: rgba(255,255,255,0.08);   /* 🔥 transparent */
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-
-    border-radius: 50px;
-    width: 520px;
-    max-width: 90%;
-
-    padding: 25px;
-
-    border: 1px solid rgba(255,255,255,0.15);
-
-    box-shadow: 
-        0 8px 32px rgba(0,0,0,0.3),
-        inset 0 1px 0 rgba(255,255,255,0.1);
-     position: relative;   
-}
-
-/* ===== SEARCH TYPE TOGGLE ===== */
-.search-type-toggle {
-    background: rgba(255,255,255,0.05);
-    border-radius: 12px;
-    padding: 4px;
-}
-.search-type-toggle button {
-    background: transparent;
-    color: rgba(255,255,255,0.6);
-    border-radius: 50px;
-}
-.search-type-toggle button.active {
-    background: linear-gradient(135deg, #3b82f6, #22c55e);
-    color: white;
-}
-
-/* ===== INPUT ===== */
-.search-box input {
-    width: 90%;              /* 🔥 reduce width */
-    margin: 15px auto;       /* 🔥 center inside box */
-    display: block;
-
-    padding: 12px 16px;
-
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(10px);
-
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 50px;
-
-    color: white;
-    font-size: 15px;
-
-    direction: rtl;          /* 🔥 Arabic fix */
-    text-align: right;
-
-    line-height: 1.8;        /* 🔥 spacing fix */
-
-    outline: none;
-}
-.sidebar-bottom{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:12px;
-
-    margin-bottom:40px; /* 🔥 moves logout UP */
-}
-.search-box input::placeholder {
-    color: rgba(255,255,255,0.6);
-}
-
-.search-box input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 10px rgba(59,130,246,0.5);
-}
-
-.search-box input:focus {
-    border-color: #1f4e79;
-    box-shadow: 0 0 6px rgba(31,78,121,0.4);
-}
-
-/* ===== SUGGESTIONS ===== */
-#popupSuggestions {
-    width: 95%;
-    margin: 0 auto;
-
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(20px);
-    color: #f5f7fa;
-
-    border-radius: 0px;
-    border: 1px solid rgba(255,255,255,0.15);
-
-    max-height: 180px;
-    overflow-y: auto;
-
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-}
-/* ================= PREMIUM SEARCH HIGHLIGHT ================= */
-.highlight {
-    position: relative;
-    display: inline-block;
-
-    padding: 2px 6px;
-    border-radius: 6px;
-
-    font-weight: 600;
-    color: #0f172a;
-
-    /* 🔥 GRADIENT GOLD */
-    background: linear-gradient(135deg, #fde68a, #f59e0b);
-
-    /* 🔥 SOFT GLOW */
-    box-shadow:
-        0 2px 6px rgba(245,158,11,0.4),
-        0 0 10px rgba(251,191,36,0.5);
-
-    /* 🔥 GLASS EFFECT */
-    backdrop-filter: blur(4px);
-
-    /* 🔥 SMOOTH ANIMATION */
-    animation: highlightFade 0.3s ease;
-}
-
-/* ✨ ENTRY ANIMATION */
-@keyframes highlightFade {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-/* 🔥 HOVER BOOST */
-.highlight:hover {
-    background: linear-gradient(135deg, #facc15, #f97316);
-    box-shadow:
-        0 4px 12px rgba(245,158,11,0.6),
-        0 0 14px rgba(251,191,36,0.8);
-
-    transform: scale(1.05);
-}
-
-/* 🌙 DARK MODE SUPPORT */
-body.dark-mode .highlight {
-    color: #020617;
-
-    background: linear-gradient(135deg, #facc15, #f97316);
-
-    box-shadow:
-        0 2px 8px rgba(251,191,36,0.6),
-        0 0 12px rgba(249,115,22,0.6);
-}
-
-#popupSuggestions div {
-    padding: 10px 16px;
-
-    font-size: 14px;
-    line-height: 1.8;
-
-    direction: rtl;
-    text-align: right;
-
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-
-    transition: 0.2s;
-}
-
-#popupSuggestions div:last-child {
-    border-bottom: none;
-}
-
-#popupSuggestions div:hover {
-    background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(34,197,94,0.3));
-}
-
-
-
-/* ================= BUTTONS ================= */
-.search-footer {
-    margin-top: 20px;
-}
-
-/* ===== BUTTON ===== */
-.search-footer {
-    margin-top: 15px;
-    text-align: center;
-}
-.search-footer button {
-    margin-top: 10px;
-
-    padding: 10px 24px;
-    border-radius: 12px;
-
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
-
-    color: white;
-
-    transition: 0.3s;
-}
-
-.search-footer button:hover {
-    background: linear-gradient(135deg, #3b82f6, #22c55e);
-}
-.sidebar-content::-webkit-scrollbar {
-    width: 6px;
-}
-.sidebar-content::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.3);
-    border-radius: 4px;
-}
-
-/* ================= ANIMATIONS ================= */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* ===== ANIMATION ===== */
-@keyframes scaleIn {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-}
-
-/* ===== DARK MODE FULL FIX ===== */
-body.dark-mode .content{
-    background:#020617;
-}
-
-body.dark-mode .sidebar{
-    background:linear-gradient(180deg,#020617,#0f172a);
-}
-
-body.dark-mode .logo{
-    color:#94a3b8;
-}
-
-body.dark-mode .menu-item{
-    background:rgba(255,255,255,0.05);
-}
-
-body.dark-mode .menu-item:hover{
-    background:linear-gradient(135deg,#3b82f6,#22c55e);
-}
-
-body.dark-mode .search-box{
-    background:rgba(0,0,0,0.4);
-}
-
-body.dark-mode #popupSuggestions{
-    background:rgba(0,0,0,0.6);
-}
-/* ===== SEARCH ICON ACTIVE ===== */
-.menu-item[onclick*="openSearchModal"]{
-    position:relative;
-}
-
-/* ACTIVE STATE */
-.menu-item.search-active{
-    background:linear-gradient(135deg,#22c55e,#3b82f6);
-    box-shadow:0 0 15px rgba(34,197,94,0.6);
-}
-
-/* GLOW EFFECT */
-.menu-item[onclick*="openSearchModal"]:hover{
-    box-shadow:0 0 20px rgba(59,130,246,0.6);
-}
-
-.logout-btn{
-    margin-left:auto;
-    background:linear-gradient(135deg,#ef4444,#dc2626);
-    color:white;
-    padding:8px 14px;
-    border-radius:10px;
-    font-size:13px;
-    cursor:pointer;
-    transition:0.3s;
-}
-
-.logout-btn:hover{
-    transform:translateY(-2px);
-    box-shadow:0 5px 15px rgba(0,0,0,0.3);
-}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{display:flex;height:100vh;overflow:hidden;}
+.sidebar{display:flex;flex-direction:column;align-items:center;padding:14px 0;flex-shrink:0;}
+.sidebar-logo{width:38px;height:38px;background:linear-gradient(135deg,#f43f5e,#8b5cf6);border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;box-shadow:0 0 20px rgba(244,63,94,.28);margin-bottom:22px;}
+.sidebar-nav{display:flex;flex-direction:column;gap:6px;flex:1;width:100%;padding:0 11px;align-items:center;}
+.sidebar-bottom{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 11px 10px;}
+.nav-sep{width:28px;height:1px;background:rgba(255,255,255,.06);margin:5px 0;}
+.brand-vert{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#2e3450;writing-mode:vertical-rl;transform:rotate(180deg);margin-bottom:4px;}
+.content{flex:1;height:100vh;overflow-y:auto;min-width:0;}
+#mainContent{min-height:100%;}
+/* Search Modal */
+.search-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(12px);display:none;justify-content:center;align-items:flex-start;padding-top:13vh;z-index:9999;}
+.search-box{width:540px;max-width:92vw;background:#101420;border:1px solid rgba(255,255,255,.11);border-radius:18px;padding:18px;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:scaleIn .15s ease;}
+@keyframes scaleIn{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+.stt{display:flex;gap:6px;background:#0c0e17;border-radius:9px;padding:4px;margin-bottom:13px;}
+.stt button{flex:1;padding:7px;border:none;border-radius:7px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:#4a5270;transition:.15s;}
+.stt button.active{background:linear-gradient(135deg,#f43f5e,#8b5cf6);color:#fff;}
+.si-wrap{position:relative;}
+.si-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#4a5270;pointer-events:none;}
+.search-box input{width:100%;padding:11px 14px 11px 40px;background:#0c0e17;border:1px solid rgba(255,255,255,.11);border-radius:10px;font-family:'Outfit',sans-serif;font-size:13px;color:#e8eaf2;outline:none;transition:.2s;}
+.search-box input:focus{border-color:rgba(244,63,94,.4);}
+.search-box input::placeholder{color:#3e4560;}
+#popupSuggestions{margin-top:7px;background:#0c0e17;border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden;max-height:210px;overflow-y:auto;}
+#popupSuggestions div{padding:10px 14px;font-size:13px;color:#8892aa;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:.12s;}
+#popupSuggestions div:last-child{border-bottom:none;}
+#popupSuggestions div:hover{background:rgba(244,63,94,.07);color:#e8eaf2;}
+.highlight{background:linear-gradient(135deg,rgba(245,158,11,.28),rgba(244,63,94,.18));color:#fbbf24;padding:1px 4px;border-radius:4px;font-weight:600;}
+.search-footer{display:flex;justify-content:flex-end;margin-top:13px;gap:8px;}
+.search-footer button{padding:8px 18px;border:none;border-radius:9px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;}
+.sf-cancel{background:#141828;color:#8892aa;border:1px solid rgba(255,255,255,.1);}
+.sf-search{background:linear-gradient(135deg,#f43f5e,#8b5cf6);color:#fff;}
+.search-footer button:hover{opacity:.85;transform:translateY(-1px);}
 </style>
 </head>
-
 <body>
 
+<nav class="sidebar">
+  <div class="sidebar-logo">SP</div>
+  <div class="sidebar-nav">
+    <div class="nav-item active" data-tip="Dashboard" onclick="loadPage('dashboard.html')">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    </div>
+    <div class="nav-item" data-tip="Search" onclick="openSearchModal()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+    </div>
+    <div id="subMenu" class="nav-item" data-tip="Subcontractors" onclick="loadPage('subcontractor.html')">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
+    <div id="payMenu" class="nav-item" data-tip="Payments" onclick="loadPage('payment.html')">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-item" data-tip="Toggle Theme" onclick="toggleTheme()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="brand-vert">SPMS</div>
+    <div class="nav-item" data-tip="Logout" style="color:rgba(244,63,94,.6)" onclick="logout()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </div>
+  </div>
+</nav>
 
-
-<!-- SIDEBAR -->
-<div class="sidebar">
-
-    
-<div class="sidebar-content">
-
-    <div class="menu-item active" onclick="loadPage('dashboard.html')">📊</div>
-    <div class="menu-item" onclick="openSearchModal()">🔍</div>
-    <div id="subMenu" class="menu-item" onclick="loadPage('subcontractor.html')">👷</div>
-    <div id="payMenu" class="menu-item" onclick="loadPage('payment.html')">💰</div>
-    <div class="menu-item" onclick="toggleTheme()">🌙</div>
-
-</div>
-
-<!-- 🔥 BOTTOM SECTION -->
-<div class="sidebar-bottom">
-
-    <div class="logo">SPMS</div>
-
-    <div class="menu-item logout-icon" onclick="logout()">🚪</div>
-
-</div>
-</div>
-
-<!-- MAIN PANEL -->
 <div class="content">
-
-    <!-- 🔥 SCROLLABLE PAGE WRAPPER -->
-    <div class="page-container">
-
-        <!-- PAGE CONTENT (DYNAMIC LOAD) -->
-        <div id="mainContent">
-            Loading...
-        </div>
-
+  <div id="mainContent">
+    <div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:12px;">
+      <div style="width:38px;height:38px;border:2px solid rgba(244,63,94,.3);border-top-color:#f43f5e;border-radius:50%;animation:spin .8s linear infinite;"></div>
+      <div style="font-size:11px;letter-spacing:.12em;color:#3e4560;font-family:'JetBrains Mono',monospace;">LOADING</div>
     </div>
-
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+  </div>
 </div>
 
-<!-- 🔍 SEARCH MODAL -->
-<!-- 🔍 SEARCH MODAL -->
+<!-- Search Modal -->
 <div id="searchModal" class="search-modal">
-
-    <div class="search-box">
-
-        <!-- 🔥 SEARCH TYPE SELECT -->
-        <div class="search-type-toggle">
-            <button id="btnCompany" class="active" onclick="setSearchType('company')">
-                Company
-            </button>
-            <button id="btnSubcontractor" onclick="setSearchType('subcontractor')">
-                Subcontractor
-            </button>
-        </div>
-
-        <!-- 🔍 INPUT -->
-        <input 
-            type="text" 
-            id="popupSearchInput" 
-            placeholder="Type to search..."
-            oninput="handlePopupSearch()"
-        >
-
-        <!-- 📋 SUGGESTIONS -->
-        <div id="popupSuggestions"></div>
-
-        <!-- 🔘 ACTION -->
-        <div class="search-footer">
-            <button onclick="confirmSearch()">Search / بحث</button>
-        </div>
-
+  <div class="search-box">
+    <div class="stt">
+      <button id="btnCompany" class="active" onclick="setSearchType('company')">By Company</button>
+      <button id="btnSubcontractor" onclick="setSearchType('subcontractor')">By Subcontractor</button>
     </div>
-
+    <div class="si-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="popupSearchInput" placeholder="Type to search…" oninput="handlePopupSearch()">
+    </div>
+    <div id="popupSuggestions"></div>
+    <div class="search-footer">
+      <button class="sf-cancel" onclick="closeSearchModal()">Cancel</button>
+      <button class="sf-search" onclick="confirmSearch()">Apply Filter</button>
+    </div>
+  </div>
 </div>
 
-<!-- ✅ REQUIRED FOR PDF -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-
-<!-- MAIN APP -->
-<script src="./js/app.js"></script>
-
-<!-- 🔐 ROLE CONTROL -->
+<script src="js/app.js"></script>
 <script>
-
 if (localStorage.getItem("role") === "viewer") {
-
-    const sub = document.getElementById("subMenu");
-    const pay = document.getElementById("payMenu");
-
-    if (sub) sub.style.display = "none";
-    if (pay) pay.style.display = "none";
+  ["subMenu","payMenu"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.opacity = "0.3"; el.style.pointerEvents = "none"; }
+  });
 }
 document.getElementById("searchModal").addEventListener("click", function(e){
-    if (e.target.id === "searchModal") {
-        closeSearchModal();
-    }
+  if (e.target.id === "searchModal") closeSearchModal();
 });
 </script>
 </body>

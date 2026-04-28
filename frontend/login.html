@@ -1,225 +1,120 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>SPMS Login</title>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPMS — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-body {
-    margin: 0;
-    font-family: "Segoe UI", Arial, sans-serif;
-    height: 100vh;
-    display: flex;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --night:#07080d;--panel:#0c0e17;--card:#101420;
+  --border:rgba(255,255,255,0.07);--border-b:rgba(255,255,255,0.13);
+  --rose:#f43f5e;--violet:#8b5cf6;
+  --text:#e8eaf2;--muted:#4a5270;--muted2:#2e3450;
 }
-
-/* LEFT PANEL */
-.left-panel {
-    width: 50%;
-    background: linear-gradient(135deg, #7c1d6f, #ec4899);
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 60px;
-    position: relative;
-}
-
-.left-panel h1 {
-    font-size:52px;
-    margin-bottom: 20px;
-}
-
-.left-panel p {
-    font-size: 15px;
-    line-height: 1.7;
-    opacity: 0.7;
-    max-width: 400px;
-}
-
-/* DECORATION */
-.left-panel::before {
-    content: "";
-    position: absolute;
-    width: 260px;
-    height: 260px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 45px;
-    top: 50px;
-    left: 50px;
-    transform: rotate(-45deg);
-}
-
-/* RIGHT PANEL */
-.right-panel {
-    width: 50%;
-    background: #f8fafc;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* LOGIN BOX */
-.login-box {
-    width: 320px;
-}
-
-.login-box h2 {
-font-size:38px;
-    text-align: center;
-    margin-bottom: 30px;
-    color: #7c1d6f;
-}
-
-/* INPUT */
-.input-group {
-    margin-bottom: 15px;
-}
-
-.input-group input {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-bottom: 2px solid #ccc;
-    outline: none;
-    font-size: 14px;
-    background: transparent;
-}
-
-.input-group input:focus {
-    border-color: #ec4899;
-}
-
-/* BUTTON */
-button {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-    border: none;
-    border-radius: 20px;
-    background: linear-gradient(135deg,#ec4899,#7c1d6f);
-    color: white;
-    cursor: pointer;
-    font-size: 14px;
-    transition: 0.3s;
-}
-
-button:hover {
-    opacity: 0.9;
-}
-
-/* FOOTER TEXT */
-.footer-text {
-    margin-top: 15px;
-    font-size: 12px;
-    text-align: center;
-    color: #888;
-}
-.loading {
-    opacity: 0.7;
-    pointer-events: none;
-}
-
-.spinner {
-    border: 3px solid rgba(255,255,255,0.3);
-    border-top: 3px solid white;
-    border-radius: 50%;
-    width: 16px;
-    height: 16px;
-    animation: spin 1s linear infinite;
-    display: inline-block;
-    margin-left: 8px;
-    vertical-align: middle;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Outfit',sans-serif;background:var(--night);color:var(--text);display:flex;}
+.left{flex:1;display:flex;flex-direction:column;justify-content:center;padding:60px 80px;border-right:1px solid var(--border);position:relative;overflow:hidden;}
+.grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 100%);}
+.glow1{position:absolute;width:500px;height:500px;top:-100px;left:-100px;background:radial-gradient(circle,rgba(139,92,246,.1) 0%,transparent 70%);border-radius:50%;}
+.glow2{position:absolute;width:400px;height:400px;bottom:-80px;right:10%;background:radial-gradient(circle,rgba(244,63,94,.07) 0%,transparent 70%);border-radius:50%;}
+.brand{display:flex;align-items:center;gap:14px;margin-bottom:56px;position:relative;z-index:1;}
+.brand-hex{width:44px;height:44px;background:linear-gradient(135deg,var(--rose),var(--violet));border-radius:13px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;box-shadow:0 0 24px rgba(244,63,94,.3);}
+.brand-name{font-size:18px;font-weight:700;letter-spacing:.08em;}
+.brand-sub{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.headline{font-size:38px;font-weight:700;line-height:1.15;margin-bottom:18px;position:relative;z-index:1;}
+.headline em{font-style:normal;background:linear-gradient(120deg,var(--rose),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.desc{font-size:14px;color:var(--muted);line-height:1.8;max-width:380px;margin-bottom:44px;position:relative;z-index:1;}
+.stats{display:flex;gap:28px;position:relative;z-index:1;}
+.stat{border-left:2px solid var(--border-b);padding-left:14px;}
+.stat-n{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500;color:var(--rose);}
+.stat-l{font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.06em;text-transform:uppercase;}
+.right{width:460px;display:flex;align-items:center;justify-content:center;padding:40px;}
+.login-card{width:100%;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:38px;box-shadow:0 32px 80px rgba(0,0,0,.5);}
+.card-title{font-size:22px;font-weight:700;margin-bottom:5px;}
+.card-sub{font-size:12px;color:var(--muted);margin-bottom:28px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.field input{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:12px 15px;font-family:'Outfit',sans-serif;font-size:14px;color:var(--text);outline:none;transition:.2s;}
+.field input:focus{border-color:rgba(244,63,94,.45);box-shadow:0 0 0 3px rgba(244,63,94,.07);}
+.field input::placeholder{color:var(--muted2);}
+.login-btn{width:100%;margin-top:6px;padding:13px;background:linear-gradient(135deg,var(--rose),var(--violet));border:none;border-radius:11px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer;transition:.2s;}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(244,63,94,.3);}
+.login-btn.loading{opacity:.65;pointer-events:none;}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-left:7px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.footer-txt{margin-top:24px;text-align:center;font-size:10px;color:var(--muted2);}
 </style>
 </head>
+<body>
 
-<body class="login-page">
-
-<!-- LEFT SIDE -->
-<div class="left-panel">
-    <h1>SPMS System</h1>
-
-    <p>
-        Subcontractor Payment Management System (SPMS) is a powerful platform designed 
-        to manage project payments, subcontractor records, and financial tracking in real time. 
-        It helps organizations streamline workflows, monitor cash flow, and maintain accurate 
-        records with efficiency and transparency.
-    </p>
+<div class="left">
+  <div class="grid-bg"></div>
+  <div class="glow1"></div>
+  <div class="glow2"></div>
+  <div class="brand">
+    <div class="brand-hex">SP</div>
+    <div>
+      <div class="brand-name">SPMS</div>
+      <div class="brand-sub">Payment Management System</div>
+    </div>
+  </div>
+  <h1 class="headline">Subcontractor<br><em>Payments,</em><br>Simplified.</h1>
+  <p class="desc">A real-time financial platform for tracking subcontractor certificates, retention, deductions and project cash flow with full precision.</p>
+  <div class="stats">
+    <div class="stat"><div class="stat-n">100%</div><div class="stat-l">Real-Time Data</div></div>
+    <div class="stat"><div class="stat-n">3</div><div class="stat-l">Active Projects</div></div>
+    <div class="stat"><div class="stat-n">SAR</div><div class="stat-l">Multi-Cert Tracking</div></div>
+  </div>
 </div>
 
-<!-- RIGHT SIDE -->
-<div class="right-panel">
-
-    <div class="login-box">
-        <h2>Login</h2>
-
-        <div class="input-group">
-            <input id="username" placeholder="Username">
-        </div>
-
-        <div class="input-group">
-            <input id="password" type="password" placeholder="Password">
-        </div>
-
-        <button id="loginBtn" onclick="login()">Login</button>
-
-        <div class="footer-text">
-            © 2026 Eng. Tanveer Ahmad
-        </div>
+<div class="right">
+  <div class="login-card">
+    <div class="card-title">Welcome back</div>
+    <div class="card-sub">Sign in to your SPMS account</div>
+    <div class="field">
+      <label>Username</label>
+      <input id="username" type="text" placeholder="Enter your username" autocomplete="username">
     </div>
-
+    <div class="field">
+      <label>Password</label>
+      <input id="password" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="login()">Sign In</button>
+    <div class="footer-txt">© 2026 Eng. Tanveer Ahmad &nbsp;·&nbsp; SPMS v2.0</div>
+  </div>
 </div>
 
 <script>
 async function login() {
-
-    const btn = document.getElementById("loginBtn");
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-
-    // 👉 START LOADING
-    btn.classList.add("loading");
-    btn.innerHTML = 'Logging in <span class="spinner"></span>';
-
-    try {
-        const res = await fetch("https://spms-backend-jxzn.onrender.com/api/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ username, password })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-            alert(data.message || "Login failed");
-
-            // ❌ STOP LOADING
-            btn.classList.remove("loading");
-            btn.innerHTML = "Login";
-            return;
-        }
-
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("role", data.role);
-        localStorage.setItem("username", data.username);
-
-        window.location.href = "index.html";
-
-    } catch (err) {
-        alert("Server not reachable");
-
-        // ❌ STOP LOADING
-        btn.classList.remove("loading");
-        btn.innerHTML = "Login";
+  const btn = document.getElementById("loginBtn");
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value;
+  if (!username || !password) { alert("Please fill all fields"); return; }
+  btn.classList.add("loading");
+  btn.innerHTML = 'Signing in <span class="spinner"></span>';
+  try {
+    const res = await fetch("https://spms-backend-jxzn.onrender.com/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.message || "Login failed");
+      btn.classList.remove("loading"); btn.innerHTML = "Sign In"; return;
     }
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("role", data.role);
+    localStorage.setItem("username", data.username);
+    window.location.href = "index.html";
+  } catch(err) {
+    alert("Server not reachable");
+    btn.classList.remove("loading"); btn.innerHTML = "Sign In";
+  }
 }
+document.addEventListener("keydown", e => { if (e.key === "Enter") login(); });
 </script>
-
 </body>
 </html>

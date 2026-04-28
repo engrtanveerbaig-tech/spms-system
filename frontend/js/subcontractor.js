@@ -1,317 +1,280 @@
+/* ============================================================
+   SPMS v2 — subcontractor.js
+   Handles subcontractor CRUD, table filtering, edit/delete.
+   ============================================================ */
 (function () {
-    const API = "https://spms-backend-jxzn.onrender.com";
-window.API = API;
+  const API = "https://spms-backend-jxzn.onrender.com/api";
+  let ALL_SUBS = [];
+  let EDIT_ID = null;
 
-let editId = null;
-let fullData = [];
-function initSubcontractorPage() {
+  function getToken() { return localStorage.getItem("token"); }
+  function fmt(n) { return Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-    console.log("INIT subcontractor page");
+  function showMsg(text, isError) {
+    const el = document.getElementById("msg");
+    if (!el) return;
+    el.textContent = text;
+    el.style.color = isError ? "var(--red)" : "var(--green)";
+    if (!isError) setTimeout(() => { if (el) el.textContent = ""; }, 3500);
+  }
 
-    setTimeout(() => {
-
-        const table = document.getElementById("table");
-
-        if (!table) {
-            console.error("❌ TABLE NOT FOUND - DOM not ready");
-            return;
-        }
-
-        console.log("✅ TABLE FOUND → loading data");
-
-        bindAdvanceToggle();   // ✅ ADD THIS LINE
-        load();
-
-    }, 200);
-}
-
-async function load() {
-
-    console.log("STEP 2 → Loading API...");
-
-    const res = await fetch(`${API}/api/subcontractors/all`, {
-    headers: {
-        "Authorization": `Bearer ${localStorage.getItem("token")}`
+  // ── FETCH ALL SUBCONTRACTORS ────────────────────────────
+  async function fetchSubs() {
+    try {
+      const res = await fetch(`${API}/subcontractors`, {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      });
+      const data = await res.json();
+      if (!Array.isArray(data)) { console.error("Invalid subs data:", data); return; }
+      ALL_SUBS = data;
+      populateFilterSelects(data);
+      renderTable(data);
+    } catch (err) {
+      console.error("Fetch subs error:", err);
+      showMsg("Failed to load subcontractors.", true);
     }
-});
+  }
 
-    const data = await res.json();
-
-if (!Array.isArray(data)) {
-    console.error("Invalid API response:", data);
-    return;
-}
-
-fullData = data;
-
-populateFilters(fullData);
-render(fullData);
-}
-
-// RENDER
-function render(data) {
-
-    const table = document.getElementById("table");
-
-    if (!table) {
-        console.error("❌ TABLE NOT FOUND in render()");
-        return;
-    }
-
-    table.innerHTML = "";
-
-    if (!data || data.length === 0) {
-        table.innerHTML = `<tr><td colspan="11">No Data Found</td></tr>`;
-        return;
-    }
-
-    data.forEach(x => {
-        table.innerHTML += `
-        <tr>
-        <td>${x.project || ""}</td>
-        <td>${x.work_type || ""}</td>
-        <td>${x.name || ""}</td>
-        <td>${x.contract_no || ""}</td>
-        <td>${x.company_name || ""}</td>
-        <td>${x.phone || ""}</td>
-        <td>${x.email || ""}</td>
-        <td>${x.vat_number || 0}</td>
-        <td>${x.cr_number || ""}</td>
-        <td>${x.advance_remaining || 0}</td>
-        <td>
-        <button onclick="edit(${x.id})">Edit</button>
-        <button onclick="del(${x.id})">Delete</button>
-        </td>
-        </tr>`;
-    });
-}
-
-// FILTER DROPDOWNS
-function populateFilters(data) {
-    const fields = [
-        {id: "f_name", key: "name"},
-        {id: "f_contract", key: "contract_no"},
-        {id: "f_company", key: "company_name"},
-        {id: "f_phone", key: "phone"},
-        {id: "f_email", key: "email"},
-        {id: "f_vat", key: "vat_number"},
-        {id: "f_cr", key: "cr_number"},
-        {id: "f_iban", key: "advance_remaining"}
-    ];
-
-    fields.forEach(f => {
-    const select = document.getElementById(f.id);
-
-    if (!select) return;   // ✅ ADD THIS LINE
-
-    select.innerHTML = '<option value="">All</option>';
-
-        const values = [...new Set(data.map(x => x[f.key]).filter(v => v !== null && v !== ""))];
-
-        values.forEach(v => {
-            select.innerHTML += `<option value="${v}">${v}</option>`;
-        });
-    });
-}
-
-// SAVE / UPDATE
-async function save() {
-
-    const emailInput = document.getElementById("email");
-    const emailError = document.getElementById("email_error");
-
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (emailInput.value && !emailPattern.test(emailInput.value)) {
-        alert("Invalid email format ❌");
-        return;
-    } else {
-        if (emailError) emailError.style.display = "none";
-    }
-
-    const hasAdvance = document.getElementById("has_advance").checked;
-    const advanceValue = document.getElementById("advance_amount").value;
-
-    if (hasAdvance && (!advanceValue || isNaN(advanceValue) || advanceValue <= 0)) {
-        alert("Enter valid advance amount");
-        return;
-    }
-
-    const data = {
-        project: document.getElementById("project").value,
-        work_type: document.getElementById("work_type").value,
-        name: document.getElementById("subcontractor_name").value,
-        contract_no: document.getElementById("contract_no").value,
-        company_name: document.getElementById("company").value,
-        phone: document.getElementById("phone").value,
-        email: emailInput.value.toLowerCase(),
-        vat_number: document.getElementById("vat_number").value,
-        vat_percent: Number(document.getElementById("vat_percent").value) || 0,
-        cr_number: document.getElementById("cr").value,
-        bank_details: null,
-        retention_percent: Number(document.getElementById("retention_percent").value) || 10,
-        advance_amount: hasAdvance ? advanceValue : 0,
-        has_advance: hasAdvance ? 1 : 0
+  // ── POPULATE FILTER DROPDOWNS ───────────────────────────
+  function populateFilterSelects(data) {
+    const fields = {
+      f_name: "subcontractor_name",
+      f_contract: "contract_no",
+      f_company: "company",
+      f_phone: "phone",
+      f_email: "email",
+      f_vat: "vat_number",
+      f_cr: "cr_number",
+      f_iban: "advance_remaining"
     };
+    Object.entries(fields).forEach(([selId, key]) => {
+      const el = document.getElementById(selId);
+      if (!el) return;
+      const vals = [...new Set(data.map(x => x[key]).filter(Boolean))].sort();
+      const cur = el.value;
+      el.innerHTML = '<option value="">All</option>' + vals.map(v => `<option value="${v}">${v}</option>`).join("");
+      if (vals.includes(cur)) el.value = cur;
+    });
+  }
 
-    console.log("DATA TO SEND:", data);
-
-    let url = `${API}/api/subcontractors/add`;
-    let method = "POST";
-
-    if (editId) {
-        url = `${API}/api/subcontractors/update/${editId}`;
-        method = "PUT";
-
-        delete data.advance_amount;
-        delete data.has_advance;
+  // ── RENDER TABLE ────────────────────────────────────────
+  function renderTable(data) {
+    const tb = document.getElementById("table");
+    if (!tb) return;
+    if (!data.length) {
+      tb.innerHTML = `<tr><td colspan="11" style="text-align:center;color:var(--text3);padding:22px">No subcontractors found.</td></tr>`;
+      return;
     }
+    tb.innerHTML = data.map(s => `
+      <tr>
+        <td>${s.project || "—"}</td>
+        <td>${s.work_type || "—"}</td>
+        <td>${s.subcontractor_name || "—"}</td>
+        <td style="font-family:var(--mono)">${s.contract_no || "—"}</td>
+        <td>${s.company || "—"}</td>
+        <td>${s.phone || "—"}</td>
+        <td>${s.email || "—"}</td>
+        <td style="font-family:var(--mono)">${s.vat_number || "—"}</td>
+        <td style="font-family:var(--mono)">${s.cr_number || "—"}</td>
+        <td style="font-family:var(--mono);color:var(--green)">${fmt(s.advance_remaining || 0)}</td>
+        <td>
+          <button onclick="editSub(${s.id})">Edit</button>
+          <button onclick="deleteSub(${s.id})">Delete</button>
+        </td>
+      </tr>`).join("");
+  }
+
+  // ── FILTER TABLE ─────────────────────────────────────────
+  window.filterTable = function () {
+    const fProject = document.getElementById("f_project")?.value || "";
+    const fWork = document.getElementById("f_work")?.value || "";
+    const fName = document.getElementById("f_name")?.value || "";
+    const fContract = document.getElementById("f_contract")?.value || "";
+    const fCompany = document.getElementById("f_company")?.value || "";
+    const fPhone = document.getElementById("f_phone")?.value || "";
+    const fEmail = document.getElementById("f_email")?.value || "";
+    const fVat = document.getElementById("f_vat")?.value || "";
+    const fCr = document.getElementById("f_cr")?.value || "";
+
+    const filtered = ALL_SUBS.filter(s => {
+      return (!fProject || s.project === fProject)
+        && (!fWork || s.work_type === fWork)
+        && (!fName || s.subcontractor_name === fName)
+        && (!fContract || s.contract_no === fContract)
+        && (!fCompany || s.company === fCompany)
+        && (!fPhone || s.phone === fPhone)
+        && (!fEmail || s.email === fEmail)
+        && (!fVat || s.vat_number === fVat)
+        && (!fCr || s.cr_number === fCr);
+    });
+    renderTable(filtered);
+  };
+
+  // ── VALIDATE EMAIL ───────────────────────────────────────
+  function validateEmail(email) {
+    if (!email) return true;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  // ── COLLECT FORM DATA ────────────────────────────────────
+  function collectForm() {
+    return {
+      project: document.getElementById("project")?.value || "",
+      work_type: document.getElementById("work_type")?.value || "",
+      retention_percent: document.getElementById("retention_percent")?.value || "10",
+      vat_percent: document.getElementById("vat_percent")?.value || "15",
+      has_advance: document.getElementById("has_advance")?.checked ? 1 : 0,
+      advance_amount: parseFloat(document.getElementById("advance_amount")?.value) || 0,
+      contract_no: document.getElementById("contract_no")?.value.trim() || "",
+      company: document.getElementById("company")?.value.trim() || "",
+      email: document.getElementById("email")?.value.trim() || "",
+      cr_number: document.getElementById("cr")?.value.trim() || "",
+      vat_number: document.getElementById("vat_number")?.value.trim() || "",
+      subcontractor_name: document.getElementById("subcontractor_name")?.value.trim() || "",
+      phone: document.getElementById("phone")?.value.trim() || ""
+    };
+  }
+
+  // ── CLEAR FORM ───────────────────────────────────────────
+  function clearForm() {
+    ["project", "work_type", "contract_no", "company", "email", "cr", "vat_number", "subcontractor_name", "phone", "advance_amount"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+    const ha = document.getElementById("has_advance");
+    if (ha) ha.checked = false;
+    const rp = document.getElementById("retention_percent");
+    if (rp) rp.value = "10";
+    const vp = document.getElementById("vat_percent");
+    if (vp) vp.value = "15";
+    EDIT_ID = null;
+    const btn = document.getElementById("mainBtn");
+    if (btn) btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Subcontractor`;
+    const emailErr = document.getElementById("email_error");
+    if (emailErr) emailErr.style.display = "none";
+  }
+
+  // ── SAVE (ADD OR EDIT) ───────────────────────────────────
+  window.save = async function () {
+    const payload = collectForm();
+
+    // Validation
+    if (!payload.project) { showMsg("Please select a project.", true); return; }
+    if (!payload.work_type) { showMsg("Please select a work type.", true); return; }
+    if (!payload.subcontractor_name) { showMsg("Please enter subcontractor name.", true); return; }
+    if (!payload.contract_no) { showMsg("Please enter contract number.", true); return; }
+
+    const emailErr = document.getElementById("email_error");
+    if (!validateEmail(payload.email)) {
+      if (emailErr) emailErr.style.display = "block";
+      showMsg("Invalid email format.", true);
+      return;
+    }
+    if (emailErr) emailErr.style.display = "none";
+
+    const btn = document.getElementById("mainBtn");
+    if (btn) { btn.disabled = true; btn.innerHTML = "Saving…"; }
 
     try {
-        const res = await fetch(url, {
-            method,
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("token")}`
-            },
-            body: JSON.stringify(data)
-        });
-
-        console.log("STATUS:", res.status);
-
-        const responseText = await res.text();
-        console.log("RESPONSE:", responseText);
-
-        document.getElementById("msg").innerText = responseText;
-
-        // RESET ONLY IF SUCCESS
-        if (res.ok) {
-            editId = null;
-            document.querySelectorAll("input").forEach(i => i.value = "");
-            document.getElementById("has_advance").checked = false;
-            document.getElementById("advance_amount").style.display = "none";
-            document.getElementById("mainBtn").innerText = "Add";
-
-            load();
-        }
-
+      const url = EDIT_ID ? `${API}/subcontractors/${EDIT_ID}` : `${API}/subcontractors`;
+      const method = EDIT_ID ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) { showMsg(data.message || "Save failed.", true); return; }
+      showMsg(EDIT_ID ? "Subcontractor updated." : "Subcontractor added successfully.");
+      clearForm();
+      await fetchSubs();
     } catch (err) {
-        console.error("ERROR:", err);
-        alert("Server error ❌");
+      console.error("Save error:", err);
+      showMsg("Server error.", true);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>${EDIT_ID ? "Update Subcontractor" : "Add Subcontractor"}`;
+      }
     }
-}
+  };
 
-// EDIT
-async function edit(id) {
+  // ── EDIT ─────────────────────────────────────────────────
+  window.editSub = function (id) {
+    const s = ALL_SUBS.find(x => x.id === id);
+    if (!s) return;
+    EDIT_ID = id;
 
-    const res = await fetch(`${API}/api/subcontractors/${id}`, {
-    headers: {
-        "Authorization": `Bearer ${localStorage.getItem("token")}`
+    const setVal = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ""; };
+    setVal("project", s.project);
+    setVal("work_type", s.work_type);
+    setVal("retention_percent", s.retention_percent || "10");
+    setVal("vat_percent", s.vat_percent || "15");
+    setVal("advance_amount", s.advance_amount || "");
+    setVal("contract_no", s.contract_no);
+    setVal("company", s.company);
+    setVal("email", s.email);
+    setVal("cr", s.cr_number);
+    setVal("vat_number", s.vat_number);
+    setVal("subcontractor_name", s.subcontractor_name);
+    setVal("phone", s.phone);
+
+    const ha = document.getElementById("has_advance");
+    if (ha) ha.checked = !!s.has_advance;
+
+    const btn = document.getElementById("mainBtn");
+    if (btn) btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Update Subcontractor`;
+
+    // Scroll to form
+    document.querySelector(".prem-card")?.scrollIntoView({ behavior: "smooth" });
+    showMsg(`Editing: ${s.subcontractor_name}`);
+  };
+
+  // ── DELETE ───────────────────────────────────────────────
+  window.deleteSub = async function (id) {
+    const s = ALL_SUBS.find(x => x.id === id);
+    if (!confirm(`Delete subcontractor "${s?.subcontractor_name || id}"? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`${API}/subcontractors/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${getToken()}` }
+      });
+      const data = await res.json();
+      if (!res.ok) { showMsg(data.message || "Delete failed.", true); return; }
+      showMsg("Subcontractor deleted.");
+      await fetchSubs();
+    } catch (err) {
+      console.error("Delete error:", err);
+      showMsg("Server error.", true);
     }
-});
-    const d = await res.json();
+  };
 
-    editId = id;
+  // ── INIT ─────────────────────────────────────────────────
+  window.initSubcontractorPage = async function () {
+    clearForm();
+    await fetchSubs();
 
-    document.getElementById("project").value = d.project;
-    document.getElementById("work_type").value = d.work_type;
-    document.getElementById("subcontractor_name").value = d.name;
-    document.getElementById("contract_no").value = d.contract_no;
-    document.getElementById("company").value = d.company_name;
-    document.getElementById("phone").value = d.phone;
-    document.getElementById("email").value = d.email;
-    document.getElementById("vat_number").value = d.vat_number || "";
-document.getElementById("vat_percent").value = d.vat_percent || 0;
-    document.getElementById("cr").value = d.cr_number;
-    document.getElementById("retention_percent").value = d.retention_percent || 10;
-
-    // ADVANCE VIEW ONLY (not editable here)
-    document.getElementById("has_advance").checked = d.has_advance ? true : false;
-    document.getElementById("advance_amount").style.display = "none";
-
-    document.getElementById("mainBtn").innerText = "Update";
-}
-
-// DELETE
-async function del(id) {
-    if (!confirm("Delete?")) return;
-
-    await fetch(`${API}/api/subcontractors/delete/${id}`, {
-    method: "DELETE",
-    headers: {
-        "Authorization": `Bearer ${localStorage.getItem("token")}`
+    // Email live validation
+    const emailEl = document.getElementById("email");
+    const emailErr = document.getElementById("email_error");
+    if (emailEl && emailErr) {
+      emailEl.addEventListener("blur", () => {
+        emailErr.style.display = emailEl.value && !validateEmail(emailEl.value) ? "block" : "none";
+      });
     }
-});
 
-    load();
-}
+    // Has advance toggle
+    const ha = document.getElementById("has_advance");
+    const advField = document.getElementById("advance_amount");
+    if (ha && advField) {
+      const toggle = () => { advField.disabled = !ha.checked; if (!ha.checked) advField.value = ""; };
+      ha.addEventListener("change", toggle);
+      toggle();
+    }
+  };
 
-// FILTER
-function filterTable() {
-
-    const project = document.getElementById("f_project").value;
-    const wt = document.getElementById("f_work").value;
-    const name = document.getElementById("f_name").value;
-    const contract = document.getElementById("f_contract").value;
-    const company = document.getElementById("f_company").value;
-    const phone = document.getElementById("f_phone").value;
-    const email = document.getElementById("f_email").value;
-    const vat = document.getElementById("f_vat").value;
-    const cr = document.getElementById("f_cr").value;
-    const advance = document.getElementById("f_iban").value;
-
-    const filtered = fullData.filter(x =>
-        (!project || x.project === project) &&
-        (!wt || x.work_type === wt) &&
-        (!name || x.name === name) &&
-        (!contract || x.contract_no === contract) &&
-        (!company || x.company_name === company) &&
-        (!phone || x.phone === phone) &&
-        (!email || x.email === email) &&
-(!vat || Number(x.vat_number) === Number(vat)) &&
-(!cr || x.cr_number === cr) &&
-        (!advance || x.advance_remaining == advance)
-    );
-
-    render(filtered);
-}
-
-// EMAIL VALIDATION LIVE
-const emailEl = document.getElementById("email");
-
-if (emailEl) {
-    emailEl.addEventListener("input", function () {
-        const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const error = document.getElementById("email_error");
-
-        if (this.value && !pattern.test(this.value)) {
-            if (error) error.style.display = "block";
-        } else {
-            if (error) error.style.display = "none";
-        }
-    });
-}
-
-function bindAdvanceToggle() {
-
-    const checkbox = document.getElementById("has_advance");
-    const advanceInput = document.getElementById("advance_amount");
-
-    if (!checkbox || !advanceInput) return;
-
-    // default hidden
-    advanceInput.style.display = "none";
-
-    checkbox.addEventListener("change", function () {
-        advanceInput.style.display = this.checked ? "block" : "none";
-    });
-}
-window.initSubcontractorPage = initSubcontractorPage;
-
-
-// ================= GLOBAL FIX =================
-window.save = save;
-window.filterTable = filterTable;
-window.edit = edit;
-window.del = del;
+  // Auto-init if already in DOM
+  if (document.getElementById("table")) {
+    window.initSubcontractorPage();
+  }
 })();

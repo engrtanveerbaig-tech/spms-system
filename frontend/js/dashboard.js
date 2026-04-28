@@ -1,1172 +1,277 @@
-// =====================================================
-// GLOBAL STATE
-// =====================================================
+/* ============================================================
+   SPMS v2 — dashboard.js
+   All API calls, data flow, and business logic unchanged.
+   ============================================================ */
 (function(){
-let CURRENT_DATA = [];
-let dashboardLoaded = false;
-let RAW_DATA = [];
-let ORIGINAL_DATA = [];   // ✅ ADD THIS
-let AGG_DATA = [];
-let FILTER_STATE = {
-    company: "",
-    type: "",
-    subcontractor: ""
+var CURRENT_DATA=[],dashboardLoaded=false,RAW_DATA=[],ORIGINAL_DATA=[],AGG_DATA=[];
+var FILTER_STATE={company:"",type:"",subcontractor:""};
+
+function fmt(n){return Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+function getCtx(id){var el=document.getElementById(id);if(!el){console.warn("Missing canvas:",id);return null;}return el.getContext("2d");}
+function sum(arr,key){return arr.reduce(function(a,b){return a+(b[key]||0);},0);}
+function groupBy(arr,key,val){var r={};arr.forEach(function(x){r[x[key]]=(r[x[key]]||0)+(x[val]||0);});return r;}
+
+// ── LOAD ─────────────────────────────────────────────────
+async function loadDashboard(){
+  if(dashboardLoaded) return;
+  dashboardLoaded=true;
+  try{
+    var token=localStorage.getItem("token");
+    var res=await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all-full",{headers:{"Authorization":"Bearer "+token}});
+    if(!res.ok){
+      var text=await res.text();
+      if(text.includes("token")||text.includes("Unauthorized")){alert("Session expired.");localStorage.clear();window.location.href="login.html";return;}
+      alert("Server error.");return;
+    }
+    var data=await res.json();
+    if(!Array.isArray(data)){alert("Failed to load dashboard data.");return;}
+
+    var skel=document.getElementById("dashboardSkeleton");
+    var cont=document.getElementById("dashboardContent");
+    if(skel) skel.style.display="none";
+    if(cont){cont.style.display="block";cont.classList.add("fade-in");}
+
+    ORIGINAL_DATA=data.map(function(item){return Object.freeze(Object.assign({},item));});
+    Object.freeze(ORIGINAL_DATA);
+    RAW_DATA=data.map(function(item){return Object.assign({},item);});
+
+    var tWork=0,tRet=0,tDed=0,tNet=0;
+    data.forEach(function(item){tWork+=Number(item.work_value||0);tRet+=Number(item.retention_amount||0);tDed+=Number(item.deduction||0);tNet+=Number(item.net_payment||0);});
+    setEl("total_work",tWork.toFixed(2));
+    setEl("total_retention",tRet.toFixed(2));
+    setEl("total_deduction",tDed.toFixed(2));
+    setEl("total_paid",tNet.toFixed(2));
+    setEl("total_sar",tNet.toFixed(2));
+
+    buildAggregation();initFilters();renderAll();
+  }catch(err){console.error("Dashboard Error:",err);}
+}
+
+function setEl(id,val){var el=document.getElementById(id);if(el) el.innerText=val;}
+
+// ── WORK TYPE SUMMARY ────────────────────────────────────
+function renderWorkTypeSummary(data){
+  var c=document.getElementById("workTypeSummary");if(!c) return;
+  var tc={};data.forEach(function(item){var t=item.work_type||"Other";tc[t]=(tc[t]||0)+1;});
+  c.innerHTML="<strong>Total Certificates:</strong> "+data.length+"<br>"+Object.entries(tc).map(function(e){return e[0]+": "+e[1];}).join(" &nbsp;|&nbsp; ");
+}
+
+// ── AGGREGATION ──────────────────────────────────────────
+function buildAggregation(){
+  var map={};
+  RAW_DATA.forEach(function(p){
+    var id=p.subcontractor_id+"_"+p.work_type;
+    if(!map[id]) map[id]={company:p.company_name||"N/A",subcontractor:p.subcontractor_name||p.sub_name||"Unknown",work_type:p.work_type||"Other",total_work:0,total_withdrawn:0,total_net:0,total_retention:0,total_advance:0,total_deduction:0,total_refund:0,cert_count:0};
+    map[id].total_work+=parseFloat(p.work_value)||0;
+    map[id].total_net+=parseFloat(p.net_payment)||0;
+    map[id].total_retention+=parseFloat(p.retention_amount)||0;
+    map[id].total_withdrawn+=parseFloat(p.withdrawn||p.work_withdrawn||0);
+    map[id].total_advance+=parseFloat(p.advance_deduction)||0;
+    map[id].total_deduction+=parseFloat(p.deduction)||0;
+    map[id].total_refund+=parseFloat(p.refund)||0;
+    map[id].cert_count++;
+  });
+  AGG_DATA=Object.values(map);
+}
+
+// ── FILTERS ──────────────────────────────────────────────
+function initFilters(){
+  var cEl=document.getElementById("filterCompany"),tEl=document.getElementById("filterType"),sEl=document.getElementById("filterSub");
+  populateSel(cEl,getUniq("company"));populateSel(tEl,getUniq("work_type"));populateSel(sEl,getUniq("subcontractor"));
+  cEl.onchange=function(){FILTER_STATE.company=cEl.value;updDep();renderAll();};
+  tEl.onchange=function(){FILTER_STATE.type=tEl.value;updDep();renderAll();};
+  sEl.onchange=function(){FILTER_STATE.subcontractor=sEl.value;updDep();renderAll();};
+}
+function populateSel(el,vals){
+  if(!el) return;var cur=el.value;
+  el.innerHTML='<option value="">All</option>'+vals.map(function(v){return'<option value="'+v+'">'+v+'</option>';}).join("");
+  if(vals.indexOf(cur)>-1) el.value=cur;else el.value="";
+}
+function getUniq(key){
+  return[...new Set(RAW_DATA.map(function(x){if(key==="company") return x.company_name;if(key==="work_type") return x.work_type;if(key==="subcontractor") return x.subcontractor_name;}).filter(Boolean))];
+}
+function updDep(){
+  var f=getFilteredRaw();
+  populateSel(document.getElementById("filterCompany"),[...new Set(f.map(function(x){return x.company_name;}).filter(Boolean))]);
+  populateSel(document.getElementById("filterType"),[...new Set(f.map(function(x){return x.work_type;}).filter(Boolean))]);
+  populateSel(document.getElementById("filterSub"),[...new Set(f.map(function(x){return x.subcontractor_name;}).filter(Boolean))]);
+}
+function applyFilt(){
+  return AGG_DATA.filter(function(x){
+    return(!FILTER_STATE.company||x.company.trim()===FILTER_STATE.company.trim())&&
+           (!FILTER_STATE.type||x.work_type.trim()===FILTER_STATE.type.trim())&&
+           (!FILTER_STATE.subcontractor||x.subcontractor===FILTER_STATE.subcontractor);
+  });
+}
+function getFilteredRaw(){
+  return RAW_DATA.filter(function(x){
+    return(!FILTER_STATE.company||(x.company_name||"").trim()===(FILTER_STATE.company||"").trim())&&
+           (!FILTER_STATE.type||(x.work_type||"").trim()===(FILTER_STATE.type||"").trim())&&
+           (!FILTER_STATE.subcontractor||(x.subcontractor_name||"")===(FILTER_STATE.subcontractor||""));
+  });
+}
+
+// ── RENDER ALL ───────────────────────────────────────────
+function renderAll(){var d=applyFilt();renderKPIs(d);renderCharts(d);renderTable(d);renderWorkTypeSummary(getFilteredRaw());}
+
+// ── KPIs ─────────────────────────────────────────────────
+function renderKPIs(data){
+  setEl("total_withdrawn",fmt(sum(data,"total_withdrawn")));
+  setEl("total_refund",fmt(sum(data,"total_refund")));
+  setEl("total_work",fmt(sum(data,"total_work")));
+  setEl("total_paid",fmt(sum(data,"total_net")));
+  setEl("total_retention",fmt(sum(data,"total_retention")));
+  setEl("total_deduction",fmt(sum(data,"total_deduction")));
+  setEl("total_sar",fmt(sum(data,"total_net")));
+  setEl("total_subs",""+data.length);
+  setEl("avg_cert",data.length?(sum(data,"cert_count")/data.length).toFixed(1):"0");
+  // extra mini
+  var types=[...new Set(data.map(function(d){return d.work_type;}).filter(Boolean))];
+  setEl("mini_types",""+types.length);
+  var top=data.length?data.reduce(function(a,b){return a.total_net>b.total_net?a:b;}):null;
+  setEl("mini_top",top?top.subcontractor:"—");
+  var tWork=sum(data,"total_work"),tRet=sum(data,"total_retention");
+  setEl("mini_ret_pct",tWork>0?((tRet/tWork)*100).toFixed(1)+"%":"0%");
+  var ai=document.getElementById("ai_summary");
+  if(ai) ai.innerHTML=genAI(data);
+}
+
+function genAI(data){
+  if(!data.length) return"No data available for current filter.";
+  var tNet=sum(data,"total_net"),tWork=sum(data,"total_work"),tRet=sum(data,"total_retention"),tDed=sum(data,"total_deduction");
+  var top=data.reduce(function(a,b){return a.total_net>b.total_net?a:b;});
+  var tc={};data.forEach(function(x){tc[x.work_type]=(tc[x.work_type]||0)+1;});
+  var mainType=Object.entries(tc).sort(function(a,b){return b[1]-a[1];})[0]?.[0]||"various";
+  var perf="balanced financial performance";
+  if(tNet>tWork) perf="strong positive cash flow";
+  if(tRet>tNet*0.15) perf="high retention impact on cash flow";
+  if(tDed>tNet*0.1) perf="notable deductions affecting profitability";
+  return"Total work value: <strong>"+fmt(tWork)+"</strong> SAR &nbsp;·&nbsp; Net payments: <strong>"+fmt(tNet)+"</strong> SAR &nbsp;·&nbsp; Retention: <strong>"+fmt(tRet)+"</strong> SAR &nbsp;·&nbsp; Deductions: <strong>"+fmt(tDed)+"</strong> SAR<br>Primarily driven by <strong>"+mainType+"</strong> works. Top performer: <strong>"+top.company+"</strong>. Overall: <em>"+perf+"</em>.";
+}
+
+// ── CHARTS ───────────────────────────────────────────────
+var PAL=["#7ea6e0","#346cc1","#f28b82","#c5e1a5","#ffd180","#b39ddb","#80cbc4","#93e6a4"];
+
+function renderCharts(data){
+  destroyCharts();
+  createTrend(data);createType(data);createRetention(data);createTopSubs(data);renderWTCards(data);
+}
+function destroyCharts(){
+  ["trendChart","typeChart","retentionChart"].forEach(function(k){if(window[k+"_inst"]) window[k+"_inst"].destroy();});
+}
+
+function createTrend(data){
+  var ctx=getCtx("trendChart");if(!ctx) return;
+  var top=[...data].sort(function(a,b){return b.total_net-a.total_net;}).slice(0,50);
+  var gN=ctx.createLinearGradient(0,0,0,200);gN.addColorStop(0,"rgba(16,185,129,.38)");gN.addColorStop(1,"rgba(16,185,129,0)");
+  var gR=ctx.createLinearGradient(0,0,0,200);gR.addColorStop(0,"rgba(245,158,11,.32)");gR.addColorStop(1,"rgba(245,158,11,0)");
+  var gD=ctx.createLinearGradient(0,0,0,200);gD.addColorStop(0,"rgba(244,63,94,.32)");gD.addColorStop(1,"rgba(244,63,94,0)");
+  window.trendChart_inst=new Chart(ctx,{type:"line",data:{labels:top.map(function(x){return x.company;}),datasets:[
+    {label:"Net",data:top.map(function(x){return x.total_net;}),borderColor:"#10b981",backgroundColor:gN,fill:true,tension:.4,borderWidth:1.5,pointRadius:2},
+    {label:"Retention",data:top.map(function(x){return x.total_retention;}),borderColor:"#f59e0b",backgroundColor:gR,fill:true,tension:.4,borderWidth:1.5,pointRadius:2},
+    {label:"Deduction",data:top.map(function(x){return x.total_deduction;}),borderColor:"#f43f5e",backgroundColor:gD,fill:true,tension:.4,borderWidth:1.5,pointRadius:2}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:"#101420",borderColor:"rgba(255,255,255,.08)",borderWidth:1,titleColor:"#e8eaf2",bodyColor:"#8892aa"}},scales:{x:{display:false},y:{display:false}}}});
+}
+
+function createType(data){
+  var ctx=getCtx("typeChart");if(!ctx) return;
+  var g=groupBy(data,"work_type","total_net");
+  window.typeChart_inst=new Chart(ctx,{type:"pie",data:{labels:Object.keys(g),datasets:[{data:Object.values(g),backgroundColor:PAL,borderColor:"rgba(255,255,255,.05)",borderWidth:1,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:"right",labels:{color:"#8892aa",font:{size:10},boxWidth:10,padding:8}},tooltip:{backgroundColor:"#101420",borderColor:"rgba(255,255,255,.08)",borderWidth:1,titleColor:"#e8eaf2",bodyColor:"#8892aa"}}}});
+}
+
+function createRetention(data){
+  var ctx=getCtx("retentionChart");if(!ctx) return;
+  var top=[...data].sort(function(a,b){return b.total_retention-a.total_retention;}).slice(0,30);
+  window.retentionChart_inst=new Chart(ctx,{type:"bar",data:{labels:top.map(function(x){return x.subcontractor;}),datasets:[{data:top.map(function(x){return x.total_retention;}),backgroundColor:"rgba(245,158,11,.7)",borderRadius:4},{data:top.map(function(x){return x.total_deduction;}),backgroundColor:"rgba(244,63,94,.65)",borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:"#101420",borderColor:"rgba(255,255,255,.08)",borderWidth:1,titleColor:"#e8eaf2",bodyColor:"#8892aa"}},scales:{x:{display:false},y:{display:false}}}});
+}
+
+function createTopSubs(data){
+  var c=document.getElementById("topSubsList");if(!c) return;
+  var g={};data.forEach(function(item){var n=item.subcontractor||"Unknown";g[n]=(g[n]||0)+Number(item.total_net||0);});
+  var top=Object.entries(g).map(function(e){return{name:e[0],total:e[1]};}).sort(function(a,b){return b.total-a.total;}).slice(0,6);
+  c.innerHTML=top.map(function(x){return'<div class="ts-card"><div class="ts-name">'+x.name+'</div><div class="ts-val">'+fmt(x.total)+'</div><div class="ts-cur">SAR</div></div>';}).join("");
+}
+
+function renderWTCards(data){
+  var c=document.getElementById("workTypeCards");if(!c) return;
+  var g={};var raw=getFilteredRaw();
+  raw.forEach(function(item){var t=item.work_type||"Unknown";if(!g[t]) g[t]={certs:new Set(),subs:new Set()};g[t].certs.add(item.id||item.payment_id||item.invoice_no);g[t].subs.add(item.subcontractor_id);});
+  c.innerHTML=Object.keys(g).map(function(t){return'<div class="wt-card"><div class="wt-top">'+t+'</div><div class="wt-main">'+g[t].certs.size+'</div><div class="wt-bot">'+g[t].subs.size+' Subs</div></div>';}).join("");
+}
+
+// ── TABLE ────────────────────────────────────────────────
+function renderTable(data){
+  var tb=document.getElementById("summaryTable");if(!tb) return;
+  tb.innerHTML=data.map(function(x){return"<tr><td>"+x.company+"</td><td>"+x.subcontractor+"</td><td>"+x.work_type+"</td><td style='font-family:var(--mono)'>"+x.cert_count+"</td><td style='font-family:var(--mono)'>"+fmt(x.total_work)+"</td><td style='font-family:var(--mono)'>"+fmt(x.total_withdrawn)+"</td><td style='font-family:var(--mono)'>"+fmt(x.total_deduction)+"</td><td style='font-family:var(--mono)'>"+fmt(x.total_refund)+"</td><td style='font-family:var(--mono)'>"+fmt(x.total_retention)+"</td><td style='font-family:var(--mono)'>"+fmt(x.total_advance)+"</td><td style='font-family:var(--mono);color:var(--green)'>"+fmt(x.total_net)+"</td></tr>";}).join("");
+}
+
+// ── REPORT SAFE DATA ─────────────────────────────────────
+window.getReportSafeData=function(){
+  return[...ORIGINAL_DATA].filter(function(x){
+    return(!FILTER_STATE.company||(x.company_name||"").trim()===(FILTER_STATE.company||"").trim())&&
+           (!FILTER_STATE.type||(x.work_type||"").trim()===(FILTER_STATE.type||"").trim())&&
+           (!FILTER_STATE.subcontractor||(x.subcontractor_name||"").trim()===(FILTER_STATE.subcontractor||"").trim());
+  });
 };
 
-// =====================================================
-// FORMAT
-// =====================================================
-function format(n) {
-    return Number(n || 0).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-}
-
-// =====================================================
-// SAFE CANVAS
-// =====================================================
-function getCtx(id) {
-    const el = document.getElementById(id);
-    if (!el) {
-        console.warn("Missing canvas:", id);
-        return null;
-    }
-    return el.getContext("2d");
-}
-
-// =====================================================
-// LOAD DASHBOARD
-// =====================================================
-async function loadDashboard() {
-    if (dashboardLoaded) return;
-dashboardLoaded = true;
-    try {
-        const token = localStorage.getItem("token");
-
-const res = await fetch("https://spms-backend-jxzn.onrender.com/api/payments/all-full", {
-    headers: {
-        "Authorization": `Bearer ${token}`
-    }
-});
-
-    if (!res.ok) {
-    const text = await res.text();
-    console.error("Server Error:", text);
-
-    if (text.includes("token") || text.includes("Unauthorized")) {
-        alert("Session expired. Please login again.");
-        localStorage.clear();
-        window.location.href = "login.html";
-        return;
-    }
-
-    alert("Server error. Please try again.");
-    return;
-}
-
-       const data = await res.json();
-
-// ✅ FIRST validate
-if (!Array.isArray(data)) {
-    console.error("Invalid API response:", data);
-
-    alert("Failed to load dashboard data");
-    return;
-}
-
-// ✅ THEN show UI
-const skeleton = document.getElementById("dashboardSkeleton");
-const content = document.getElementById("dashboardContent");
-
-if (skeleton) skeleton.style.display = "none";
-
-if (content) {
-    content.style.display = "block";
-    content.classList.add("fade-in");
-}
-        console.log("DATA:", data);
-
-        // ===============================
-        // ✅ IMPORTANT: SET GLOBAL DATA
-        // ===============================
-ORIGINAL_DATA = data.map(item => Object.freeze({ ...item }));
-Object.freeze(ORIGINAL_DATA);
-
-RAW_DATA = data.map(item => ({ ...item }));   
-
-        // ===============================
-        // 🔢 BASIC TOTALS (TOP CARDS)
-        // ===============================
-        let totalWork = 0;
-        let totalRetention = 0;
-        let totalDeduction = 0;
-        let totalNet = 0;
-
-        data.forEach(item => {
-            totalWork += Number(item.work_value || 0);
-            totalRetention += Number(item.retention_amount || 0);
-            totalDeduction += Number(item.deduction || 0);
-            totalNet += Number(item.net_payment || 0);
-        });
-
-        // ===============================
-        // ✅ SAFE UI UPDATE
-        // ===============================
-        const el1 = document.getElementById("total_work");
-        const el2 = document.getElementById("total_retention");
-        const el3 = document.getElementById("total_deduction");
-        const el4 = document.getElementById("total_paid");
-        const el5 = document.getElementById("total_sar");
-
-        if (el1) el1.innerText = totalWork.toFixed(2);
-        if (el2) el2.innerText = totalRetention.toFixed(2);
-        if (el3) el3.innerText = totalDeduction.toFixed(2);
-        if (el4) el4.innerText = totalNet.toFixed(2);
-        if (el5) el5.innerText = totalNet.toFixed(2);
-
-        
-        // ===============================
-        // 🔥 BUILD FULL DASHBOARD
-        // ===============================
-        buildAggregation();
-        initFilters();
-        renderAll();
-
-    } catch (err) {
-        console.error("Dashboard Error:", err);
-    }
-
-}
-
-function renderWorkTypeSummary(data) {
-
-    if (!data || data.length === 0) return;
-
-    const container = document.getElementById("workTypeSummary");
-    if (!container) return;
-
-    // 🔹 TOTAL CERTIFICATES
-    const total = data.length;
-
-    // 🔹 GROUP BY WORK TYPE
-    const typeCounts = {};
-
-    data.forEach(item => {
-        const type = item.work_type || "Other";
-
-        if (!typeCounts[type]) {
-            typeCounts[type] = 0;
-        }
-
-        typeCounts[type]++;
-    });
-
-    // 🔹 BUILD TEXT
-    let summaryText = `<strong>Total Certificates:</strong> ${total}<br>`;
-
-    const parts = [];
-
-    for (let type in typeCounts) {
-        parts.push(`${type}: ${typeCounts[type]}`);
-    }
-
-    summaryText += parts.join(" &nbsp; | &nbsp; ");
-
-    container.innerHTML = summaryText;
-}
-// =====================================================
-// AGGREGATION
-// =====================================================
-function buildAggregation() {
-
-    const map = {};
-
-    RAW_DATA.forEach(p => {
-
-        const id = `${p.subcontractor_id}_${p.work_type}`;
-
-        if (!map[id]) {
-            map[id] = {
-                company: p.company_name || "N/A",
-                subcontractor: p.subcontractor_name || p.sub_name || "Unknown",
-                work_type: p.work_type || "Other",
-                total_work: 0,
-                total_withdrawn: 0,
-                total_net: 0,
-                total_retention: 0,
-                total_advance: 0,
-                total_deduction: 0,
-                total_refund: 0,
-                cert_count: 0
-            };
-        }
-
-        map[id].total_work += parseFloat(p.work_value) || 0;
-map[id].total_net += parseFloat(p.net_payment) || 0;
-map[id].total_retention += parseFloat(p.retention_amount) || 0;
-map[id].total_withdrawn += parseFloat(
-    p.withdrawn || p.work_withdrawn || 0
-);
-map[id].total_advance += parseFloat(p.advance_deduction) || 0;
-map[id].total_deduction += parseFloat(p.deduction) || 0;
-map[id].total_refund += parseFloat(p.refund) || 0;
-        map[id].cert_count++;
-    });
-
-    AGG_DATA = Object.values(map);
-}
-
-// =====================================================
-// FILTERS
-// =====================================================
-function initFilters() {
-
-    const companyEl = document.getElementById("filterCompany");
-    const typeEl = document.getElementById("filterType");
-    const subEl = document.getElementById("filterSub");
-
-    populateSelect(companyEl, getUnique("company"));
-    populateSelect(typeEl, getUnique("work_type"));
-    populateSelect(subEl, getUnique("subcontractor"));
-    
-
-    companyEl.onchange = () => {
-        FILTER_STATE.company = companyEl.value;
-        updateDependentFilters();
-        renderAll();
-    };
-
-    typeEl.onchange = () => {
-        FILTER_STATE.type = typeEl.value;
-        updateDependentFilters();
-        renderAll();
-    };
-
-    subEl.onchange = () => {
-    FILTER_STATE.subcontractor = subEl.value;
-
-    updateDependentFilters(); // 🔥 ADD THIS
-    renderAll();
+// ── GLOBAL FILTER (from search modal) ───────────────────
+window.applyGlobalFilter=function(filteredData){
+  if(!filteredData||!filteredData.length){alert("No data found");return;}
+  RAW_DATA=filteredData.map(function(x){return Object.assign({},x,{work_value:Number(x.work_value||0),net_payment:Number(x.net_payment||0),retention_amount:Number(x.retention_amount||0),deduction:Number(x.deduction||0),advance_deduction:Number(x.advance_deduction||0),refund:Number(x.refund||0)});});
+  CURRENT_DATA=[];
+  var first=filteredData[0];
+  FILTER_STATE={company:first?.company_name||"",type:first?.work_type||"",subcontractor:first?.subcontractor_name||""};
+  buildAggregation();initFilters();
+  setSelVal("filterCompany",FILTER_STATE.company);setSelVal("filterType",FILTER_STATE.type);setSelVal("filterSub",FILTER_STATE.subcontractor);
+  renderAll();
 };
-}
-
-function populateSelect(el, values) {
-    if (!el) return;
-
-    const currentValue = el.value; // keep selected
-
-    el.innerHTML = `<option value="">All</option>` +
-        values.map(v => `<option value="${v}">${v}</option>`).join("");
-
-    // ✅ restore selection if still valid
-    if (values.includes(currentValue)) {
-        el.value = currentValue;
-    } else {
-        el.value = ""; // reset to All
-    }
-}
-
-function getUnique(key) {
-    return [...new Set(
-        RAW_DATA.map(x => {
-            if (key === "company") return x.company_name;
-            if (key === "work_type") return x.work_type;
-            if (key === "subcontractor") return x.subcontractor_name;
-        }).filter(Boolean) // 🔥 ADD THIS
-    )];
-}
-
-function updateDependentFilters() {
-
-    const filtered = getFilteredRawData();
-
-    populateSelect(
-        document.getElementById("filterCompany"),
-        [...new Set(filtered.map(x => x.company_name).filter(Boolean))]
-    );
-
-    populateSelect(
-        document.getElementById("filterType"),
-        [...new Set(filtered.map(x => x.work_type).filter(Boolean))]
-    );
-
-    populateSelect(
-        document.getElementById("filterSub"),
-        [...new Set(filtered.map(x => x.subcontractor_name).filter(Boolean))]
-    );
-}
-
-function applyFilterData() {
-
-    // ✅ ALWAYS USE FULL DATA (AGG_DATA)
-    return AGG_DATA.filter(x =>
-        (!FILTER_STATE.company || x.company?.trim() === FILTER_STATE.company?.trim()) &&
-        (!FILTER_STATE.type || x.work_type?.trim() === FILTER_STATE.type?.trim()) &&
-        (!FILTER_STATE.subcontractor || x.subcontractor === FILTER_STATE.subcontractor)
-    );
-}
-
-// =====================================================
-// MAIN RENDER
-// =====================================================
-function renderAll() {
-
-    const data = applyFilterData();
-
-    renderKPIs(data);
-    renderCharts(data);
-    renderTable(data);
-
-     renderWorkTypeSummary(getFilteredRawData());
-}
-function getFilteredRawData() {
-
-    return RAW_DATA.filter(x =>
-        (!FILTER_STATE.company || (x.company_name || "").trim() === (FILTER_STATE.company || "").trim()) &&
-        (!FILTER_STATE.type || (x.work_type || "").trim() === (FILTER_STATE.type || "").trim()) &&
-        (!FILTER_STATE.subcontractor || (x.subcontractor_name || "") === (FILTER_STATE.subcontractor || ""))
-    );
-
-}
-
-window.getReportSafeData = function () {
-
-    // ✅ ALWAYS use original clean dataset
-    const base = [...ORIGINAL_DATA];
-
-    // ✅ apply filters WITHOUT mutation
-    return base.filter(x =>
-        (!FILTER_STATE.company || (x.company_name || "").trim() === (FILTER_STATE.company || "").trim()) &&
-        (!FILTER_STATE.type || (x.work_type || "").trim() === (FILTER_STATE.type || "").trim()) &&
-        (!FILTER_STATE.subcontractor || (x.subcontractor_name || "").trim() === (FILTER_STATE.subcontractor || "").trim())
-    );
-}
-
-// =====================================================
-// KPI
-// =====================================================
-function renderKPIs(data) {
-
-    const totalWork = sum(data, "total_work");
-    const totalNet = sum(data, "total_net");
-    const totalRetention = sum(data, "total_retention");
-    const totalDeduction = sum(data, "total_deduction");
-    const totalWithdrawn = sum(data, "total_withdrawn");
-const totalRefund = sum(data, "total_refund");
-
-document.getElementById("total_withdrawn").innerText = format(totalWithdrawn);
-document.getElementById("total_refund").innerText = format(totalRefund);
-    document.getElementById("total_work").innerText = format(totalWork);
-    document.getElementById("total_paid").innerText = format(totalNet);
-    document.getElementById("total_retention").innerText = format(totalRetention);
-    document.getElementById("total_deduction").innerText = format(totalDeduction);
-    document.getElementById("total_sar").innerText = format(totalNet);
-
-    document.getElementById("total_subs").innerText = data.length;
-
-    document.getElementById("avg_cert").innerText =
-        data.length ? (sum(data, "cert_count") / data.length).toFixed(1) : "0";
-
-    // ✅ AI SUMMARY FIX
-    const ai = document.getElementById("ai_summary");
-    if (ai) {
-        const summary = generateAISummary(data);
-ai.innerHTML = summary;
-    }
-}
-
-function generateAISummary(data) {
-
-    if (!data.length) return "No data available for this project.";
-
-    const totalNet = sum(data, "total_net");
-    const totalWork = sum(data, "total_work");
-    const totalRetention = sum(data, "total_retention");
-    const totalDeduction = sum(data, "total_deduction");
-
-    const top = data.reduce((a,b)=> a.total_net > b.total_net ? a : b);
-
-    // work type distribution
-    const typeCount = {};
-    data.forEach(x => {
-        typeCount[x.work_type] = (typeCount[x.work_type] || 0) + 1;
-    });
-
-    const mainType = Object.entries(typeCount)
-        .sort((a,b)=>b[1]-a[1])[0]?.[0] || "various";
-
-    // performance logic
-    let performance = "balanced financial performance";
-    if (totalNet > totalWork) performance = "strong positive cash flow";
-    if (totalRetention > totalNet * 0.15) performance = "high retention impact on cash flow";
-    if (totalDeduction > totalNet * 0.1) performance = "notable deductions affecting profitability";
-
-    return `
-This project has a total work value of ${format(totalWork)} SAR, with total net payments reaching ${format(totalNet)} SAR. 
-The retention amount stands at ${format(totalRetention)} SAR, while total deductions recorded are ${format(totalDeduction)} SAR. 
-
-The project is primarily driven by ${mainType} works, with the top performing subcontractor being ${top.company}. 
-
-Overall, the project demonstrates ${performance}, indicating ${
-        totalNet > totalWork
-        ? "efficient financial management and strong execution."
-        : "controlled spending with stable progress."
-    }
-`;
-}
-
-// =====================================================
-// CHARTS
-// =====================================================
-function renderCharts(data) {
-
-    destroyCharts();
-
-    createTrendChart(data);
-    createTypeChart(data);
-    createRetentionChart(data);
-
-    // ❌ REMOVE THIS (not used in UI)
-    // createTopSubsChart(data);
-
-    // ✅ ADD THIS (your right panel data)
-    createTopSubsList(data);
-
-    renderWorkTypeCards(data);
-}
-
-// =====================================================
-function destroyCharts() {
-    ["topSubsChart","typeChart","financeChart","retentionChart","trendChart","certChart"]
-        .forEach(k => window[k]?.destroy?.());
-}
-
-function createTopSubsList(data) {
-
-    const container = document.getElementById("topSubsList");
-    if (!container) return;
-
-    const grouped = {};
-
-    data.forEach(item => {
-        const name = item.subcontractor || "Unknown";
-
-        if (!grouped[name]) grouped[name] = 0;
-        grouped[name] += Number(item.total_net || 0);
-    });
-
-    const top = Object.entries(grouped)
-        .map(([name, total]) => ({ name, total }))
-        .sort((a, b) => b.total - a.total)
-        .slice(0, 6);
-
-    container.innerHTML = "";
-
-    top.forEach(x => {
-        container.innerHTML += `
-            <div class="top-sub-card">
-                <div class="top-sub-name">${x.name}</div>
-                <div class="top-sub-value">${format(x.total)}</div>
-                <div class="top-sub-currency">SAR</div>
-            </div>
-        `;
-    });
-}
-
-// =====================================================
-function createTypeChart(data) {
-
-    const ctx = getCtx("typeChart");
-    if (!ctx) return;
-
-    const group = groupBy(data, "work_type", "total_net");
-
-    window.typeChart = new Chart(ctx, {
-        type: "pie",
-        data: {
-            labels: Object.keys(group),
-            datasets: [{
-    data: Object.values(group),
-    backgroundColor: [
-    "#7ea6e0",
-    "#346cc1",  // blue
-    "#f28b82",  // red
-    "#c5e1a5",  // green
-    "#ffd180",  // orange
-    "#b39ddb",  // purple
-    "#80cbc4",  // teal
-    "#93e6a4"   
-
-],
-    borderColor: "#ffffff",
-borderWidth: 1,          // 🔥 slightly thicker = premium look
-    hoverOffset: 6            // 🔥 smooth hover pop
-}]
-        },
-        options: {
-            responsive: true,
-        maintainAspectRatio: false ,// 🔥 MUST ADD
-            plugins: {
-                legend: {
-    display: true,
-    position: "right",
-    labels: {
-        color: "#e5e7eb",
-        font: { size: 11 }
-    }
-},
-                tooltip: {
-    enabled: true,
-    mode: 'index',
-    intersect: false,
-    backgroundColor: "#0f172a",
-    titleColor: "#fff",
-    bodyColor: "#e5e7eb",
-    borderColor: "none",
-    borderWidth: 1
-},
-                scales: {
-                x: { display: false },
-                y: { display: false
-                    
-                }
-            }
-            }
-        }
-    });
-}
-
-// =====================================================
-function createTrendChart(data) {
-
-    const ctx = getCtx("trendChart");
-    if (!ctx) return;
-
-    const top10 = [...data]
-        .sort((a, b) => b.total_net - a.total_net)
-        .slice(0, 100);
-
-    // 🔥 GRADIENTS
-    const gradNet = ctx.createLinearGradient(0, 0, 0, 300);
-    gradNet.addColorStop(0, "rgba(34,197,94,0.5)");
-    gradNet.addColorStop(1, "rgba(34,197,94,0)");
-
-    const gradRet = ctx.createLinearGradient(0, 0, 0, 300);
-    gradRet.addColorStop(0, "rgba(245,158,11,0.5)");
-    gradRet.addColorStop(1, "rgba(245,158,11,0)");
-
-    const gradDed = ctx.createLinearGradient(0, 0, 0, 300);
-    gradDed.addColorStop(0, "rgba(239,68,68,0.5)");
-    gradDed.addColorStop(1, "rgba(239,68,68,0)");
-
-    window.trendChart = new Chart(ctx, {
-        type: "line",
-        data: {
-            labels: top10.map(x => `${x.company} | ${x.subcontractor}`),
-            datasets: [
-                {
-                    label: "Net",
-                    data: top10.map(x => x.total_net),
-                    borderColor: "#22c55e",
-                    backgroundColor: gradNet,
-                    fill: true,
-                    tension: 0.4,
-                    borderWidth: 1
-                },
-                {
-                    label: "Retention",
-                    data: top10.map(x => x.total_retention),
-                    borderColor: "#f59e0b",
-                    backgroundColor: gradRet,
-                    fill: true,
-                    tension: 0.4,
-                    borderWidth: 1
-                },
-                {
-                    label: "Deduction",
-                    data: top10.map(x => x.total_deduction),
-                    borderColor: "#ef4444",
-                    backgroundColor: gradDed,
-                    fill: true,
-                    tension: 0.4,
-                    borderWidth: 1
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-        maintainAspectRatio: false , // 🔥 MUST ADD
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-    enabled: true,
-    mode: 'index',
-    intersect: false,
-    backgroundColor: "#0f172a",
-    titleColor: "#fff",
-    bodyColor: "#e5e7eb",
-    borderColor: "#334155",
-    borderWidth: 1
-}
-            },
-            scales: {
-                x: { display: false },
-                y: { display: false
-                    
-                }
-            }
-        }
-    });
-}
-
-function createRetentionChart(data) {
-
-    const ctx = getCtx("retentionChart");
-    if (!ctx) return;
-
-    const top10 = [...data]
-        .sort((a, b) => b.total_retention - a.total_retention)
-        .slice(0, 30);
-
-    window.retentionChart = new Chart(ctx, {
-        type: "bar",
-        data: {
-            labels: top10.map(x => `${x.company} | ${x.subcontractor}`),
-            
-            datasets: [
-                {
-                    data: top10.map(x => x.total_retention),
-                    backgroundColor: "#f59e0b",
-                    borderRadius: 6
-                },
-                {
-                    data: top10.map(x => x.total_deduction),
-                    backgroundColor: "#ef4444",
-                    borderRadius: 15
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-        maintainAspectRatio: false ,// 🔥 MUST ADD
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-    enabled: true,
-    mode: 'index',
-    intersect: false,
-    backgroundColor: "#0f172a",
-    titleColor: "#fff",
-    bodyColor: "#e5e7eb",
-    borderColor: "#334155",
-    borderWidth: 1
-}
-            },
-            scales: {
-                x: { display: false },
-                y: { display: false
-                    
-                }
-            }
-        }
-    });
-}
-
-function renderWorkTypeCards(data) {
-    const container = document.getElementById("workTypeCards");
-    if (!container) return;
-
-    const grouped = {};
-
-    // ⚠️ USE RAW DATA (VERY IMPORTANT)
-    const raw = getFilteredRawData();
-
-    raw.forEach(item => {
-        const type = item.work_type || "Unknown";
-
-        if (!grouped[type]) {
-            grouped[type] = {
-                certs: new Set(),
-                subs: new Set()
-            };
-        }
-
-        // ✅ UNIQUE CERTIFICATE (use real field)
-        grouped[type].certs.add(item.id || item.payment_id || item.invoice_no);
-
-        // ✅ UNIQUE SUBCONTRACTOR
-        grouped[type].subs.add(item.subcontractor_id);
-    });
-
-    let html = "";
-
-    Object.keys(grouped).forEach(type => {
-        html += `
-    <div class="work-card-premium">
-        <div class="card-top">${type}</div>
-        <div class="card-main">${grouped[type].certs.size}</div>
-        <div class="card-bottom">${grouped[type].subs.size} Subs</div>
-    </div>
-`;
-    });
-
-    container.innerHTML = html;
-}
-// =====================================================
-// TABLE
-// =====================================================
-function renderTable(data) {
-
-    const table = document.getElementById("summaryTable");
-    table.innerHTML = "";
-
-    data.forEach(x => {
-        table.innerHTML += `
-        <tr>
-            <td>${x.company}</td>
-            <td>${x.subcontractor}</td>
-
-            <!-- ✅ ORDER FIXED -->
-            <td>${x.work_type}</td>
-            <td>${x.cert_count}</td>
-
-            <!-- ✅ VALUES -->
-            <td>${format(x.total_work)}</td>
-            <td>${format(x.total_withdrawn)}</td>
-            <td>${format(x.total_deduction)}</td>
-            <td>${format(x.total_refund)}</td>
-            <td>${format(x.total_retention)}</td>
-            <td>${format(x.total_advance)}</td>
-            <td>${format(x.total_net)}</td>
-        </tr>`;
-    });
-}
-
-// =====================================================
-function sum(arr, key) {
-    return arr.reduce((a,b)=>a + (b[key] || 0),0);
-}
-
-function groupBy(arr, key, valueKey) {
-    const res = {};
-    arr.forEach(x => {
-        res[x[key]] = (res[x[key]] || 0) + (x[valueKey] || 0);
-    });
-    return res;
-}
-
-async function loadImageBase64(url) {
-    const res = await fetch(url);
-    const blob = await res.blob();
-
-    return new Promise(resolve => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(blob);
-    });
-}
-
-// =====================================================
-// PDF EXPORT (ADVANCED)
-// =====================================================
-
-
-window.applyGlobalFilter = function(filteredData) {
-
-    if (!filteredData || filteredData.length === 0) {
-        alert("No data found");
-        return;
-    }
-
-    // 🔥 STEP 1: SET RAW DATA
-    RAW_DATA = filteredData.map(x => ({
-        ...x,
-        work_value: Number(x.work_value || 0),
-        net_payment: Number(x.net_payment || 0),
-        retention_amount: Number(x.retention_amount || 0),
-        deduction: Number(x.deduction || 0),
-        advance_deduction: Number(x.advance_deduction || 0),
-        refund: Number(x.refund || 0)
-    }));
-
-    CURRENT_DATA = [];
-
-    // ✅ 🔥 AUTO SYNC FILTER STATE
-    const first = filteredData[0];
-
-    FILTER_STATE = {
-        company: first?.company_name || "",
-        type: first?.work_type || "",
-        subcontractor: first?.subcontractor_name || ""
-    };
-
-    // 🔥 REBUILD
-    buildAggregation();
-    initFilters();
-
-    // 🔥 FORCE UI MATCH
-    document.getElementById("filterCompany").value = FILTER_STATE.company || "";
-    document.getElementById("filterType").value = FILTER_STATE.type || "";
-    document.getElementById("filterSub").value = FILTER_STATE.subcontractor || "";
-
-    renderAll();
+function setSelVal(id,val){var el=document.getElementById(id);if(el) el.value=val||"";}
+
+window.resetDashboard=function(){
+  RAW_DATA=ORIGINAL_DATA.map(function(x){return Object.assign({},x);});
+  CURRENT_DATA=[];FILTER_STATE={company:"",type:"",subcontractor:""};
+  buildAggregation();initFilters();renderAll();
+  var lbl=document.getElementById("activeFilter");if(lbl){lbl.innerText="";lbl.classList.remove("show");}
 };
 
-window.resetDashboard = function() {
-
-    RAW_DATA = ORIGINAL_DATA.map(x => ({ ...x }));
-    CURRENT_DATA = [];
-
-    FILTER_STATE = {
-        company: "",
-        type: "",
-        subcontractor: ""
-    };
-
-    buildAggregation();
-    initFilters();
-    renderAll();
+// ── REPORT HTML ──────────────────────────────────────────
+window.buildDashboardHTML=function(){
+  var data=window.getReportSafeData();
+  if(!data||!data.length) return"<h2>No data available</h2>";
+  data.sort(function(a,b){return(a.project_name||"").localeCompare(b.project_name||"")||(a.contract_number||"").localeCompare(b.contract_number||"")||Number(a.certificate_no)-Number(b.certificate_no);});
+  var groups={};
+  data.forEach(function(p){var k=p.project_name+"__"+p.contract_number+"__"+p.subcontractor_id;if(!groups[k]) groups[k]=[];groups[k].push(p);});
+  var html='<html><head><link href="https://fonts.googleapis.com/css2?family=Tajawal&display=swap" rel="stylesheet"><style>body{font-family:Tajawal,Arial;direction:rtl;text-align:right;padding:20px;font-size:13px;background:#f5f5f5}h1{text-align:center;color:#1f4e79;font-size:20px}h3{color:#c0392b;margin:5px 0}table{width:100%;border-collapse:collapse;margin-top:8px}th{background:#1f4e79;color:white;padding:4px 6px;font-size:11px}td,th{border:1px solid #ccc;padding:3px 5px;font-size:11px}.rb{page-break-inside:avoid;margin-bottom:16px;background:#fff;padding:12px;border-radius:6px}.tot{font-weight:bold;background:#eef0f8}.ft{margin-top:8px;font-size:10px;color:#888;border-top:1px solid #ddd;padding-top:4px}@page{size:A4;margin:8mm}</style></head><body>';
+  Object.values(groups).forEach(function(records){
+    var first=records[0];var tW=0,tN=0,tR=0,tD=0,tWd=0,tRf=0,tAV=0,tAd=0;
+    records.forEach(function(p){tW+=+p.work_value||0;tN+=+p.net_payment||0;tR+=+p.retention_amount||0;tD+=+p.deduction||0;tWd+=+p.withdrawn||0;tRf+=+p.refund||0;tAV+=+p.after_vat||0;tAd+=+p.advance_deduction||0;});
+    html+='<div class="rb"><h1>📊 تقرير الدفعات</h1><h3>المشروع: '+first.project_name+'</h3><div style="font-size:12px;line-height:1.7;margin-bottom:6px"><b>المقاول:</b> '+first.subcontractor_name+' &nbsp;|&nbsp; <b>نوع العمل:</b> '+first.work_type+'<br><b>الشركة:</b> '+(first.company_name||"-")+' &nbsp;|&nbsp; <b>العقد:</b> '+(first.contract_number||"-")+'<br><b>الهاتف:</b> '+(first.phone||"-")+' &nbsp;|&nbsp; <b>البريد:</b> '+(first.email||"-")+'<br><b>الرقم الضريبي:</b> '+(first.vat_number||"-")+' &nbsp;|&nbsp; <b>السجل التجاري:</b> '+(first.cr_number||"-")+'</div><table><tr><th>الشهادة</th><th>قيمة العمل</th><th>المسحوب</th><th>الخصم</th><th>الاسترجاع</th><th>بعد الضريبة</th><th>الاحتجاز</th><th>السلفة</th><th>الصافي</th></tr>';
+    records.forEach(function(p){html+='<tr><td>'+p.certificate_no+'</td><td>'+(+p.work_value).toFixed(2)+'</td><td>'+((+p.withdrawn)||0).toFixed(2)+'</td><td>'+(+p.deduction).toFixed(2)+'</td><td>'+((+p.refund)||0).toFixed(2)+'</td><td>'+((+p.after_vat)||0).toFixed(2)+'</td><td>'+(+p.retention_amount).toFixed(2)+'</td><td>'+((+p.advance_deduction)||0).toFixed(2)+'</td><td>'+(+p.net_payment).toFixed(2)+'</td></tr>';});
+    html+='<tr class="tot"><td>الإجمالي</td><td>'+tW.toFixed(2)+'</td><td>'+tWd.toFixed(2)+'</td><td>'+tD.toFixed(2)+'</td><td>'+tRf.toFixed(2)+'</td><td>'+tAV.toFixed(2)+'</td><td>'+tR.toFixed(2)+'</td><td>'+tAd.toFixed(2)+'</td><td>'+tN.toFixed(2)+'</td></tr></table><div class="ft">Prepared by: Eng. Tanveer Ahmad</div></div>';
+  });
+  html+='</body></html>';return html;
 };
 
-function openReportWindow(print = false) {
+function openWin(print){var w=window.open("","_blank");w.document.open();w.document.write(window.buildDashboardHTML());w.document.close();if(print) setTimeout(function(){w.print();},500);}
 
-    const win = window.open("", "_blank");
+window.generatePDFPreview=function(){openWin(false);};
+window.printPDF=function(){openWin(true);};
+window.downloadPDF=function(){openWin(true);};
 
-    win.document.open();
-    win.document.write(buildDashboardHTML());
-    win.document.close();
-
-    if (print) {
-        setTimeout(() => win.print(), 500);
-    }
-
-    return win;
-}
-
-window.generatePDFPreview = () => openReportWindow(false);
-window.printPDF = () => openReportWindow(true);
-window.downloadPDF = async function () {
-    try {
-        const pdf = await createPDF();
-        pdf.save("SPMS_Report.pdf");
-    } catch (err) {
-        console.error(err);
-        alert("Download failed");
-    }
+window.downloadExcel=function(){
+  var data=window.getReportSafeData();if(!data.length){alert("No data");return;}
+  var headers=Object.keys(data[0]);
+  var csv=[headers.join(",")];
+  data.forEach(function(row){csv.push(headers.map(function(h){return'"'+((row[h]||"").toString().replace(/"/g,'""'))+'"';}).join(","));});
+  var blob=new Blob(["\uFEFF"+csv.join("\n")],{type:"text/csv;charset=utf-8;"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="SPMS_Report.csv";a.click();
 };
-// =====================================================
-// EXPORT FUNCTIONS (FINAL POSITION)
-// =====================================================
-window.loadDashboard = loadDashboard;
-window.generateReport = generatePDFPreview;
-window.downloadPDF = downloadPDF;
-window.printPDF = printPDF;
-window.resetDashboard = resetDashboard;
-window.applyGlobalFilter = applyGlobalFilter;
 
+// ── LIVE UPDATE ──────────────────────────────────────────
+window.updateDashboardLive=function(newPayment){
+  RAW_DATA=[...RAW_DATA,Object.assign({},newPayment,{work_value:Number(newPayment.work_value||0),net_payment:Number(newPayment.net_payment||0),retention_amount:Number(newPayment.retention_amount||0),deduction:Number(newPayment.deduction||0),advance_deduction:Number(newPayment.advance_deduction||0),refund:Number(newPayment.refund||0)})];
+  buildAggregation();renderAll();
+};
 
-window.buildDashboardHTML = function () {
-
-   const data = getReportSafeData();
-
-    if (!data || data.length === 0) {
-        return "<h2>No data available</h2>";
-    }
-    data.sort((a, b) =>
-    (a.project_name || "").localeCompare(b.project_name || "") ||
-    (a.contract_number || "").localeCompare(b.contract_number || "") ||
-    Number(a.certificate_no) - Number(b.certificate_no)
-);
-
-    const groups = {};
-
-    data.forEach(p => {
-        const key = `${p.project_name}__${p.contract_number}__${p.subcontractor_id}`;
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(p);
-    });
-    
-const groupValues = Object.values(groups);
-
-
-    let html = `
-    <html>
-    <head>
-
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal&family=Amiri&display=swap" rel="stylesheet">
-
-    <style>
-
-    body {
-        font-family: 'Tajawal', 'Amiri', Arial;
-    direction: rtl;
-    text-align: right;
-        padding: 20px;
-        font-size: 13px;
-        background: #e5e7eb;
-    }
-
-    h1 {
-        text-align: center;
-        color: #1f4e79;
-    }
-
-    h3 {
-        color: #dba512;
-        margin: 6px 0;
-    }
-
-    table {
-        width: 100%;
-        border: 1px solid #ccc;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-
-    th {
-        background: #1f4e79;
-        color: white;
-    }
-
-    td, th {
-    padding: 3px 4px;
-    border: 1px solid #ccc;
-    font-size: 12px;
-}
-        .report-block {
-    page-break-inside: avoid;
-    margin-bottom: 15px;
-}
-    @page {
-    size: A4;
-    margin: 6.35mm;
-}
-    .page::after {
-    right: 20px;
-    font-size: 12px;
-    color: #555;
-}
-    .footer {
-    margin-top: 10px;
-    font-size: 11px;
-    text-align: left;
-    border-top: 1px solid #ccc;
-    padding-top: 5px;
-}
-
-    </style>
-    </head>
-
-    <body>
-
-    `;
-
-    groupValues.forEach((records, index) => {
-
-        const first = records[0];
-
-        let tWork = 0, tNet = 0, tRet = 0, tDed = 0;
-let tWithdrawn = 0, tRefund = 0, tAfterVAT = 0, tAdvance = 0;
-
-        records.forEach(p => {
-    tWork += +p.work_value || 0;
-    tNet += +p.net_payment || 0;
-    tRet += +p.retention_amount || 0;
-    tDed += +p.deduction || 0;
-
-    tWithdrawn += +p.withdrawn || 0;
-    tRefund += +p.refund || 0;
-    tAfterVAT += +p.after_vat || 0;
-    tAdvance += +p.advance_deduction || 0;
-});
-
-        const pageBreak = index !== 0 ? 'page-break-before: always;' : '';
-
-html += `
-    <div class="report-block" style="${pageBreak}">
-<h1>📊 تقرير الدفعات</h1>
-            <h3>المشروع: ${first.project_name}</h3>
-
-<div style="font-size:13px; line-height:1.6; margin-bottom:6px;">
-
-    <b>المقاول:</b> ${first.subcontractor_name}
-    &nbsp;&nbsp; | &nbsp;&nbsp;
-    <b>نوع العمل:</b> ${first.work_type}
-
-    <br>
-
-    <b>الشركة:</b> ${first.company_name || '-'}
-    &nbsp;&nbsp; | &nbsp;&nbsp;
-    <b>العقد:</b> ${first.contract_number || '-'}
-
-    <br>
-
-    <b>الهاتف:</b> ${first.phone || '-'}
-    &nbsp;&nbsp; | &nbsp;&nbsp;
-    <b>البريد:</b> ${first.email || '-'}
-
-    <br>
-
-    <b>الرقم الضريبي:</b> ${first.vat_number || '-'}
-    &nbsp;&nbsp; | &nbsp;&nbsp;
-    <b>السجل التجاري:</b> ${first.cr_number || '-'}
-
-</div>
-
-    <table>
-<tr>
-    <th>الشهادة</th>
-    <th>قيمة العمل</th>
-    <th>المسحوب</th>
-    <th>الخصم</th>
-    <th>الاسترجاع</th>
-    <th>بعد الضريبة</th>
-    <th>الاحتجاز</th>
-    <th>السلفة</th>
-    <th>الصافي</th>
-</tr>
-        `;
-
-        records.forEach(p => {
-            html += `
-            <tr>
-<td>${p.certificate_no}</td>
-<td>${(+p.work_value).toFixed(2)}</td>
-<td>${(+p.withdrawn || 0).toFixed(2)}</td>
-<td>${(+p.deduction).toFixed(2)}</td>
-<td>${(+p.refund || 0).toFixed(2)}</td>
-<td>${(+p.after_vat || 0).toFixed(2)}</td>
-<td>${(+p.retention_amount).toFixed(2)}</td>
-<td>${(+p.advance_deduction || 0).toFixed(2)}</td>
-<td>${(+p.net_payment).toFixed(2)}</td>
-</tr>
-            `;
-        });
-
-        html += `
-<tr style="font-weight:bold;background:#f0f0f0;">
-<td>الإجمالي</td>
-<td>${tWork.toFixed(2)}</td>
-<td>${tWithdrawn.toFixed(2)}</td>
-<td>${tDed.toFixed(2)}</td>
-<td>${tRefund.toFixed(2)}</td>
-<td>${tAfterVAT.toFixed(2)}</td>
-<td>${tRet.toFixed(2)}</td>
-<td>${tAdvance.toFixed(2)}</td>
-<td>${tNet.toFixed(2)}</td>
-</tr>
-            </table>
-
-            <div class="footer">
-       Prepared by: Eng. Tanveer Ahmad
-    </div>
-
-        </div>
-        `;
-    });
-
-    html += `</body></html>`;
-
-    return html;
-}
+window.loadDashboard=loadDashboard;
 })();
-//setInterval(() => {
-//
-    // ❌ do not refresh if user is filtering
-  //  if (CURRENT_DATA.length > 0) return;
-
-    //console.log("🔄 Auto refreshing dashboard...");
-    //loadDashboard();
-
-//}, 500000);
-// ===============================
-// 🔥 LIVE UPDATE FROM PAYMENT PAGE
-// ===============================
-window.updateDashboardLive = function(newPayment) {
-
-    console.log("Live update received:", newPayment);
-
-    // ✅ PUSH into RAW DATA
-    const normalized = {
-    ...newPayment,
-    work_value: Number(newPayment.work_value || 0),
-    net_payment: Number(newPayment.net_payment || 0),
-    retention_amount: Number(newPayment.retention_amount || 0),
-    deduction: Number(newPayment.deduction || 0),
-    advance_deduction: Number(newPayment.advance_deduction || 0),
-    refund: Number(newPayment.refund || 0)
-};
-
-RAW_DATA = [...RAW_DATA, normalized];
-
-// ❌ DO NOT TOUCH ORIGINAL_DATA
-
-    // ✅ REBUILD EVERYTHING
-    buildAggregation();
-    renderAll();
-};
-
-window.downloadExcel = function () {
-
-    const data = getReportSafeData();
-
-    if (!data.length) {
-        alert("No data to export");
-        return;
-    }
-
-    let csv = [];
-
-    // headers
-    const headers = Object.keys(data[0]);
-    csv.push(headers.join(","));
-
-    // rows
-    data.forEach(row => {
-        const values = headers.map(h => `"${(row[h] || "").toString().replace(/"/g, '""')}"`);
-        csv.push(values.join(","));
-    });
-
-    // create file
-    const BOM = "\uFEFF"; // 🔥 important for Arabic
-
-const blob = new Blob([BOM + csv.join("\n")], {
-    type: "text/csv;charset=utf-8;"
-});
-
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "SPMS_Report.csv";
-    link.click();
-};
-
-window.downloadPDF = function () {
-
-    if (typeof window.buildDashboardHTML !== "function") {
-        alert("PDF system not ready");
-        return;
-    }
-
-    const html = window.buildDashboardHTML();
-
-    const win = window.open("", "_blank");
-
-    win.document.open();
-    win.document.write(html);
-    win.document.close();
-
-    // 🔥 Auto open SAVE AS PDF (no HTML saving popup)
-    setTimeout(() => {
-        win.focus();
-        win.print();
-    }, 500);
-};
