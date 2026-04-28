@@ -26,8 +26,8 @@ async function loadDashboard(){
     var data=await res.json();
     if(!Array.isArray(data)){alert("Failed to load dashboard data.");return;}
 
-    var skel=document.getElementById("dashboardSkeleton");
-    var cont=document.getElementById("dashboardContent");
+    var skel = document.getElementById("dashSkeleton");
+var cont = document.getElementById("dashContent");
     if(skel) skel.style.display="none";
     if(cont){cont.style.display="block";cont.classList.add("fade-in");}
 
