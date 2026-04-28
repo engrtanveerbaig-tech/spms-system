@@ -39,22 +39,40 @@ function applyRoleUI(){
   }
 }
 
+// ── Execute scripts extracted from fetched HTML ──────────
+// innerHTML does NOT execute <script> tags — we do it manually
+function executeScripts(container){
+  const scripts=container.querySelectorAll("script");
+  scripts.forEach(function(oldScript){
+    const newScript=document.createElement("script");
+    // Copy attributes
+    Array.from(oldScript.attributes).forEach(attr=>{
+      newScript.setAttribute(attr.name,attr.value);
+    });
+    // Copy inline content
+    if(oldScript.src){
+      // src scripts: skip here, handled by loadScript below
+      // (dashboard.html should NOT have src scripts after our edit)
+    } else {
+      newScript.textContent=oldScript.textContent;
+      document.body.appendChild(newScript);
+      newScript.remove(); // clean up after execution
+    }
+    oldScript.remove();
+  });
+}
+
 // ── Load Script ──────────────────────────────────────────
-// KEY FIX: always remove & re-inject page-specific scripts so their IIFEs
-// re-execute on every navigation (avoids "script failed to load" on second visit)
 async function loadScript(src, forceReload){
   return new Promise((resolve,reject)=>{
     const baseSrc = src.split("?")[0];
 
     if(forceReload){
-      // Remove any previously injected copy so the IIFE runs fresh
       document.querySelectorAll(`script[data-spms-src="${baseSrc}"]`).forEach(s=>s.remove());
-      // Also clear the window symbol so dashboard.js re-registers loadDashboard
-      if(baseSrc.includes("dashboard")) { window.loadDashboard=undefined; delete window.loadDashboard; }
-      if(baseSrc.includes("payment"))   { window.initPaymentPage=undefined; delete window.initPaymentPage; }
+      if(baseSrc.includes("dashboard"))  { window.loadDashboard=undefined; delete window.loadDashboard; }
+      if(baseSrc.includes("payment"))    { window.initPaymentPage=undefined; delete window.initPaymentPage; }
       if(baseSrc.includes("subcontractor")){ window.initSubcontractorPage=undefined; delete window.initSubcontractorPage; }
     } else {
-      // For shared libs (charts.min.js etc.) keep the cache — only inject once
       if(document.querySelector(`script[data-spms-src="${baseSrc}"]`)){resolve();return;}
     }
 
@@ -82,10 +100,10 @@ async function loadPage(page){
 
   const container=document.getElementById("mainContent");
 
-  // Show inline spinner while loading
+  // Inline spinner while loading
   container.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:12px;">
-    <div style="width:34px;height:34px;border:2px solid rgba(244,63,94,.25);border-top-color:#f43f5e;border-radius:50%;animation:spin .8s linear infinite;"></div>
-    <div style="font-size:11px;letter-spacing:.12em;color:#3e4560;font-family:'JetBrains Mono',monospace;">LOADING</div>
+    <div style="width:34px;height:34px;border:2px solid rgba(245,158,11,.25);border-top-color:#f59e0b;border-radius:50%;animation:spin .8s linear infinite;"></div>
+    <div style="font-size:11px;letter-spacing:.12em;color:#3d4a6a;font-family:'JetBrains Mono',monospace;">LOADING</div>
     <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
   </div>`;
 
@@ -93,40 +111,69 @@ async function loadPage(page){
     const res=await fetch(page+"?v="+Date.now());
     if(!res.ok) throw new Error("HTTP "+res.status+" fetching "+page);
     const html=await res.text();
-    container.innerHTML=html;
+
+    // Parse HTML — extract <body> content only, keep <style> tags
+    const parser=new DOMParser();
+    const doc=parser.parseFromString(html,"text/html");
+
+    // Inject <style> blocks from <head> into document <head>
+    doc.querySelectorAll("head style").forEach(function(s){
+      const existing=document.head.querySelector(`style[data-page="${page}"]`);
+      if(existing)existing.remove();
+      const newStyle=document.createElement("style");
+      newStyle.setAttribute("data-page",page);
+      newStyle.textContent=s.textContent;
+      document.head.appendChild(newStyle);
+    });
+
+    // Set container HTML from parsed body
+    container.innerHTML=doc.body.innerHTML;
+
+    // Fade in
     container.style.opacity=0;
     setTimeout(()=>{container.style.transition="opacity .25s";container.style.opacity=1;},30);
+
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
     applyRoleUI();
 
     if(page.includes("dashboard")){
-      // charts.min.js: load once (cached), dashboard.js: always force-reload
+      // 1. Load Chart.js (once, cached)
       await loadScript("js/charts.min.js", false);
       console.log("Chart available:", typeof Chart);
+
+      // 2. Execute inline helper scripts from dashboard.html
+      //    (fmt, fmtK, updateStatusStrip, drawExtraCharts, drawSparkline, modal fns etc.)
+      executeScripts(container);
+
+      // 3. Force-reload dashboard.js IIFE
       try{
-        await loadScript("js/dashboard.js", true); // ← force reload every time
+        await loadScript("js/dashboard.js", true);
       }catch(e){
         console.error("dashboard.js failed to load:", e);
-        container.innerHTML="<div style='padding:40px;color:#f43f5e;font-family:Outfit,sans-serif'>Dashboard script failed to load. Check that <code>js/dashboard.js</code> exists on the server.</div>";
+        container.innerHTML="<div style='padding:40px;color:#f43f5e;font-family:Syne,sans-serif'>Dashboard script failed to load. Check that <code>js/dashboard.js</code> exists.</div>";
         return;
       }
-      // Small delay to let the IIFE register window.loadDashboard
-      await new Promise(r=>setTimeout(r,50));
+
+      // 4. Small delay for IIFE to register window.loadDashboard
+      await new Promise(r=>setTimeout(r,80));
+
       if(typeof window.loadDashboard==="function"){
         window.loadDashboard();
       } else {
         console.error("loadDashboard not found after script load");
-        container.innerHTML="<div style='padding:40px;color:#f43f5e;font-family:Outfit,sans-serif'>Dashboard initialisation failed. Check js/dashboard.js.</div>";
+        container.innerHTML="<div style='padding:40px;color:#f43f5e;font-family:Syne,sans-serif'>Dashboard initialisation failed. Check js/dashboard.js.</div>";
       }
     }
 
     if(page.includes("subcontractor")){
+      executeScripts(container);
       await loadScript("js/subcontractor.js", true);
       await new Promise(r=>setTimeout(r,50));
       if(window.initSubcontractorPage) window.initSubcontractorPage();
     }
 
     if(page.includes("payment")){
+      executeScripts(container);
       await loadScript("js/payment.js", true);
       await new Promise(r=>setTimeout(r,50));
       if(window.initPaymentPage) window.initPaymentPage();
@@ -134,7 +181,7 @@ async function loadPage(page){
 
   }catch(err){
     console.error("Page Load Error:",err);
-    container.innerHTML=`<div style='padding:40px;color:#f43f5e;font-family:Outfit,sans-serif'>Error loading page: ${err.message}</div>`;
+    container.innerHTML=`<div style='padding:40px;color:#f43f5e;font-family:Syne,sans-serif'>Error loading page: ${err.message}</div>`;
   }
 }
 

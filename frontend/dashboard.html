@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard — SPMS</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.mini.min.js"></script>
 <link rel="stylesheet" href="css/style.css">
 <style>
 /* ═══════════════════════════════════════════════
@@ -565,7 +563,7 @@ body::after{
 <body>
 
 <!-- ══════ SKELETON ══════ -->
-<div id="dashSkeleton">
+<div id="dashboardSkeleton">
   <div class="sk-hd">
     <div>
       <div class="skel" style="width:60px;height:10px;margin-bottom:10px"></div>
@@ -610,7 +608,7 @@ body::after{
 </div>
 
 <!-- ══════ REAL DASHBOARD ══════ -->
-<div id="dashContent" style="display:none">
+<div id="dashboardContent" style="display:none">
 
   <!-- HEADER -->
   <div class="dash-header">
@@ -1218,8 +1216,6 @@ function drawSparkline(canvasId,data,color){
 }
 </script>
 
-<script src="js/dashboard.js"></script>
-
 <script>
 /* ══════════════════════════════════════════
    PATCH — runs after dashboard.js IIFE
@@ -1341,8 +1337,8 @@ function drawSparkline(canvasId,data,color){
       /* Show our shell if dashboard.js showed a different one */
       if(skel)skel.style.display="none";
       if(cont){cont.style.display="block";}
-      document.getElementById("dashSkeleton").style.display="none";
-      document.getElementById("dashContent").style.display="block";
+      document.getElementById("dashboardSkeleton").style.display="none";
+      document.getElementById("dashboardContent").style.display="block";
 
       setTimeout(function(){
         var raw=window.getReportSafeData?window.getReportSafeData():[];
