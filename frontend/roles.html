@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Roles & Users — SPMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #080c14;
+  --bg2:    #0d1220;
+  --bg3:    #121828;
+  --bg4:    #161e2e;
+  --border: rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.12);
+  --text1:  #f0f4ff;
+  --text2:  #8a95b0;
+  --text3:  #3d4a6a;
+  --amber:  #f59e0b;
+  --amber2: #fbbf24;
+  --green:  #10b981;
+  --green2: #34d399;
+  --red:    #f43f5e;
+  --blue:   #3b82f6;
+  --violet: #8b5cf6;
+  --cyan:   #06b6d4;
+  --orange: #f97316;
+  --font:   'Space Grotesk', sans-serif;
+  --mono:   'Space Mono', monospace;
+  --r:      12px;
+  --r2:     16px;
+  --shadow: 0 4px 32px rgba(0,0,0,.5);
+  --shadow2:0 8px 48px rgba(0,0,0,.6);
+
+  /* Role colours */
+  --r-admin:    #f59e0b;
+  --r-manager:  #3b82f6;
+  --r-finance:  #10b981;
+  --r-engineer: #06b6d4;
+  --r-viewer:   #3d4a6a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);font-family:var(--font);color:var(--text1);min-height:100vh;overflow-x:hidden;}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 80% 50% at 10% 5%,rgba(245,158,11,.04) 0%,transparent 60%),
+             radial-gradient(ellipse 60% 40% at 90% 80%,rgba(139,92,246,.04) 0%,transparent 60%);}
+
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes notifIn{from{opacity:0;transform:translateX(120%)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideOutRight{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(100%)}}
+@keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+@keyframes borderPulse{0%,100%{box-shadow:0 0 0 1px rgba(245,158,11,.15)}50%{box-shadow:0 0 0 2px rgba(245,158,11,.4),0 0 18px rgba(245,158,11,.1)}}
+
+.page{position:relative;z-index:1;padding:24px 28px 48px;max-width:1400px;margin:0 auto;}
+
+/* ── PAGE HEADER ── */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;animation:fadeUp .4s ease both;}
+.page-brand{display:flex;flex-direction:column;gap:6px;}
+.page-eyebrow{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);display:flex;align-items:center;gap:8px;}
+.page-eyebrow::before{content:"";width:24px;height:1px;background:var(--amber);opacity:.5;}
+.page-title{font-size:26px;font-weight:700;letter-spacing:-.03em;}
+.page-title span{background:linear-gradient(135deg,var(--amber),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.page-sub{font-size:12px;color:var(--text3);font-family:var(--mono);}
+.page-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border:none;border-radius:var(--r);font-family:var(--mono);font-size:10px;font-weight:400;letter-spacing:.06em;cursor:pointer;transition:.18s;text-transform:uppercase;white-space:nowrap;}
+.btn-amber{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:var(--amber);}
+.btn-amber:hover{background:rgba(245,158,11,.2);box-shadow:0 0 16px rgba(245,158,11,.12);}
+.btn-ghost{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);}
+.btn-ghost:hover{color:var(--text1);background:var(--bg4);}
+.btn-danger{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.25);color:var(--red);}
+.btn-danger:hover{background:rgba(244,63,94,.18);}
+.btn-sm{padding:5px 12px;font-size:9px;}
+
+/* ── WORKFLOW OVERVIEW ── */
+.workflow-section{margin-bottom:24px;animation:fadeUp .4s .05s ease both;}
+.section-lbl{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.section-lbl::after{content:"";flex:1;height:1px;background:var(--border);}
+
+.workflow-lanes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+@media(max-width:900px){.workflow-lanes{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:500px){.workflow-lanes{grid-template-columns:1fr;}}
+
+.lane{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;transition:.22s;}
+.lane:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:var(--shadow);}
+.lane-head{padding:12px 14px 10px;border-bottom:1px solid var(--border);position:relative;}
+.lane-head::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0;}
+.lane-engineer .lane-head::before{background:linear-gradient(90deg,var(--cyan),var(--green));}
+.lane-manager  .lane-head::before{background:linear-gradient(90deg,var(--blue),var(--violet));}
+.lane-finance  .lane-head::before{background:linear-gradient(90deg,var(--green),var(--cyan));}
+.lane-admin    .lane-head::before{background:linear-gradient(90deg,var(--amber),var(--orange));}
+.lane-role-tag{font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;display:inline-block;margin-bottom:6px;}
+.lane-engineer .lane-role-tag{background:rgba(6,182,212,.12);color:var(--cyan);border:1px solid rgba(6,182,212,.2);}
+.lane-manager  .lane-role-tag{background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.2);}
+.lane-finance  .lane-role-tag{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.2);}
+.lane-admin    .lane-role-tag{background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.2);}
+.lane-name{font-size:14px;font-weight:600;color:var(--text1);}
+.lane-desc{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:3px;line-height:1.5;}
+.lane-body{padding:12px 14px;}
+.perm-list{display:flex;flex-direction:column;gap:6px;}
+.perm-item{display:flex;align-items:center;gap:7px;font-size:10px;color:var(--text2);font-family:var(--mono);}
+.perm-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.lane-engineer .perm-dot{background:var(--cyan);}
+.lane-manager  .perm-dot{background:var(--blue);}
+.lane-finance  .perm-dot{background:var(--green);}
+.lane-admin    .perm-dot{background:var(--amber);}
+.perm-deny{color:var(--text3);}
+.perm-deny .perm-dot{background:var(--bg4);}
+
+/* Status flow arrows */
+.status-flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 20px;padding:14px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);animation:fadeUp .4s .08s ease both;}
+.sf-pill{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-family:var(--mono);font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap;}
+.sf-submitted{background:rgba(6,182,212,.12);color:var(--cyan);border:1px solid rgba(6,182,212,.2);}
+.sf-review{background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.2);}
+.sf-approved{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.2);}
+.sf-forwarded{background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.2);}
+.sf-released{background:rgba(52,211,153,.14);color:var(--green2);border:1px solid rgba(52,211,153,.25);}
+.sf-rejected{background:rgba(244,63,94,.12);color:var(--red);border:1px solid rgba(244,63,94,.2);}
+.sf-arrow{color:var(--text3);font-size:10px;font-family:var(--mono);}
+.sf-alt{color:var(--text3);font-size:9px;font-family:var(--mono);}
+
+/* ── USERS TABLE SECTION ── */
+.users-section{animation:fadeUp .4s .12s ease both;}
+.users-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.search-box{position:relative;flex:1;min-width:200px;}
+.search-box input{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:8px 12px 8px 34px;font-family:var(--mono);font-size:11px;color:var(--text1);outline:none;transition:.18s;}
+.search-box input:focus{border-color:rgba(245,158,11,.4);box-shadow:0 0 0 3px rgba(245,158,11,.05);}
+.search-box input::placeholder{color:var(--text3);}
+.search-box svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);}
+.role-filter-tabs{display:flex;gap:4px;flex-wrap:wrap;}
+.rft{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:9px;font-family:var(--mono);color:var(--text3);cursor:pointer;transition:.15s;text-transform:uppercase;letter-spacing:.06em;}
+.rft:hover{border-color:var(--border2);color:var(--text2);}
+.rft.active{color:var(--amber);border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.06);}
+
+/* Users Table */
+.users-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;}
+.users-table-wrap{overflow-x:auto;max-height:520px;}
+table{width:100%;border-collapse:collapse;min-width:700px;}
+thead{position:sticky;top:0;z-index:5;}
+th{background:var(--bg3);padding:9px 14px;font-size:8px;letter-spacing:.12em;text-transform:uppercase;font-family:var(--mono);color:var(--text3);font-weight:500;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:10px 14px;font-size:11px;font-family:var(--mono);color:var(--text2);border-bottom:1px solid rgba(255,255,255,.03);}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:rgba(255,255,255,.02);color:var(--text1);}
+.td-name{color:var(--text1)!important;font-weight:500;}
+.td-email{color:var(--text3)!important;font-size:10px;}
+
+/* Role select inside table */
+.role-select{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:4px 24px 4px 8px;font-family:var(--mono);font-size:10px;color:var(--text1);outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5'%3E%3Cpath d='M0 0l4.5 5L9 0z' fill='%233d4a6a'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;transition:.18s;}
+.role-select:focus{border-color:rgba(245,158,11,.4);}
+.role-select.r-admin{color:var(--r-admin);}
+.role-select.r-manager{color:var(--r-manager);}
+.role-select.r-finance{color:var(--r-finance);}
+.role-select.r-engineer{color:var(--r-engineer);}
+.role-select.r-viewer{color:var(--r-viewer);}
+
+/* Role badge pills */
+.rbadge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:9px;font-family:var(--mono);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+.rb-admin   {background:rgba(245,158,11,.12);color:var(--r-admin);   border:1px solid rgba(245,158,11,.2);}
+.rb-manager {background:rgba(59,130,246,.12);color:var(--r-manager); border:1px solid rgba(59,130,246,.2);}
+.rb-finance {background:rgba(16,185,129,.12);color:var(--r-finance); border:1px solid rgba(16,185,129,.2);}
+.rb-engineer{background:rgba(6,182,212,.12); color:var(--r-engineer);border:1px solid rgba(6,182,212,.2);}
+.rb-viewer  {background:rgba(61,74,106,.15); color:var(--r-viewer);  border:1px solid rgba(61,74,106,.25);}
+
+/* Action buttons in table */
+.tbl-btn{background:transparent;border:1px solid var(--border);color:var(--text3);border-radius:6px;padding:3px 9px;font-size:9px;font-family:var(--mono);cursor:pointer;transition:.15s;}
+.tbl-btn:hover{border-color:var(--border2);color:var(--text1);}
+.tbl-btn-save{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.25);color:var(--amber);}
+.tbl-btn-save:hover{background:rgba(245,158,11,.18);}
+.tbl-btn-del{background:rgba(244,63,94,.06);border-color:rgba(244,63,94,.2);color:var(--red);}
+.tbl-btn-del:hover{background:rgba(244,63,94,.15);}
+.tbl-btn.saving{opacity:.5;pointer-events:none;}
+.saved-tick{font-size:9px;font-family:var(--mono);color:var(--green);opacity:0;transition:.3s;margin-left:4px;}
+.saved-tick.show{opacity:1;}
+
+/* Status dot */
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.dot-active  {background:var(--green);box-shadow:0 0 5px var(--green);}
+.dot-inactive{background:var(--text3);}
+
+/* ── ADD USER MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:900;display:none;backdrop-filter:blur(6px);align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:28px;width:min(520px,96vw);box-shadow:var(--shadow2);animation:fadeUp .25s ease both;position:relative;}
+.modal-title{font-size:15px;font-weight:600;color:var(--text1);margin-bottom:4px;}
+.modal-sub{font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:20px;}
+.modal-close{position:absolute;top:16px;right:16px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:5px 9px;cursor:pointer;font-size:14px;transition:.15s;font-family:var(--mono);}
+.modal-close:hover{color:var(--red);border-color:rgba(244,63,94,.3);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:480px){.form-grid{grid-template-columns:1fr;}}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group.full{grid-column:1/-1;}
+.form-label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);}
+.form-input{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:9px 12px;font-family:var(--mono);font-size:11px;color:var(--text1);outline:none;transition:.18s;}
+.form-input:focus{border-color:rgba(245,158,11,.4);box-shadow:0 0 0 3px rgba(245,158,11,.05);}
+.form-input::placeholder{color:var(--text3);}
+.form-select{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:9px 28px 9px 12px;font-family:var(--mono);font-size:11px;color:var(--text1);outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%233d4a6a'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;transition:.18s;}
+.form-select:focus{border-color:rgba(245,158,11,.4);}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
+.form-err{font-size:9px;font-family:var(--mono);color:var(--red);margin-top:3px;display:none;}
+.form-err.show{display:block;}
+
+/* ── STATS ROW ── */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;animation:fadeUp .4s .04s ease both;}
+@media(max-width:800px){.stats-row{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:450px){.stats-row{grid-template-columns:repeat(2,1fr);}}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;position:relative;overflow:hidden;transition:.2s;}
+.stat-card:hover{transform:translateY(-2px);border-color:var(--border2);}
+.stat-card::after{content:"";position:absolute;top:0;left:0;width:100%;height:2px;transform:scaleX(0);transform-origin:left;transition:.3s;border-radius:2px;}
+.stat-card:hover::after{transform:scaleX(1);}
+.sc-admin::after{background:linear-gradient(90deg,var(--r-admin),var(--orange));}
+.sc-manager::after{background:linear-gradient(90deg,var(--r-manager),var(--violet));}
+.sc-finance::after{background:linear-gradient(90deg,var(--r-finance),var(--cyan));}
+.sc-engineer::after{background:linear-gradient(90deg,var(--r-engineer),var(--blue));}
+.sc-total::after{background:linear-gradient(90deg,var(--violet),var(--amber));}
+.stat-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);margin-bottom:4px;}
+.stat-val{font-size:22px;font-weight:700;font-family:var(--mono);letter-spacing:-.02em;}
+.sc-admin    .stat-val{color:var(--r-admin);}
+.sc-manager  .stat-val{color:var(--r-manager);}
+.sc-finance  .stat-val{color:var(--r-finance);}
+.sc-engineer .stat-val{color:var(--r-engineer);}
+.sc-total    .stat-val{color:var(--text1);}
+.stat-sub{font-size:9px;font-family:var(--mono);color:var(--text3);margin-top:2px;}
+
+/* ── TOAST ── */
+#toastContainer{position:fixed;bottom:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.toast{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:11px 16px;box-shadow:var(--shadow2);display:flex;align-items:center;gap:10px;pointer-events:all;animation:notifIn .35s ease both;max-width:320px;min-width:220px;}
+.toast.removing{animation:slideOutRight .3s ease both;}
+.toast-icon{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;}
+.t-success .toast-icon{background:rgba(16,185,129,.15);}
+.t-error   .toast-icon{background:rgba(244,63,94,.15);}
+.t-info    .toast-icon{background:rgba(59,130,246,.15);}
+.toast-text{font-size:11px;color:var(--text1);flex:1;line-height:1.4;}
+.toast-close{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0;font-family:var(--mono);}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3);font-family:var(--mono);font-size:11px;}
+.empty-state div{font-size:28px;margin-bottom:10px;}
+
+/* Admin-only guard */
+.admin-guard{display:none;background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.2);border-radius:var(--r2);padding:20px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--red);margin-bottom:20px;}
+.admin-guard.show{display:block;}
+
+/* Skel */
+.skel{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:600px 100%;animation:shimmer 1.6s infinite;border-radius:var(--r);}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ── PAGE HEADER ── -->
+  <div class="page-header">
+    <div class="page-brand">
+      <div class="page-eyebrow">SPMS · Admin · © 2026 Eng.Tanveer Ahmad</div>
+      <div class="page-title">Roles &amp; <span>Users</span></div>
+      <div class="page-sub" id="pageSubLbl">Loading users…</div>
+    </div>
+    <div class="page-actions">
+      <span id="myRoleBadge"></span>
+      <button class="btn btn-ghost" onclick="window.location.href='index.html'">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Dashboard
+      </button>
+      <button class="btn btn-amber" onclick="openAddModal()" id="addUserBtn" style="display:none">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add User
+      </button>
+    </div>
+  </div>
+
+  <!-- Admin guard -->
+  <div class="admin-guard" id="adminGuard">
+    🔒 This page is for <strong>admins only</strong>. You are logged in as <span id="guardRole">viewer</span>. Contact your administrator to change your role.
+  </div>
+
+  <!-- ── WORKFLOW OVERVIEW ── -->
+  <div class="workflow-section" id="workflowSection">
+    <div class="section-lbl">Workflow &amp; Role Permissions</div>
+
+    <!-- Status lifecycle flow -->
+    <div class="status-flow">
+      <span style="font-size:9px;font-family:var(--mono);color:var(--text3);margin-right:4px;">IPC FLOW:</span>
+      <span class="sf-pill sf-submitted">◉ Submitted</span>
+      <span class="sf-arrow">→</span>
+      <span class="sf-pill sf-review">⏳ Under Review</span>
+      <span class="sf-arrow">→</span>
+      <span class="sf-pill sf-approved">✓ Approved</span>
+      <span class="sf-arrow">→</span>
+      <span class="sf-pill sf-forwarded">📤 Fwd to Finance</span>
+      <span class="sf-arrow">→</span>
+      <span class="sf-pill sf-released">💚 Released</span>
+      <span style="margin:0 8px;color:var(--text3);font-size:10px;">|</span>
+      <span class="sf-pill sf-review" style="opacity:.6">⏳ Review</span>
+      <span class="sf-arrow">→</span>
+      <span class="sf-pill sf-rejected">✕ Rejected</span>
+      <span class="sf-arrow">→</span>
+      <span class="sf-pill sf-submitted" style="opacity:.7">↩ Re-submit</span>
+    </div>
+
+    <!-- Role lanes -->
+    <div class="workflow-lanes">
+
+      <!-- ENGINEER -->
+      <div class="lane lane-engineer">
+        <div class="lane-head">
+          <div class="lane-role-tag">Site Engineer</div>
+          <div class="lane-name">Field Operator</div>
+          <div class="lane-desc">Creates &amp; submits IPC certificates from site.</div>
+        </div>
+        <div class="lane-body">
+          <div class="perm-list">
+            <div class="perm-item"><span class="perm-dot"></span>Submit new IPC certificate</div>
+            <div class="perm-item"><span class="perm-dot"></span>Add comment on own certs</div>
+            <div class="perm-item"><span class="perm-dot"></span>View own certificates only</div>
+            <div class="perm-item"><span class="perm-dot"></span>Re-submit after rejection</div>
+            <div class="perm-item perm-deny"><span class="perm-dot"></span>Cannot approve / reject</div>
+            <div class="perm-item perm-deny"><span class="perm-dot"></span>Cannot release payment</div>
+            <div class="perm-item perm-deny"><span class="perm-dot"></span>Cannot see all companies</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MANAGER -->
+      <div class="lane lane-manager">
+        <div class="lane-head">
+          <div class="lane-role-tag">Manager</div>
+          <div class="lane-name">Approving Authority</div>
+          <div class="lane-desc">Reviews submitted IPCs, approves or rejects, forwards to Finance.</div>
+        </div>
+        <div class="lane-body">
+          <div class="perm-list">
+            <div class="perm-item"><span class="perm-dot"></span>View all certificates</div>
+            <div class="perm-item"><span class="perm-dot"></span>Set status → Under Review</div>
+            <div class="perm-item"><span class="perm-dot"></span>Approve IPC certificates</div>
+            <div class="perm-item"><span class="perm-dot"></span>Reject with comment</div>
+            <div class="perm-item"><span class="perm-dot"></span>Forward to Finance</div>
+            <div class="perm-item"><span class="perm-dot"></span>Add / edit comments</div>
+            <div class="perm-item perm-deny"><span class="perm-dot"></span>Cannot mark as Released</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FINANCE -->
+      <div class="lane lane-finance">
+        <div class="lane-head">
+          <div class="lane-role-tag">Finance</div>
+          <div class="lane-name">Payment Officer</div>
+          <div class="lane-desc">Receives approved IPCs and releases payment.</div>
+        </div>
+        <div class="lane-body">
+          <div class="perm-list">
+            <div class="perm-item"><span class="perm-dot"></span>View all certificates</div>
+            <div class="perm-item"><span class="perm-dot"></span>View financial figures</div>
+            <div class="perm-item"><span class="perm-dot"></span>Mark as Released / Paid</div>
+            <div class="perm-item"><span class="perm-dot"></span>Add payment comment</div>
+            <div class="perm-item"><span class="perm-dot"></span>Export Excel / PDF</div>
+            <div class="perm-item perm-deny"><span class="perm-dot"></span>Cannot approve / reject</div>
+            <div class="perm-item perm-deny"><span class="perm-dot"></span>Cannot manage users</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMIN -->
+      <div class="lane lane-admin">
+        <div class="lane-head">
+          <div class="lane-role-tag">Admin</div>
+          <div class="lane-name">System Admin</div>
+          <div class="lane-desc">Full access — manages all users, roles &amp; data.</div>
+        </div>
+        <div class="lane-body">
+          <div class="perm-list">
+            <div class="perm-item"><span class="perm-dot"></span>All manager permissions</div>
+            <div class="perm-item"><span class="perm-dot"></span>All finance permissions</div>
+            <div class="perm-item"><span class="perm-dot"></span>Manage users &amp; roles</div>
+            <div class="perm-item"><span class="perm-dot"></span>Delete certificates</div>
+            <div class="perm-item"><span class="perm-dot"></span>View all companies</div>
+            <div class="perm-item"><span class="perm-dot"></span>Override any status</div>
+            <div class="perm-item"><span class="perm-dot"></span>Access audit trail</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── STATS ── -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card sc-total"><div class="stat-lbl">Total Users</div><div class="stat-val" id="statTotal">—</div><div class="stat-sub">registered accounts</div></div>
+    <div class="stat-card sc-admin"><div class="stat-lbl">Admins</div><div class="stat-val" id="statAdmin">—</div><div class="stat-sub">full access</div></div>
+    <div class="stat-card sc-manager"><div class="stat-lbl">Managers</div><div class="stat-val" id="statManager">—</div><div class="stat-sub">approval authority</div></div>
+    <div class="stat-card sc-finance"><div class="stat-lbl">Finance</div><div class="stat-val" id="statFinance">—</div><div class="stat-sub">payment officers</div></div>
+    <div class="stat-card sc-engineer"><div class="stat-lbl">Engineers</div><div class="stat-val" id="statEngineer">—</div><div class="stat-sub">site operators</div></div>
+  </div>
+
+  <!-- ── USERS TABLE ── -->
+  <div class="users-section">
+    <div class="section-lbl">User Accounts</div>
+
+    <div class="users-toolbar">
+      <div class="search-box">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search name or email…" id="searchInput" oninput="filterUsers()">
+      </div>
+      <div class="role-filter-tabs">
+        <button class="rft active" onclick="setRoleFilter('',this)">All</button>
+        <button class="rft" onclick="setRoleFilter('admin',this)">Admin</button>
+        <button class="rft" onclick="setRoleFilter('manager',this)">Manager</button>
+        <button class="rft" onclick="setRoleFilter('finance',this)">Finance</button>
+        <button class="rft" onclick="setRoleFilter('engineer',this)">Engineer</button>
+        <button class="rft" onclick="setRoleFilter('viewer',this)">Viewer</button>
+      </div>
+    </div>
+
+    <div class="users-card">
+      <div class="users-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Last Active</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr><td colspan="6" class="empty-state"><div>👤</div>Loading users…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<!-- ── ADD / EDIT USER MODAL ── -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="modalTitle">Add New User</div>
+    <div class="modal-sub" id="modalSub">Create a new account and assign a role.</div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" id="fName" placeholder="Eng. Ahmed Al-Rashid">
+        <span class="form-err" id="fNameErr">Name is required.</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input class="form-input" id="fUsername" placeholder="ahmed.rashid">
+        <span class="form-err" id="fUsernameErr">Username is required.</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" id="fEmail" type="email" placeholder="ahmed@company.sa">
+        <span class="form-err" id="fEmailErr">Valid email required.</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone (optional)</label>
+        <input class="form-input" id="fPhone" placeholder="+966 5x xxx xxxx">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select class="form-select" id="fRole">
+          <option value="engineer">◉ Site Engineer</option>
+          <option value="manager">◈ Manager</option>
+          <option value="finance">◆ Finance</option>
+          <option value="admin">★ Admin</option>
+          <option value="viewer">○ Viewer (Read-only)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="fPassword" type="password" placeholder="Min. 8 characters">
+        <span class="form-err" id="fPasswordErr">Min. 8 characters.</span>
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Notes (optional)</label>
+        <input class="form-input" id="fNotes" placeholder="e.g. Project Alpha engineer, Block C">
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-amber" id="modalSaveBtn" onclick="saveUser()">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Create User
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toastContainer"></div>
+
+<script>
+/* ═══════════════════════════════════
+   CONFIG
+═══════════════════════════════════ */
+var API = 'https://spms-backend-jxzn.onrender.com/api';
+var _allUsers = [];
+var _roleFilter = '';
+var _editingId = null;
+
+/* ═══════════════════════════════════
+   INIT
+═══════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', function() {
+  var role = localStorage.getItem('role') || 'viewer';
+  var username = localStorage.getItem('username') || 'User';
+
+  // Show my role badge
+  var badge = document.getElementById('myRoleBadge');
+  if (badge) badge.innerHTML = '<span class="rbadge rb-' + role + '">● ' + role + '</span>';
+
+  // Show add button only for admins
+  if (role === 'admin') {
+    var btn = document.getElementById('addUserBtn');
+    if (btn) btn.style.display = 'inline-flex';
+  } else {
+    // Non-admin — show guard, hide actions
+    var guard = document.getElementById('adminGuard');
+    if (guard) {
+      guard.classList.add('show');
+      var span = document.getElementById('guardRole');
+      if (span) span.textContent = role;
+    }
+  }
+
+  loadUsers();
+});
+
+/* ═══════════════════════════════════
+   LOAD USERS
+═══════════════════════════════════ */
+async function loadUsers() {
+  try {
+    var token = localStorage.getItem('token');
+    var res = await fetch(API + '/users', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) {
+      // Backend may not have /api/users yet — show mock data
+      useMockData();
+      return;
+    }
+    var data = await res.json();
+    _allUsers = Array.isArray(data) ? data : (data.users || []);
+    renderUsers();
+    updateStats();
+  } catch (e) {
+    // Network error or endpoint not yet built — use demo data
+    useMockData();
+  }
+}
+
+function useMockData() {
+  _allUsers = [
+    { id: 1, name: 'Eng. Tanveer Ahmad', username: 'tanveer.ahmad', email: 'tanveer@spms.sa', role: 'admin',    active: true,  last_active: '2026-04-29T10:30:00Z', notes: 'System owner' },
+    { id: 2, name: 'Eng. Ahmed Al-Rashid', username: 'ahmed.rashid', email: 'ahmed@spms.sa', role: 'manager',  active: true,  last_active: '2026-04-29T08:15:00Z', notes: 'Block A–C manager' },
+    { id: 3, name: 'Khalid Al-Farsi',    username: 'khalid.farsi',  email: 'khalid@spms.sa', role: 'finance',  active: true,  last_active: '2026-04-28T14:00:00Z', notes: '' },
+    { id: 4, name: 'Eng. Sara Al-Mutairi',username: 'sara.mutairi', email: 'sara@spms.sa',   role: 'engineer', active: true,  last_active: '2026-04-29T07:45:00Z', notes: 'Plaster works' },
+    { id: 5, name: 'Eng. Omar Hussain',   username: 'omar.hussain',  email: 'omar@spms.sa',   role: 'engineer', active: true,  last_active: '2026-04-27T16:30:00Z', notes: 'Electrical / Mechanical' },
+    { id: 6, name: 'Faisal Al-Qahtani',  username: 'faisal.q',      email: 'faisal@spms.sa', role: 'viewer',   active: false, last_active: '2026-03-15T09:00:00Z', notes: 'Client observer' },
+    { id: 7, name: 'Eng. Nora Al-Harbi', username: 'nora.harbi',    email: 'nora@spms.sa',   role: 'engineer', active: true,  last_active: '2026-04-28T11:00:00Z', notes: 'Tiles & Paint' },
+    { id: 8, name: 'Mohammed Al-Dosari', username: 'mo.dosari',     email: 'mo@spms.sa',     role: 'manager',  active: true,  last_active: '2026-04-29T09:00:00Z', notes: '' },
+  ];
+  renderUsers();
+  updateStats();
+  var sub = document.getElementById('pageSubLbl');
+  if (sub) sub.textContent = _allUsers.length + ' users (demo data — connect /api/users for live)';
+  showToast('Demo mode: /api/users endpoint not found', 'info');
+}
+
+/* ═══════════════════════════════════
+   RENDER USERS
+═══════════════════════════════════ */
+function renderUsers() {
+  var search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  var filtered = _allUsers.filter(function(u) {
+    var matchRole = !_roleFilter || u.role === _roleFilter;
+    var matchSearch = !search ||
+      (u.name || '').toLowerCase().includes(search) ||
+      (u.email || '').toLowerCase().includes(search) ||
+      (u.username || '').toLowerCase().includes(search);
+    return matchRole && matchSearch;
+  });
+
+  var sub = document.getElementById('pageSubLbl');
+  if (sub) sub.textContent = _allUsers.length + ' total users · showing ' + filtered.length;
+
+  var tbody = document.getElementById('usersTableBody');
+  if (!tbody) return;
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div>🔍</div>No users match your search.</div></td></tr>';
+    return;
+  }
+
+  var myRole = localStorage.getItem('role') || 'viewer';
+  var isAdmin = myRole === 'admin';
+
+  tbody.innerHTML = filtered.map(function(u) {
+    var lastActive = u.last_active ? new Date(u.last_active).toLocaleDateString(undefined, {day:'numeric',month:'short',year:'numeric'}) : '—';
+    var roleClass = 'rb-' + (u.role || 'viewer');
+    var roleLabel = { admin:'★ Admin', manager:'◈ Manager', finance:'◆ Finance', engineer:'◉ Engineer', viewer:'○ Viewer' }[u.role] || u.role;
+
+    var actions = isAdmin
+      ? '<button class="tbl-btn tbl-btn-save" onclick="openEditModal('+u.id+')">Edit</button> ' +
+        '<button class="tbl-btn tbl-btn-del" onclick="deleteUser('+u.id+',this)">Remove</button>'
+      : '<span style="font-size:9px;font-family:var(--mono);color:var(--text3);">🔒 Read only</span>';
+
+    return '<tr id="urow-'+u.id+'">' +
+      '<td><div class="td-name">' + escHtml(u.name || '—') + '</div>' +
+          '<div class="td-email">@' + escHtml(u.username || '') + '</div></td>' +
+      '<td class="td-email">' + escHtml(u.email || '—') + '</td>' +
+      '<td><span class="rbadge ' + roleClass + '">' + roleLabel + '</span></td>' +
+      '<td><span class="status-dot ' + (u.active ? 'dot-active' : 'dot-inactive') + '"></span> ' +
+          '<span style="font-size:10px;font-family:var(--mono);color:' + (u.active ? 'var(--green)' : 'var(--text3)') + '">' +
+          (u.active ? 'Active' : 'Inactive') + '</span></td>' +
+      '<td style="color:var(--text3);font-size:10px;">' + lastActive + '</td>' +
+      '<td>' + actions + '<span class="saved-tick" id="tick-'+u.id+'">✓</span></td>' +
+    '</tr>';
+  }).join('');
+}
+
+/* ═══════════════════════════════════
+   STATS
+═══════════════════════════════════ */
+function updateStats() {
+  function count(role) {
+    return _allUsers.filter(function(u) { return u.role === role; }).length;
+  }
+  var el = function(id) { return document.getElementById(id); };
+  if (el('statTotal'))   el('statTotal').textContent   = _allUsers.length;
+  if (el('statAdmin'))   el('statAdmin').textContent   = count('admin');
+  if (el('statManager')) el('statManager').textContent = count('manager');
+  if (el('statFinance')) el('statFinance').textContent = count('finance');
+  if (el('statEngineer'))el('statEngineer').textContent= count('engineer');
+}
+
+/* ═══════════════════════════════════
+   FILTER
+═══════════════════════════════════ */
+function filterUsers() { renderUsers(); }
+
+function setRoleFilter(role, btn) {
+  _roleFilter = role;
+  document.querySelectorAll('.rft').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  renderUsers();
+}
+
+/* ═══════════════════════════════════
+   EDIT MODAL
+═══════════════════════════════════ */
+function openAddModal() {
+  _editingId = null;
+  document.getElementById('modalTitle').textContent = 'Add New User';
+  document.getElementById('modalSub').textContent   = 'Create a new account and assign a role.';
+  document.getElementById('modalSaveBtn').innerHTML =
+    '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Create User';
+  ['fName','fUsername','fEmail','fPhone','fNotes','fPassword'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('fRole').value = 'engineer';
+  clearFormErrors();
+  document.getElementById('userModal').classList.add('open');
+}
+
+function openEditModal(userId) {
+  var u = _allUsers.find(function(x) { return x.id === userId; });
+  if (!u) return;
+  _editingId = userId;
+  document.getElementById('modalTitle').textContent = 'Edit User';
+  document.getElementById('modalSub').textContent   = 'Update account details or change role.';
+  document.getElementById('modalSaveBtn').innerHTML =
+    '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Save Changes';
+  document.getElementById('fName').value     = u.name     || '';
+  document.getElementById('fUsername').value = u.username || '';
+  document.getElementById('fEmail').value    = u.email    || '';
+  document.getElementById('fPhone').value    = u.phone    || '';
+  document.getElementById('fNotes').value    = u.notes    || '';
+  document.getElementById('fRole').value     = u.role     || 'viewer';
+  document.getElementById('fPassword').value = '';
+  clearFormErrors();
+  document.getElementById('userModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('userModal').classList.remove('open');
+  _editingId = null;
+}
+
+// Close on overlay click
+document.getElementById('userModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+/* ═══════════════════════════════════
+   SAVE USER
+═══════════════════════════════════ */
+async function saveUser() {
+  clearFormErrors();
+  var name     = document.getElementById('fName').value.trim();
+  var username = document.getElementById('fUsername').value.trim();
+  var email    = document.getElementById('fEmail').value.trim();
+  var role     = document.getElementById('fRole').value;
+  var password = document.getElementById('fPassword').value;
+  var phone    = document.getElementById('fPhone').value.trim();
+  var notes    = document.getElementById('fNotes').value.trim();
+
+  var valid = true;
+  if (!name)     { showErr('fNameErr', true); valid = false; }
+  if (!username) { showErr('fUsernameErr', true); valid = false; }
+  if (!email || !email.includes('@')) { showErr('fEmailErr', true); valid = false; }
+  if (!_editingId && password.length < 8) { showErr('fPasswordErr', true); valid = false; }
+  if (!valid) return;
+
+  var btn = document.getElementById('modalSaveBtn');
+  btn.style.opacity = '.5';
+  btn.style.pointerEvents = 'none';
+
+  var payload = { name, username, email, role, phone, notes };
+  if (password) payload.password = password;
+
+  try {
+    var token = localStorage.getItem('token');
+    var url   = _editingId ? API + '/users/' + _editingId : API + '/users';
+    var method= _editingId ? 'PATCH' : 'POST';
+
+    var res = await fetch(url, {
+      method, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      var saved = await res.json();
+      if (_editingId) {
+        _allUsers = _allUsers.map(function(u) { return u.id === _editingId ? Object.assign({}, u, saved) : u; });
+        showToast('User updated successfully', 'success');
+      } else {
+        _allUsers.push(saved);
+        showToast('User created: ' + name, 'success');
+      }
+      renderUsers();
+      updateStats();
+      closeModal();
+    } else {
+      var err = await res.json().catch(function() { return {}; });
+      showToast('Error: ' + (err.message || 'Server error'), 'error');
+    }
+  } catch (e) {
+    // Demo: just push locally
+    if (_editingId) {
+      _allUsers = _allUsers.map(function(u) {
+        return u.id === _editingId ? Object.assign({}, u, { name, username, email, role, phone, notes }) : u;
+      });
+      showToast('User updated (demo mode)', 'success');
+    } else {
+      var newUser = { id: Date.now(), name, username, email, role, phone, notes, active: true, last_active: new Date().toISOString() };
+      _allUsers.push(newUser);
+      showToast('User created (demo mode): ' + name, 'success');
+    }
+    renderUsers();
+    updateStats();
+    closeModal();
+  } finally {
+    btn.style.opacity = '';
+    btn.style.pointerEvents = '';
+  }
+}
+
+/* ═══════════════════════════════════
+   DELETE USER
+═══════════════════════════════════ */
+async function deleteUser(userId, btn) {
+  var u = _allUsers.find(function(x) { return x.id === userId; });
+  if (!u) return;
+  if (!confirm('Remove ' + u.name + '?\n\nThis cannot be undone.')) return;
+
+  btn.style.opacity = '.5';
+  try {
+    var token = localStorage.getItem('token');
+    var res = await fetch(API + '/users/' + userId, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (res.ok || res.status === 204) {
+      _allUsers = _allUsers.filter(function(x) { return x.id !== userId; });
+      showToast('User removed: ' + u.name, 'success');
+    } else {
+      // Demo fallback
+      _allUsers = _allUsers.filter(function(x) { return x.id !== userId; });
+      showToast('User removed (demo): ' + u.name, 'success');
+    }
+  } catch(e) {
+    _allUsers = _allUsers.filter(function(x) { return x.id !== userId; });
+    showToast('User removed (demo): ' + u.name, 'success');
+  }
+  renderUsers();
+  updateStats();
+}
+
+/* ═══════════════════════════════════
+   HELPERS
+═══════════════════════════════════ */
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function clearFormErrors() {
+  document.querySelectorAll('.form-err').forEach(function(el) { el.classList.remove('show'); });
+}
+
+function showErr(id, show) {
+  var el = document.getElementById(id);
+  if (el) el.classList.toggle('show', show);
+}
+
+/* TOAST */
+function showToast(text, type) {
+  var c = document.getElementById('toastContainer');
+  if (!c) return;
+  var icons = { success:'✅', error:'❌', info:'ℹ️' };
+  var id = 't' + Date.now();
+  var d = document.createElement('div');
+  d.className = 'toast t-' + (type||'info');
+  d.id = id;
+  d.innerHTML =
+    '<div class="toast-icon">' + (icons[type]||'🔔') + '</div>' +
+    '<div class="toast-text">' + text + '</div>' +
+    '<button class="toast-close" onclick="removeToast(\'' + id + '\')">✕</button>';
+  c.appendChild(d);
+  setTimeout(function() { removeToast(id); }, 5000);
+}
+
+function removeToast(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('removing');
+  setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 320);
+}
+</script>
+</body>
+</html>
