@@ -225,3 +225,89 @@ td button:last-child{background:rgba(239,68,68,.1);color:var(--red);border:1px s
 /* fade */
 .fade-in{animation:fadeUp .28s ease;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* In your existing CSS — replace or add these two rules */
+
+/* Fix 1: Give the filter bar a high z-index so its children escape */
+.fbar {
+  position: relative;
+  z-index: 200;   /* was not set */
+  overflow: visible; /* was not set */
+}
+
+/* Fix 2: The panel itself gets a higher z */
+.drange-panel {
+  z-index: 500;    /* already set — keep it */
+  position: fixed; /* CHANGE from absolute to fixed */
+  /* remove top/left — set dynamically via JS below */
+}
+
+/* Fix 3: Table cannot create stacking context above filter bar */
+.tbox {
+  z-index: 1;
+  position: relative;
+}
+.notif-date-sep {
+  font-size: 9px;
+  font-family: var(--mono);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 8px 12px 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+.notif-date-sep:first-child { border-top: none; }
+.notif-unread-dot {
+  width: 7px; height: 7px;
+  background: var(--blue);
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+.cycles-panel {
+  /* same as #certPanel */
+  position: fixed; top: 0; right: 0;
+  width: min(500px, 100vw); height: 100vh;
+  background: var(--bg2); border-left: 1px solid var(--border2);
+  z-index: 1000; transform: translateX(100%);
+  transition: transform .35s cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.cycles-panel.open { transform: translateX(0); }
+.cycle-card {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 14px; margin-bottom: 10px;
+  cursor: pointer; transition: .2s;
+}
+.cycle-card:hover { border-color: rgba(245,158,11,.4); transform: translateY(-2px); }
+.cycle-bar { height: 4px; background: var(--bg4); border-radius: 4px; margin: 8px 0; }
+.cycle-bar-fill {
+  height: 4px; background: linear-gradient(90deg, var(--amber), var(--orange));
+  border-radius: 4px; transition: width .6s;
+}
+.audit-trail-hd {
+  font-size: 9px; font-family: var(--mono);
+  color: var(--text3); text-transform: uppercase;
+  letter-spacing: .1em; margin-bottom: 8px;
+}
+.audit-trail {
+  max-height: 200px; overflow-y: auto;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px;
+}
+.audit-row {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 7px 0; border-bottom: 1px solid var(--border);
+}
+.audit-row:last-child { border-bottom: none; }
+.audit-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 4px;
+}
+.audit-actor { font-size: 11px; color: var(--text1); font-weight: 500; }
+.audit-action { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.audit-time {
+  font-size: 10px; font-family: var(--mono);
+  color: var(--text3); margin-top: 2px;
+}
