@@ -5,12 +5,13 @@ const puppeteer = require("puppeteer");
 
 const subcontractorRoutes = require("./routes/subcontractorRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const userRoutes = require("./routes/userRoutes");              // ← NEW
 
 const app = express();
 
 // ================= MIDDLEWARE =================
 app.use(cors());
-app.use(express.json({ limit: "10mb" })); // 🔥 important for large HTML
+app.use(express.json({ limit: "10mb" }));
 
 // ================= AUTH SYSTEM =================
 
@@ -85,17 +86,17 @@ app.post("/api/download-pdf", async (req, res) => {
         }
 
         const browser = await puppeteer.launch({
-    headless: "new",
-    args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--no-first-run",
-        "--no-zygote",
-        "--single-process"
-    ]
-});
+            headless: "new",
+            args: [
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--no-first-run",
+                "--no-zygote",
+                "--single-process"
+            ]
+        });
 
         const page = await browser.newPage();
 
@@ -133,7 +134,8 @@ app.post("/api/download-pdf", async (req, res) => {
 
 // 🔐 Protected APIs
 app.use("/api/subcontractors", verifyToken, subcontractorRoutes);
-app.use("/api/payments", verifyToken, paymentRoutes);
+app.use("/api/payments",       verifyToken, paymentRoutes);
+app.use("/api/users",          verifyToken, userRoutes);        // ← NEW
 
 // ================= ROOT =================
 app.get("/", (req, res) => {
