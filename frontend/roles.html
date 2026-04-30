@@ -525,7 +525,7 @@ window.addEventListener('DOMContentLoaded', function() {
     var btn = document.getElementById('addUserBtn');
     if (btn) btn.style.display = 'inline-flex';
   } else {
-    // Non-admin — show guard, hide actions
+    // Non-admin — show guard, hide add button
     var guard = document.getElementById('adminGuard');
     if (guard) {
       guard.classList.add('show');
@@ -536,6 +536,32 @@ window.addEventListener('DOMContentLoaded', function() {
 
   loadUsers();
 });
+
+/* ── SPA hooks so app.js can re-trigger init ──
+   When roles.html is loaded via loadPage() (SPA routing),
+   DOMContentLoaded already fired on the shell.
+   app.js calls window._rolesPageInit() or window._loadRolesUsers()
+   after executeScripts() injects this code.                       */
+window._loadRolesUsers = loadUsers;
+window._rolesPageInit  = function() {
+  var role     = localStorage.getItem('role') || 'viewer';
+  var username = localStorage.getItem('username') || 'User';
+  var badge    = document.getElementById('myRoleBadge');
+  if (badge) badge.innerHTML = '<span class="rbadge rb-' + role + '">● ' + role + '</span>';
+  var btn = document.getElementById('addUserBtn');
+  if (btn) btn.style.display = (role === 'admin') ? 'inline-flex' : 'none';
+  var guard = document.getElementById('adminGuard');
+  if (guard) {
+    if (role !== 'admin') {
+      guard.classList.add('show');
+      var sp = document.getElementById('guardRole');
+      if (sp) sp.textContent = role;
+    } else {
+      guard.classList.remove('show');
+    }
+  }
+  loadUsers();
+};
 
 /* ═══════════════════════════════════
    LOAD USERS

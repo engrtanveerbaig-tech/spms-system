@@ -31,6 +31,17 @@ body{display:flex;height:100vh;overflow:hidden;}
 .brand-vert{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#2e3450;writing-mode:vertical-rl;transform:rotate(180deg);margin-bottom:4px;}
 .content{flex:1;height:100vh;overflow-y:auto;min-width:0;}
 #mainContent{min-height:100%;}
+
+/* ── ROLES NAV BADGE (admin only) ── */
+.nav-item[data-page="roles"] .role-dot{
+  position:absolute;top:-2px;right:-2px;
+  width:7px;height:7px;background:#f59e0b;
+  border-radius:50%;border:1.5px solid var(--panel,#0c0e17);
+  display:none;
+}
+.nav-item[data-page="roles"].admin-visible .role-dot{display:block;}
+.nav-item[data-page="roles"]{position:relative;}
+
 /* Search Modal */
 .search-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(12px);display:none;justify-content:center;align-items:flex-start;padding-top:13vh;z-index:9999;}
 .search-box{width:540px;max-width:92vw;background:#101420;border:1px solid rgba(255,255,255,.11);border-radius:18px;padding:18px;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:scaleIn .15s ease;}
@@ -60,22 +71,48 @@ body{display:flex;height:100vh;overflow:hidden;}
 <nav class="sidebar">
   <div class="sidebar-logo">SP</div>
   <div class="sidebar-nav">
+
+    <!-- Dashboard -->
     <div class="nav-item active" data-tip="Dashboard" onclick="loadPage('dashboard.html')">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
     </div>
+
+    <!-- Search -->
     <div class="nav-item" data-tip="Search" onclick="openSearchModal()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
     </div>
+
+    <!-- Subcontractors -->
     <div id="subMenu" class="nav-item" data-tip="Subcontractors" onclick="loadPage('subcontractor.html')">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     </div>
+
+    <!-- Payments -->
     <div id="payMenu" class="nav-item" data-tip="Payments" onclick="loadPage('payment.html')">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
     </div>
+
     <div class="nav-sep"></div>
+
+    <!-- ══ ROLES & USERS — shown with amber dot for admins ══ -->
+    <div id="rolesMenu" class="nav-item" data-tip="Roles &amp; Users" data-page="roles" onclick="loadPage('roles.html')">
+      <!-- person + shield icon -->
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+        <path d="M18 8l2 2-4 4" opacity=".5"/>
+      </svg>
+      <!-- amber dot badge visible to admins -->
+      <span class="role-dot"></span>
+    </div>
+
+    <div class="nav-sep"></div>
+
+    <!-- Toggle Theme -->
     <div class="nav-item" data-tip="Toggle Theme" onclick="toggleTheme()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </div>
+
   </div>
   <div class="sidebar-bottom">
     <div class="brand-vert">SPMS</div>
@@ -118,14 +155,37 @@ body{display:flex;height:100vh;overflow:hidden;}
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="js/app.js"></script>
 <script>
-if (localStorage.getItem("role") === "viewer") {
-  ["subMenu","payMenu"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) { el.style.opacity = "0.3"; el.style.pointerEvents = "none"; }
-  });
-}
+/* ── Role-based UI init ── */
+(function initRoleUI(){
+  var role = localStorage.getItem("role");
+
+  /* viewer: hide subcontractors + payments */
+  if(role === "viewer"){
+    ["subMenu","payMenu"].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el){ el.style.opacity = "0.3"; el.style.pointerEvents = "none"; }
+    });
+  }
+
+  /* non-admin: hide roles menu entirely */
+  var rolesMenu = document.getElementById("rolesMenu");
+  if(rolesMenu){
+    if(role === "admin"){
+      rolesMenu.classList.add("admin-visible"); /* shows amber dot */
+    } else {
+      /* managers / finance / engineers / viewers can still view
+         but with reduced rights — roles.html handles this internally.
+         Only hide if you want to restrict even viewing: */
+      if(role === "viewer" || role === "engineer"){
+        rolesMenu.style.display = "none";
+      }
+    }
+  }
+})();
+
+/* Close search modal on overlay click */
 document.getElementById("searchModal").addEventListener("click", function(e){
-  if (e.target.id === "searchModal") closeSearchModal();
+  if(e.target.id === "searchModal") closeSearchModal();
 });
 </script>
 </body>
