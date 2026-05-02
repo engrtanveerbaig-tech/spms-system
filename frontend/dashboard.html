@@ -850,7 +850,8 @@ var STATUS_COLORS=["#06b6d4","#f59e0b","#10b981","#3b82f6","#34d399","#3b82f6","
 /* ═══════════════════════════════════
    ROLE PERMISSIONS (from extensions section 2)
 ═══════════════════════════════════ */
-var ROLE_PERMISSIONS = {
+// AFTER — merge into window.ROLE_PERMISSIONS set by app.js, don't re-declare:
+window.ROLE_PERMISSIONS = window.ROLE_PERMISSIONS || {
   'admin':    ['submit','review','approve','reject','forward_finance','mark_paid','comment','delete'],
   'manager':  ['review','approve','reject','forward_finance','comment'],
   'finance':  ['mark_paid','comment','view'],

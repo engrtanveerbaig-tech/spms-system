@@ -12,12 +12,12 @@ let FILTERED_DATA=[];
 let SELECTED_SEARCH=null;
 let CURRENT_SEARCH_TYPE="company";
 // ── ROLE PERMISSIONS ─────────────────────────────
-const ROLE_PERMISSIONS = {
+window.ROLE_PERMISSIONS = window.ROLE_PERMISSIONS || {
   admin: ["dashboard","subcontractor","payment","roles"],
   manager:["dashboard"],
   engineer: ["dashboard"],
   viewer: ["payment"],
-  contract_department: ["subcontractor"] // ✅ your new role
+  contract_department: ["subcontractor"]
 };
 
 // Theme
