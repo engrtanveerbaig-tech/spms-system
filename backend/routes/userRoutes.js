@@ -14,7 +14,7 @@ const router  = express.Router();
 const db      = require("../db");
 
 /* ── VALID ROLES ─────────────────────────────────────────── */
-const VALID_ROLES = ["admin", "manager", "finance", "engineer", "viewer","contract_department"];
+const VALID_ROLES = ["admin", "manager", "finance", "engineer", "viewer", "contract_department"];
 
 /* ── EXTRACT USER ID FROM TOKEN ──────────────────────────── */
 // Token format: "SPMS_{userId}_{timestamp}"
@@ -52,6 +52,7 @@ router.get("/", async (req, res) => {
         let rows;
 
         if (me.role === "admin") {
+            // FIX: removed duplicate/nested "CASE role" — only one CASE expression
             [rows] = await db.execute(`
                 SELECT
                     id, name, username, email, phone,
@@ -59,14 +60,12 @@ router.get("/", async (req, res) => {
                 FROM users
                 ORDER BY
                     CASE role
-                        CASE role
-  WHEN 'admin'                THEN 1
-  WHEN 'manager'              THEN 2
-  WHEN 'finance'              THEN 3
-  WHEN 'engineer'             THEN 4
-  WHEN 'contract_department'  THEN 5
-  ELSE 6
-END
+                        WHEN 'admin'               THEN 1
+                        WHEN 'manager'             THEN 2
+                        WHEN 'finance'             THEN 3
+                        WHEN 'engineer'            THEN 4
+                        WHEN 'contract_department' THEN 5
+                        ELSE 6
                     END,
                     name ASC
             `);
@@ -127,17 +126,19 @@ router.get("/:id", async (req, res) => {
 router.post("/", async (req, res) => {
     try {
         const me = await getCurrentUser(req);
-        if (!me)             return res.status(401).json({ message: "Unauthorized" });
+        if (!me)                 return res.status(401).json({ message: "Unauthorized" });
         if (me.role !== "admin") return res.status(403).json({ message: "Admin access required" });
 
         const { name, username, email, password, role, phone, notes } = req.body;
 
         /* ── Validation ── */
-        if (!name     || !name.trim())      return res.status(400).json({ message: "Name is required" });
-        if (!username || !username.trim())  return res.status(400).json({ message: "Username is required" });
+        if (!name     || !name.trim())         return res.status(400).json({ message: "Name is required" });
+        if (!username || !username.trim())     return res.status(400).json({ message: "Username is required" });
         if (!email    || !email.includes("@")) return res.status(400).json({ message: "Valid email is required" });
         if (!password || password.length < 8)  return res.status(400).json({ message: "Password must be at least 8 characters" });
-        if (!role || !VALID_ROLES.includes(role)) return res.status(400).json({ message: "Invalid role. Must be: " + VALID_ROLES.join(", ") });
+        if (!role || !VALID_ROLES.includes(role)) {
+            return res.status(400).json({ message: "Invalid role. Must be: " + VALID_ROLES.join(", ") });
+        }
 
         /* ── Check username/email unique ── */
         const [existing] = await db.execute(
@@ -149,7 +150,6 @@ router.post("/", async (req, res) => {
         }
 
         /* ── Insert ── */
-        // Storing plain password to match your existing login system
         const [result] = await db.execute(
             `INSERT INTO users
                 (name, username, email, password, role, phone, notes, active)
@@ -158,10 +158,10 @@ router.post("/", async (req, res) => {
                 name.trim(),
                 username.trim().toLowerCase(),
                 email.trim().toLowerCase(),
-                password,               // plain text — matches your existing login
+                password,           // plain text — matches your existing login
                 role,
-                phone  || null,
-                notes  || null
+                phone || null,
+                notes || null
             ]
         );
 
@@ -221,12 +221,12 @@ router.patch("/:id", async (req, res) => {
         if (email    !== undefined) { fields.push("email = ?");    values.push(email.trim().toLowerCase()); }
         if (password !== undefined && password.length >= 8) {
             fields.push("password = ?");
-            values.push(password);      // plain text — matches login
+            values.push(password);  // plain text — matches login
         }
-        if (role     !== undefined && isAdmin) { fields.push("role = ?");   values.push(role); }
-        if (phone    !== undefined) { fields.push("phone = ?");    values.push(phone || null); }
-        if (notes    !== undefined) { fields.push("notes = ?");    values.push(notes || null); }
-        if (active   !== undefined && isAdmin) { fields.push("active = ?"); values.push(active ? 1 : 0); }
+        if (role   !== undefined && isAdmin) { fields.push("role = ?");   values.push(role); }
+        if (phone  !== undefined)            { fields.push("phone = ?");  values.push(phone || null); }
+        if (notes  !== undefined)            { fields.push("notes = ?");  values.push(notes || null); }
+        if (active !== undefined && isAdmin) { fields.push("active = ?"); values.push(active ? 1 : 0); }
 
         if (!fields.length) {
             return res.status(400).json({ message: "No fields to update" });
@@ -236,11 +236,7 @@ router.patch("/:id", async (req, res) => {
         if (username !== undefined || email !== undefined) {
             const [dup] = await db.execute(
                 "SELECT id FROM users WHERE (username = ? OR email = ?) AND id != ?",
-                [
-                    username || "",
-                    email    || "",
-                    targetId
-                ]
+                [username || "", email || "", targetId]
             );
             if (dup.length > 0) {
                 return res.status(409).json({ message: "Username or email already in use" });
@@ -277,7 +273,7 @@ router.patch("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
     try {
         const me = await getCurrentUser(req);
-        if (!me)             return res.status(401).json({ message: "Unauthorized" });
+        if (!me)                 return res.status(401).json({ message: "Unauthorized" });
         if (me.role !== "admin") return res.status(403).json({ message: "Admin access required" });
 
         const targetId = parseInt(req.params.id);
@@ -286,7 +282,10 @@ router.delete("/:id", async (req, res) => {
             return res.status(400).json({ message: "You cannot delete your own account" });
         }
 
-        const [check] = await db.execute("SELECT id, name FROM users WHERE id = ?", [targetId]);
+        const [check] = await db.execute(
+            "SELECT id, name FROM users WHERE id = ?",
+            [targetId]
+        );
         if (!check.length) return res.status(404).json({ message: "User not found" });
 
         await db.execute("DELETE FROM users WHERE id = ?", [targetId]);
