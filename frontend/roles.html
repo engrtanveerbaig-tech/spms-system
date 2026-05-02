@@ -34,6 +34,7 @@
 
   /* Role colours */
   --r-admin:    #f59e0b;
+  --r-contract: #8b5cf6;
   --r-manager:  #3b82f6;
   --r-finance:  #10b981;
   --r-engineer: #06b6d4;
@@ -163,6 +164,11 @@ tbody tr:hover td{background:rgba(255,255,255,.02);color:var(--text1);}
 /* Role badge pills */
 .rbadge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:9px;font-family:var(--mono);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
 .rb-admin   {background:rgba(245,158,11,.12);color:var(--r-admin);   border:1px solid rgba(245,158,11,.2);}
+.rb-contract_department {
+  background: rgba(139,92,246,.12);
+  color: #8b5cf6;
+  border: 1px solid rgba(139,92,246,.25);
+}
 .rb-manager {background:rgba(59,130,246,.12);color:var(--r-manager); border:1px solid rgba(59,130,246,.2);}
 .rb-finance {background:rgba(16,185,129,.12);color:var(--r-finance); border:1px solid rgba(16,185,129,.2);}
 .rb-engineer{background:rgba(6,182,212,.12); color:var(--r-engineer);border:1px solid rgba(6,182,212,.2);}
@@ -409,6 +415,7 @@ tbody tr:hover td{background:rgba(255,255,255,.02);color:var(--text1);}
       <div class="role-filter-tabs">
         <button class="rft active" onclick="setRoleFilter('',this)">All</button>
         <button class="rft" onclick="setRoleFilter('admin',this)">Admin</button>
+        <button class="rft" onclick="setRoleFilter('contract_department',this)">Contract Dept</button>
         <button class="rft" onclick="setRoleFilter('manager',this)">Manager</button>
         <button class="rft" onclick="setRoleFilter('finance',this)">Finance</button>
         <button class="rft" onclick="setRoleFilter('engineer',this)">Engineer</button>
@@ -637,7 +644,7 @@ function renderUsers() {
   tbody.innerHTML = filtered.map(function(u) {
     var lastActive = u.last_active ? new Date(u.last_active).toLocaleDateString(undefined, {day:'numeric',month:'short',year:'numeric'}) : '—';
     var roleClass = 'rb-' + (u.role || 'viewer');
-    var roleLabel = { admin:'★ Admin', manager:'◈ Manager', finance:'◆ Finance', engineer:'◉ Engineer', viewer:'○ Viewer' }[u.role] || u.role;
+    var roleLabel = { admin:'★ Admin', manager:'◈ Manager', finance:'◆ Finance', engineer:'◉ Engineer', viewer:'○ Viewer',contract_department: '📁 Contract Department' }[u.role] || u.role;
 
     var actions = isAdmin
       ? '<button class="tbl-btn tbl-btn-save" onclick="openEditModal('+u.id+')">Edit</button> ' +
@@ -668,6 +675,7 @@ function updateStats() {
   var el = function(id) { return document.getElementById(id); };
   if (el('statTotal'))   el('statTotal').textContent   = _allUsers.length;
   if (el('statAdmin'))   el('statAdmin').textContent   = count('admin');
+  if (el('statAdmin'))   el('statAdmin').textContent   = count('contract_department');
   if (el('statManager')) el('statManager').textContent = count('manager');
   if (el('statFinance')) el('statFinance').textContent = count('finance');
   if (el('statEngineer'))el('statEngineer').textContent= count('engineer');

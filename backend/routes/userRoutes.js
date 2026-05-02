@@ -14,7 +14,7 @@ const router  = express.Router();
 const db      = require("../db");
 
 /* ── VALID ROLES ─────────────────────────────────────────── */
-const VALID_ROLES = ["admin", "manager", "finance", "engineer", "viewer"];
+const VALID_ROLES = ["admin", "manager", "finance", "engineer", "viewer","contract_department"];
 
 /* ── EXTRACT USER ID FROM TOKEN ──────────────────────────── */
 // Token format: "SPMS_{userId}_{timestamp}"
@@ -59,11 +59,14 @@ router.get("/", async (req, res) => {
                 FROM users
                 ORDER BY
                     CASE role
-                        WHEN 'admin'    THEN 1
-                        WHEN 'manager'  THEN 2
-                        WHEN 'finance'  THEN 3
-                        WHEN 'engineer' THEN 4
-                        ELSE 5
+                        CASE role
+  WHEN 'admin'                THEN 1
+  WHEN 'manager'              THEN 2
+  WHEN 'finance'              THEN 3
+  WHEN 'engineer'             THEN 4
+  WHEN 'contract_department'  THEN 5
+  ELSE 6
+END
                     END,
                     name ASC
             `);
