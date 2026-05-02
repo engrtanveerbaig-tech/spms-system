@@ -11,6 +11,13 @@ let GLOBAL_DATA=[];
 let FILTERED_DATA=[];
 let SELECTED_SEARCH=null;
 let CURRENT_SEARCH_TYPE="company";
+// ── ROLE PERMISSIONS ─────────────────────────────
+const ROLE_PERMISSIONS = {
+  admin: ["dashboard","subcontractor","payment","roles"],
+  engineer: ["dashboard"],
+  viewer: ["payment"],
+  contract_department: ["subcontractor"] // ✅ your new role
+};
 
 // Theme
 const savedTheme=localStorage.getItem("theme");
@@ -33,10 +40,24 @@ function applyRoleUI(){
   if(!token){window.location.href="login.html";return;}
   const subMenu=document.getElementById("subMenu");
   const payMenu=document.getElementById("payMenu");
-  if(!subMenu||!payMenu) return;
-  if(role==="viewer"){
-    [subMenu,payMenu].forEach(el=>{el.style.opacity="0.3";el.style.pointerEvents="none";el.title="No access";});
-  }
+ // if(!subMenu||!payMenu) return;
+  const allowedPages = ROLE_PERMISSIONS[role] || [];
+
+// Hide Subcontractor menu
+if(subMenu && !allowedPages.includes("subcontractor")){
+  subMenu.style.display = "none";
+}
+
+// Hide Payment menu
+if(payMenu && !allowedPages.includes("payment")){
+  payMenu.style.display = "none";
+}
+
+// Hide Roles menu
+const rolesMenu = document.getElementById("rolesMenu");
+if(rolesMenu && !allowedPages.includes("roles")){
+  rolesMenu.style.display = "none";
+}
 }
 
 // ── Execute scripts extracted from fetched HTML ──────────
@@ -95,15 +116,19 @@ async function loadPage(page){
   const role=localStorage.getItem("role");
   if(!token){alert("Please login");window.location.href="login.html";return;}
 
-  // ── Access guards ──
-  if(role==="viewer" && !page.includes("dashboard")){
-    alert("Access denied — viewers can only access the dashboard.");
-    return;
-  }
-  if(role==="engineer" && page.includes("roles")){
-    alert("Access denied — engineers cannot manage roles.");
-    return;
-  }
+// ── Access guards (NEW SYSTEM) ──
+const allowedPages = ROLE_PERMISSIONS[role] || [];
+
+const pageKey =
+  page.includes("dashboard") ? "dashboard" :
+  page.includes("subcontractor") ? "subcontractor" :
+  page.includes("payment") ? "payment" :
+  page.includes("roles") ? "roles" : "";
+
+if(!allowedPages.includes(pageKey)){
+  alert("Access denied");
+  return;
+}
 
   const container=document.getElementById("mainContent");
 
@@ -204,7 +229,17 @@ async function loadPage(page){
 
 // ── Default load ─────────────────────────────────────────
 const _token=localStorage.getItem("token");
-if(_token){loadPage("dashboard.html");loadSearchData();}
+if(_token){
+  const role = localStorage.getItem("role");
+  const allowedPages = ROLE_PERMISSIONS[role] || [];
+
+  if(allowedPages.includes("dashboard")) loadPage("dashboard.html");
+  else if(allowedPages.includes("subcontractor")) loadPage("subcontractor.html");
+  else if(allowedPages.includes("payment")) loadPage("payment.html");
+  else loadPage("dashboard.html");
+
+  loadSearchData();
+}
 else window.location.href="login.html";
 
 // ── Search Data ──────────────────────────────────────────
