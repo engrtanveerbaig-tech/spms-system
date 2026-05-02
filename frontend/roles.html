@@ -255,6 +255,13 @@ tbody tr:hover td{background:rgba(255,255,255,.02);color:var(--text1);}
 
 /* Skel */
 .skel{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:600px 100%;animation:shimmer 1.6s infinite;border-radius:var(--r);}
+.sc-contract::after {
+  background: linear-gradient(90deg,#8b5cf6,#06b6d4);
+}
+
+.sc-contract .stat-val {
+  color: #8b5cf6;
+}
 </style>
 </head>
 <body>
@@ -398,6 +405,11 @@ tbody tr:hover td{background:rgba(255,255,255,.02);color:var(--text1);}
   <div class="stats-row" id="statsRow">
     <div class="stat-card sc-total"><div class="stat-lbl">Total Users</div><div class="stat-val" id="statTotal">—</div><div class="stat-sub">registered accounts</div></div>
     <div class="stat-card sc-admin"><div class="stat-lbl">Admins</div><div class="stat-val" id="statAdmin">—</div><div class="stat-sub">full access</div></div>
+    <div class="stat-card sc-contract">
+  <div class="stat-lbl">Contracts</div>
+  <div class="stat-val" id="statContract">—</div>
+  <div class="stat-sub">contract department</div>
+</div>
     <div class="stat-card sc-manager"><div class="stat-lbl">Managers</div><div class="stat-val" id="statManager">—</div><div class="stat-sub">approval authority</div></div>
     <div class="stat-card sc-finance"><div class="stat-lbl">Finance</div><div class="stat-val" id="statFinance">—</div><div class="stat-sub">payment officers</div></div>
     <div class="stat-card sc-engineer"><div class="stat-lbl">Engineers</div><div class="stat-val" id="statEngineer">—</div><div class="stat-sub">site operators</div></div>
@@ -581,18 +593,16 @@ async function loadUsers() {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     if (!res.ok) {
-      // Backend may not have /api/users yet — show mock data
-      useMockData();
-      return;
-    }
+  throw new Error('API failed: ' + res.status);
+}
     var data = await res.json();
     _allUsers = Array.isArray(data) ? data : (data.users || []);
     renderUsers();
     updateStats();
   } catch (e) {
-    // Network error or endpoint not yet built — use demo data
-    useMockData();
-  }
+  console.error("LOAD USERS ERROR:", e);
+  showToast("Backend error — check console", "error");
+}
 }
 
 function useMockData() {
@@ -668,7 +678,7 @@ function updateStats() {
   var el = function(id) { return document.getElementById(id); };
   if (el('statTotal'))   el('statTotal').textContent   = _allUsers.length;
   if (el('statAdmin'))   el('statAdmin').textContent   = count('admin');
-  if (el('statAdmin'))   el('statAdmin').textContent   = count('contract_department');
+  if (el('statContract')) el('statContract').textContent = count('contract_department');
   if (el('statManager')) el('statManager').textContent = count('manager');
   if (el('statFinance')) el('statFinance').textContent = count('finance');
   if (el('statEngineer'))el('statEngineer').textContent= count('engineer');
