@@ -1,19 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- TAB ICON (favicon) -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,
-<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
-  <rect width='100' height='100' rx='22' fill='%23080c14'/>
-  <rect x='8' y='8' width='84' height='84' rx='18' fill='url(%23g)'/>
-  <defs>
-    <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-      <stop offset='0%25' stop-color='%23f59e0b'/>
-      <stop offset='100%25' stop-color='%23f97316'/>
-    </linearGradient>
-  </defs>
-  <text x='50' y='68' font-family='monospace' font-weight='900' font-size='52' text-anchor='middle' fill='%23080c14'>SP</text>
-</svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23080c14'/><rect x='8' y='8' width='84' height='84' rx='18' fill='url(%23g)'/><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%23f59e0b'/><stop offset='100%25' stop-color='%23f97316'/></linearGradient></defs><text x='50' y='68' font-family='monospace' font-weight='900' font-size='52' text-anchor='middle' fill='%23080c14'>SP</text></svg>">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SPMS System</title>
@@ -23,26 +11,37 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{display:flex;height:100vh;overflow:hidden;}
-.sidebar{display:flex;flex-direction:column;align-items:center;padding:14px 0;flex-shrink:0;}
-.sidebar-logo{width:38px;height:38px;background:linear-gradient(135deg,#f43f5e,#8b5cf6);border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;box-shadow:0 0 20px rgba(244,63,94,.28);margin-bottom:22px;}
-.sidebar-nav{display:flex;flex-direction:column;gap:6px;flex:1;width:100%;padding:0 11px;align-items:center;}
-.sidebar-bottom{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 11px 10px;}
-.nav-sep{width:28px;height:1px;background:rgba(255,255,255,.06);margin:5px 0;}
-.brand-vert{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#2e3450;writing-mode:vertical-rl;transform:rotate(180deg);margin-bottom:4px;}
-.content{flex:1;height:100vh;overflow-y:auto;min-width:0;}
-#mainContent{min-height:100%;}
 
-/* ── ROLES NAV BADGE (admin only) ── */
-.nav-item[data-page="roles"] .role-dot{
-  position:absolute;top:-2px;right:-2px;
-  width:7px;height:7px;background:#f59e0b;
-  border-radius:50%;border:1.5px solid var(--panel,#0c0e17);
-  display:none;
+/* ── SIDEBAR ── */
+.sidebar{display:flex;flex-direction:column;align-items:center;padding:14px 0;flex-shrink:0;position:relative;z-index:100;}
+.sidebar-logo{width:38px;height:38px;background:linear-gradient(135deg,#f43f5e,#8b5cf6);border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;box-shadow:0 0 20px rgba(244,63,94,.28);margin-bottom:22px;}
+.sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1;width:100%;padding:0 11px;align-items:center;}
+.sidebar-bottom{display:flex;flex-direction:column;align-items:center;gap:4px;padding:0 11px 10px;}
+.nav-sep{width:28px;height:1px;background:rgba(255,255,255,.06);margin:4px 0;}
+.brand-vert{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#2e3450;writing-mode:vertical-rl;transform:rotate(180deg);margin-bottom:4px;}
+
+/* Nav item tooltip */
+.nav-item{position:relative;}
+.nav-item[data-tip]::after{
+  content:attr(data-tip);
+  position:absolute;left:calc(100% + 12px);top:50%;transform:translateY(-50%);
+  background:#0d1220;border:1px solid rgba(255,255,255,.1);
+  color:#8a95b0;font-family:'JetBrains Mono',monospace;font-size:10px;
+  padding:4px 10px;border-radius:6px;white-space:nowrap;
+  pointer-events:none;opacity:0;transition:opacity .15s;z-index:999;
 }
+.nav-item[data-tip]:hover::after{opacity:1;}
+
+/* Role dot */
+.nav-item[data-page="roles"] .role-dot{position:absolute;top:-2px;right:-2px;width:7px;height:7px;background:#f59e0b;border-radius:50%;border:1.5px solid var(--panel,#0c0e17);display:none;}
 .nav-item[data-page="roles"].admin-visible .role-dot{display:block;}
 .nav-item[data-page="roles"]{position:relative;}
 
-/* Search Modal */
+/* ── CONTENT ── */
+.content{flex:1;height:100vh;overflow-y:auto;min-width:0;}
+#mainContent{min-height:100%;}
+
+/* ── SEARCH MODAL ── */
 .search-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(12px);display:none;justify-content:center;align-items:flex-start;padding-top:13vh;z-index:9999;}
 .search-box{width:540px;max-width:92vw;background:#101420;border:1px solid rgba(255,255,255,.11);border-radius:18px;padding:18px;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:scaleIn .15s ease;}
 @keyframes scaleIn{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
@@ -64,6 +63,7 @@ body{display:flex;height:100vh;overflow:hidden;}
 .sf-cancel{background:#141828;color:#8892aa;border:1px solid rgba(255,255,255,.1);}
 .sf-search{background:linear-gradient(135deg,#f43f5e,#8b5cf6);color:#fff;}
 .search-footer button:hover{opacity:.85;transform:translateY(-1px);}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -82,6 +82,8 @@ body{display:flex;height:100vh;overflow:hidden;}
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
     </div>
 
+    <div class="nav-sep"></div>
+
     <!-- Subcontractors -->
     <div id="subMenu" class="nav-item" data-tip="Subcontractors" onclick="loadPage('subcontractor.html')">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -94,15 +96,21 @@ body{display:flex;height:100vh;overflow:hidden;}
 
     <div class="nav-sep"></div>
 
-    <!-- ══ ROLES & USERS — shown with amber dot for admins ══ -->
+    <!-- Payment Cycles — NEW -->
+    <div id="cyclesMenu" class="nav-item" data-tip="Payment Cycles" onclick="loadPage('cycles.html')">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14" stroke-width="2.5" stroke-linecap="round"/><line x1="12" y1="14" x2="12" y2="14" stroke-width="2.5" stroke-linecap="round"/><line x1="8" y1="18" x2="8" y2="18" stroke-width="2.5" stroke-linecap="round"/></svg>
+    </div>
+
+    <!-- Reports — NEW -->
+    <div id="reportsMenu" class="nav-item" data-tip="Reports" onclick="loadPage('reports.html')">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    </div>
+
+    <div class="nav-sep"></div>
+
+    <!-- Roles & Users -->
     <div id="rolesMenu" class="nav-item" data-tip="Roles &amp; Users" data-page="roles" onclick="loadPage('roles.html')">
-      <!-- person + shield icon -->
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-        <path d="M18 8l2 2-4 4" opacity=".5"/>
-      </svg>
-      <!-- amber dot badge visible to admins -->
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M18 8l2 2-4 4" opacity=".5"/></svg>
       <span class="role-dot"></span>
     </div>
 
@@ -128,7 +136,6 @@ body{display:flex;height:100vh;overflow:hidden;}
       <div style="width:38px;height:38px;border:2px solid rgba(244,63,94,.3);border-top-color:#f43f5e;border-radius:50%;animation:spin .8s linear infinite;"></div>
       <div style="font-size:11px;letter-spacing:.12em;color:#3e4560;font-family:'JetBrains Mono',monospace;">LOADING</div>
     </div>
-    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
   </div>
 </div>
 
@@ -155,35 +162,27 @@ body{display:flex;height:100vh;overflow:hidden;}
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="js/app.js"></script>
 <script>
-/* ── Role-based UI init ── */
 (function initRoleUI(){
   var role = localStorage.getItem("role");
-
-  /* viewer: hide subcontractors + payments */
   if(role === "viewer"){
     ["subMenu","payMenu"].forEach(function(id){
       var el = document.getElementById(id);
       if(el){ el.style.opacity = "0.3"; el.style.pointerEvents = "none"; }
     });
   }
-
-  /* non-admin: hide roles menu entirely */
   var rolesMenu = document.getElementById("rolesMenu");
   if(rolesMenu){
-    if(role === "admin"){
-      rolesMenu.classList.add("admin-visible"); /* shows amber dot */
-    } else {
-      /* managers / finance / engineers / viewers can still view
-         but with reduced rights — roles.html handles this internally.
-         Only hide if you want to restrict even viewing: */
-      if(role === "viewer" || role === "engineer"){
-        rolesMenu.style.display = "none";
-      }
-    }
+    if(role === "admin") rolesMenu.classList.add("admin-visible");
+    else if(role === "viewer" || role === "engineer") rolesMenu.style.display = "none";
+  }
+  // Cycles & Reports: visible to all except viewer
+  if(role === "viewer"){
+    ["cyclesMenu","reportsMenu"].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el){ el.style.opacity = "0.3"; el.style.pointerEvents = "none"; }
+    });
   }
 })();
-
-/* Close search modal on overlay click */
 document.getElementById("searchModal").addEventListener("click", function(e){
   if(e.target.id === "searchModal") closeSearchModal();
 });

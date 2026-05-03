@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Payment Cycles — SPMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c14;--bg2:#0d1220;--bg3:#121828;--bg4:#161e2e;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text1:#f0f4ff;--text2:#8a95b0;--text3:#3d4a6a;
+  --amber:#f59e0b;--amber2:#fbbf24;--green:#10b981;--green2:#34d399;
+  --red:#f43f5e;--blue:#3b82f6;--violet:#8b5cf6;--cyan:#06b6d4;--orange:#f97316;
+  --font:'Space Grotesk',sans-serif;--mono:'Space Mono',monospace;
+  --r:12px;--r2:16px;--shadow:0 4px 32px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);font-family:var(--font);color:var(--text1);min-height:100vh;}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 60% 40% at 30% 10%,rgba(245,158,11,.04) 0%,transparent 60%),
+             radial-gradient(ellipse 50% 40% at 80% 80%,rgba(139,92,246,.04) 0%,transparent 60%);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px;}
+
+.page{position:relative;z-index:1;padding:24px 28px 48px;max-width:1400px;margin:0 auto;}
+
+/* Header */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;animation:fadeUp .4s ease both;}
+.page-eyebrow{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);display:flex;align-items:center;gap:8px;}
+.page-eyebrow::before{content:"";width:24px;height:1px;background:var(--amber);opacity:.5;}
+.page-title{font-size:26px;font-weight:700;letter-spacing:-.03em;}
+.page-title span{background:linear-gradient(135deg,var(--amber),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* KPI row */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;animation:fadeUp .4s .05s ease both;}
+@media(max-width:800px){.kpi-row{grid-template-columns:repeat(2,1fr);}}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px;transition:.2s;}
+.kpi:hover{border-color:var(--border2);}
+.kpi-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);margin-bottom:4px;}
+.kpi-val{font-size:22px;font-weight:700;font-family:var(--mono);}
+.kpi-sub{font-size:9px;font-family:var(--mono);color:var(--text3);margin-top:2px;}
+.kpi.k-amber .kpi-val{color:var(--amber);}
+.kpi.k-green .kpi-val{color:var(--green2);}
+.kpi.k-violet .kpi-val{color:var(--violet);}
+.kpi.k-blue .kpi-val{color:var(--blue);}
+
+/* Filter bar */
+.fbar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;animation:fadeUp .4s .08s ease both;}
+.fg{display:flex;flex-direction:column;gap:3px;}
+.fg label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);}
+.fg select,.fg input{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:7px 10px;font-family:var(--mono);font-size:11px;color:var(--text1);outline:none;min-width:130px;}
+.fg select:focus,.fg input:focus{border-color:rgba(245,158,11,.4);}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border:none;border-radius:var(--r);font-family:var(--mono);font-size:10px;cursor:pointer;transition:.18s;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
+.btn-ghost{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);}
+.btn-ghost:hover{color:var(--text1);background:var(--bg4);}
+.btn-amber{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:var(--amber);}
+.btn-amber:hover{background:rgba(245,158,11,.18);}
+
+/* Cycles grid */
+.cycles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;animation:fadeUp .4s .1s ease both;}
+.cycle-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;transition:.22s;cursor:pointer;position:relative;overflow:hidden;}
+.cycle-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0;}
+.cycle-card.active::before{background:linear-gradient(90deg,var(--amber),var(--orange));}
+.cycle-card.closed::before{background:linear-gradient(90deg,var(--green),var(--cyan));}
+.cycle-card:hover{transform:translateY(-3px);border-color:var(--border2);box-shadow:var(--shadow);}
+.cycle-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+.cycle-key{font-size:14px;font-weight:700;font-family:var(--mono);color:var(--text1);}
+.cycle-dates{font-size:9px;font-family:var(--mono);color:var(--text3);margin-top:2px;}
+.cycle-badge{font-size:9px;font-family:var(--mono);font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+.badge-active{background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.2);}
+.badge-closed{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.2);}
+
+/* Progress bar */
+.prog-wrap{margin:12px 0;}
+.prog-lbl{display:flex;justify-content:space-between;font-size:9px;font-family:var(--mono);color:var(--text3);margin-bottom:5px;}
+.prog-bar{height:5px;background:var(--bg4);border-radius:5px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:5px;transition:width .6s;}
+.prog-fill.active{background:linear-gradient(90deg,var(--amber),var(--orange));}
+.prog-fill.closed{background:linear-gradient(90deg,var(--green),var(--cyan));}
+
+/* Cycle stats */
+.cycle-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
+.cs{display:flex;flex-direction:column;gap:2px;background:var(--bg3);border-radius:8px;padding:8px 10px;}
+.cs-val{font-size:15px;font-weight:700;font-family:var(--mono);color:var(--amber);}
+.cs-lbl{font-size:8px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;}
+
+/* Status breakdown inside card */
+.cycle-statuses{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px;}
+.cst{font-size:8px;font-family:var(--mono);padding:2px 7px;border-radius:20px;display:inline-flex;align-items:center;gap:3px;}
+.cst-approved{background:rgba(16,185,129,.1);color:var(--green);}
+.cst-review{background:rgba(245,158,11,.1);color:var(--amber);}
+.cst-rejected{background:rgba(244,63,94,.1);color:var(--red);}
+.cst-forwarded{background:rgba(59,130,246,.1);color:var(--blue);}
+.cst-released{background:rgba(52,211,153,.12);color:var(--green2);}
+.cst-pending{background:rgba(139,92,246,.1);color:var(--violet);}
+.cst-submitted{background:rgba(6,182,212,.1);color:var(--cyan);}
+
+/* Empty */
+.empty{text-align:center;padding:60px 20px;color:var(--text3);font-family:var(--mono);font-size:12px;}
+.empty div{font-size:32px;margin-bottom:12px;}
+
+/* Skeleton */
+.skel{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:600px 100%;animation:shimmer 1.6s infinite;border-radius:var(--r);}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">SPMS · Payment Cycles</div>
+      <div class="page-title">Payment <span>Cycles</span></div>
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:4px;" id="cycleSubtitle">Loading cycles…</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <button class="btn btn-ghost" onclick="_cyclesRefresh()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+      </button>
+      <button class="btn btn-amber" onclick="_cyclesExportCSV()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi k-amber"><div class="kpi-lbl">Total Cycles</div><div class="kpi-val" id="cy_total">—</div><div class="kpi-sub">bi-monthly periods</div></div>
+    <div class="kpi k-green"><div class="kpi-lbl">Active</div><div class="kpi-val" id="cy_active">—</div><div class="kpi-sub">in progress</div></div>
+    <div class="kpi k-violet"><div class="kpi-lbl">Total Certificates</div><div class="kpi-val" id="cy_certs">—</div><div class="kpi-sub">across all cycles</div></div>
+    <div class="kpi k-blue"><div class="kpi-lbl">Total Net</div><div class="kpi-val" id="cy_net">—</div><div class="kpi-sub">SAR across cycles</div></div>
+  </div>
+
+  <!-- Filters -->
+  <div class="fbar">
+    <div class="fg">
+      <label>Status</label>
+      <select id="cy_filter_status" onchange="_cyclesRender()">
+        <option value="">All Statuses</option>
+        <option value="active">Active Only</option>
+        <option value="closed">Closed Only</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Year</label>
+      <select id="cy_filter_year" onchange="_cyclesRender()">
+        <option value="">All Years</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Search Subcontractor</label>
+      <input type="text" id="cy_filter_sub" placeholder="Filter by sub…" oninput="_cyclesRender()">
+    </div>
+    <div style="margin-left:auto;display:flex;gap:6px;align-self:flex-end;">
+      <button class="btn btn-ghost" onclick="document.getElementById('cy_filter_status').value='';document.getElementById('cy_filter_year').value='';document.getElementById('cy_filter_sub').value='';_cyclesRender();">↺ Reset</button>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <div class="cycles-grid" id="cyclesGrid">
+    <div class="skel" style="height:200px;"></div>
+    <div class="skel" style="height:200px;"></div>
+    <div class="skel" style="height:200px;"></div>
+    <div class="skel" style="height:200px;"></div>
+  </div>
+
+</div>
+
+<script>
+var _cyclesRawAll = [];
+
+function fmt(n){return Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtK(n){n=Number(n||0);if(n>=1e6)return(n/1e6).toFixed(1)+"M";if(n>=1e3)return(n/1e3).toFixed(0)+"K";return n.toFixed(0);}
+
+function _getCycleKey(dateStr){
+  var d=new Date(dateStr);if(isNaN(d))return null;
+  var y=d.getFullYear();
+  var m=String(d.getMonth()+1).padStart(2,'0');
+  var half=d.getDate()<=15?'A':'B';
+  return y+'-'+m+'-'+half;
+}
+function _getCycleDateRange(key){
+  var parts=key.split('-');
+  var year=parseInt(parts[0]),month=parseInt(parts[1])-1,half=parts[2];
+  if(half==='A')return{from:new Date(year,month,1),to:new Date(year,month,15)};
+  var lastDay=new Date(year,month+1,0).getDate();
+  return{from:new Date(year,month,16),to:new Date(year,month,lastDay)};
+}
+
+function _buildCycles(raw){
+  var map={};
+  raw.forEach(function(r){
+    var key=_getCycleKey(r.cert_date);if(!key)return;
+    if(!map[key])map[key]={key:key,records:[],total_net:0,total_work:0,total_retention:0,approved:0,statusCounts:{}};
+    map[key].records.push(r);
+    map[key].total_net+=parseFloat(r.net_payment||0);
+    map[key].total_work+=parseFloat(r.work_value||0);
+    map[key].total_retention+=parseFloat(r.retention_amount||0);
+    var st=r.cert_status||r.status||'Pending';
+    map[key].statusCounts[st]=(map[key].statusCounts[st]||0)+1;
+    if(['Approved','Forwarded to Finance','Released'].indexOf(st)>=0)map[key].approved++;
+  });
+  return Object.values(map).sort(function(a,b){return b.key.localeCompare(a.key);});
+}
+
+function _cyclesRender(){
+  var filterStatus=document.getElementById('cy_filter_status').value;
+  var filterYear=document.getElementById('cy_filter_year').value;
+  var filterSub=(document.getElementById('cy_filter_sub').value||'').toLowerCase().trim();
+
+  var raw=_cyclesRawAll;
+  if(filterSub){
+    raw=raw.filter(function(r){return(r.subcontractor_name||'').toLowerCase().includes(filterSub);});
+  }
+
+  var cycles=_buildCycles(raw);
+
+  if(filterYear) cycles=cycles.filter(function(c){return c.key.startsWith(filterYear);});
+  if(filterStatus==='active') cycles=cycles.filter(function(c){
+    var pct=c.records.length?Math.round((c.approved/c.records.length)*100):0;return pct<100;
+  });
+  if(filterStatus==='closed') cycles=cycles.filter(function(c){
+    var pct=c.records.length?Math.round((c.approved/c.records.length)*100):0;return pct>=100;
+  });
+
+  var grid=document.getElementById('cyclesGrid');
+  if(!cycles.length){
+    grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div>📅</div>No cycles match your filters.</div>';
+    return;
+  }
+
+  var STATUS_MAP={
+    'Approved':['cst-approved','✓'],
+    'Under Review':['cst-review','⏳'],
+    'Forwarded to Finance':['cst-forwarded','📤'],
+    'Released':['cst-released','💚'],
+    'Rejected':['cst-rejected','✕'],
+    'Pending':['cst-pending','◷'],
+    'Submitted':['cst-submitted','◉'],
+    'On Site':['cst-forwarded','📍'],
+  };
+
+  grid.innerHTML=cycles.map(function(c){
+    var range=_getCycleDateRange(c.key);
+    var fromStr=range.from.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
+    var toStr=range.to.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
+    var pct=c.records.length?Math.round((c.approved/c.records.length)*100):0;
+    var isActive=pct<100;
+
+    var statusHtml=Object.entries(c.statusCounts).map(function(e){
+      var info=STATUS_MAP[e[0]]||['cst-pending','●'];
+      return'<span class="cst '+info[0]+'">'+info[1]+' '+e[0]+' ('+e[1]+')</span>';
+    }).join('');
+
+    var approvalPct=c.records.length?Math.round((c.approved/c.records.length)*100):0;
+
+    return'<div class="cycle-card '+(isActive?'active':'closed')+'" onclick="_cycleJumpToDashboard(\''+c.key+'\')">'+
+      '<div class="cycle-head">'+
+        '<div><div class="cycle-key">📅 Cycle '+c.key+'</div><div class="cycle-dates">'+fromStr+' → '+toStr+'</div></div>'+
+        '<span class="cycle-badge '+(isActive?'badge-active':'badge-closed')+'">'+(isActive?'⏳ Active':'✓ Closed')+'</span>'+
+      '</div>'+
+      '<div class="prog-wrap">'+
+        '<div class="prog-lbl"><span>Approval progress</span><span>'+approvalPct+'%</span></div>'+
+        '<div class="prog-bar"><div class="prog-fill '+(isActive?'active':'closed')+'" style="width:'+approvalPct+'%"></div></div>'+
+      '</div>'+
+      '<div class="cycle-stats">'+
+        '<div class="cs"><div class="cs-val">'+c.records.length+'</div><div class="cs-lbl">Certificates</div></div>'+
+        '<div class="cs"><div class="cs-val">'+fmtK(c.total_net)+'</div><div class="cs-lbl">Net SAR</div></div>'+
+        '<div class="cs"><div class="cs-val">'+fmtK(c.total_retention)+'</div><div class="cs-lbl">Retention</div></div>'+
+      '</div>'+
+      '<div class="cycle-statuses">'+statusHtml+'</div>'+
+      '<div style="margin-top:10px;font-size:9px;font-family:var(--mono);color:var(--text3);">↗ Click to filter dashboard to this cycle</div>'+
+    '</div>';
+  }).join('');
+}
+
+function _cycleJumpToDashboard(key){
+  // Store cycle filter then navigate to dashboard
+  localStorage.setItem('spms_pending_cycle',key);
+  if(typeof loadPage==='function') loadPage('dashboard.html');
+}
+
+function _cyclesRefresh(){
+  _cyclesRawAll=[];
+  document.getElementById('cyclesGrid').innerHTML='<div class="skel" style="height:200px;"></div><div class="skel" style="height:200px;"></div><div class="skel" style="height:200px;"></div>';
+  _cyclesPageInit();
+}
+
+function _cyclesExportCSV(){
+  var cycles=_buildCycles(_cyclesRawAll);
+  if(!cycles.length){alert('No data to export');return;}
+  var rows=[['Cycle Key','Date From','Date To','Status','Certificates','Total Work','Total Net','Total Retention','Approval %']];
+  cycles.forEach(function(c){
+    var range=_getCycleDateRange(c.key);
+    var pct=c.records.length?Math.round((c.approved/c.records.length)*100):0;
+    rows.push([
+      c.key,
+      range.from.toLocaleDateString(),
+      range.to.toLocaleDateString(),
+      pct>=100?'Closed':'Active',
+      c.records.length,
+      c.total_work.toFixed(2),
+      c.total_net.toFixed(2),
+      c.total_retention.toFixed(2),
+      pct+'%'
+    ]);
+  });
+  var csv=rows.map(function(r){return r.map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download='SPMS_Cycles_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+
+window._cyclesPageInit=async function(){
+  try{
+    var token=localStorage.getItem('token');
+    var res=await fetch('https://spms-backend-jxzn.onrender.com/api/payments/all-full',{
+      headers:{'Authorization':'Bearer '+token}
+    });
+    if(!res.ok){document.getElementById('cyclesGrid').innerHTML='<div class="empty" style="grid-column:1/-1"><div>⚠️</div>Failed to load data. Check your connection.</div>';return;}
+    var data=await res.json();
+    if(!Array.isArray(data)){document.getElementById('cyclesGrid').innerHTML='<div class="empty" style="grid-column:1/-1"><div>⚠️</div>Invalid data from server.</div>';return;}
+
+    _cyclesRawAll=data;
+
+    // Populate year filter
+    var years=[...new Set(data.map(function(r){return(r.cert_date||'').substring(0,4);}).filter(Boolean))].sort().reverse();
+    var yearSel=document.getElementById('cy_filter_year');
+    years.forEach(function(y){yearSel.innerHTML+='<option value="'+y+'">'+y+'</option>';});
+
+    // Update KPIs
+    var cycles=_buildCycles(data);
+    var activeCycles=cycles.filter(function(c){var p=c.records.length?Math.round((c.approved/c.records.length)*100):0;return p<100;});
+    var totalNet=data.reduce(function(s,r){return s+parseFloat(r.net_payment||0);},0);
+
+    document.getElementById('cy_total').textContent=cycles.length;
+    document.getElementById('cy_active').textContent=activeCycles.length;
+    document.getElementById('cy_certs').textContent=data.length;
+    document.getElementById('cy_net').textContent=fmtK(totalNet);
+    document.getElementById('cycleSubtitle').textContent=cycles.length+' cycles · '+data.length+' total certificates';
+
+    _cyclesRender();
+
+  }catch(e){
+    console.error('Cycles page error:',e);
+    document.getElementById('cyclesGrid').innerHTML='<div class="empty" style="grid-column:1/-1"><div>❌</div>Error: '+e.message+'</div>';
+  }
+};
+
+// Auto-init
+if(document.getElementById('cyclesGrid')){
+  window._cyclesPageInit();
+}
+</script>
+</body>
+</html>

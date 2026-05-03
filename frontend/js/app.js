@@ -1,5 +1,6 @@
 /* ============================================================
    SPMS v2 — app.js  (shell: routing, search, theme, auth)
+   Added: cycles.html and reports.html routing
    ============================================================ */
 
 function normalize(text){
@@ -11,13 +12,15 @@ let GLOBAL_DATA=[];
 let FILTERED_DATA=[];
 let SELECTED_SEARCH=null;
 let CURRENT_SEARCH_TYPE="company";
+
 // ── ROLE PERMISSIONS ─────────────────────────────
 window.ROLE_PERMISSIONS = window.ROLE_PERMISSIONS || {
-  admin: ["dashboard","subcontractor","payment","roles"],
-  manager:["dashboard"],
-  engineer: ["dashboard"],
-  viewer: ["payment"],
-  contract_department: ["subcontractor"]
+  admin:               ["dashboard","subcontractor","payment","roles","cycles","reports"],
+  manager:             ["dashboard","cycles","reports"],
+  finance:             ["dashboard","payment","reports"],
+  engineer:            ["dashboard"],
+  viewer:              ["payment"],
+  contract_department: ["subcontractor","reports"]
 };
 
 // Theme
@@ -39,26 +42,26 @@ function applyRoleUI(){
   const token=localStorage.getItem("token");
   const role=localStorage.getItem("role");
   if(!token){window.location.href="login.html";return;}
-  const subMenu=document.getElementById("subMenu");
-  const payMenu=document.getElementById("payMenu");
- // if(!subMenu||!payMenu) return;
-  const allowedPages = ROLE_PERMISSIONS[role] || [];
 
-// Hide Subcontractor menu
-if(subMenu && !allowedPages.includes("subcontractor")){
-  subMenu.style.display = "none";
-}
+  const allowedPages = window.ROLE_PERMISSIONS[role] || [];
 
-// Hide Payment menu
-if(payMenu && !allowedPages.includes("payment")){
-  payMenu.style.display = "none";
-}
+  const menuMap = {
+    "subMenu":      "subcontractor",
+    "payMenu":      "payment",
+    "rolesMenu":    "roles",
+    "cyclesMenu":   "cycles",
+    "reportsMenu":  "reports"
+  };
 
-// Hide Roles menu
-const rolesMenu = document.getElementById("rolesMenu");
-if(rolesMenu && !allowedPages.includes("roles")){
-  rolesMenu.style.display = "none";
-}
+  Object.entries(menuMap).forEach(([id, page]) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(!allowedPages.includes(page)){
+      el.style.display = "none";
+    } else {
+      el.style.display = "";
+    }
+  });
 }
 
 // ── Execute scripts extracted from fetched HTML ──────────
@@ -84,16 +87,16 @@ function executeScripts(container){
 async function loadScript(src, forceReload){
   return new Promise((resolve,reject)=>{
     const baseSrc = src.split("?")[0];
-
     if(forceReload){
       document.querySelectorAll(`script[data-spms-src="${baseSrc}"]`).forEach(s=>s.remove());
       if(baseSrc.includes("dashboard"))    { window.loadDashboard=undefined; delete window.loadDashboard; }
       if(baseSrc.includes("payment"))      { window.initPaymentPage=undefined; delete window.initPaymentPage; }
       if(baseSrc.includes("subcontractor")){ window.initSubcontractorPage=undefined; delete window.initSubcontractorPage; }
+      if(baseSrc.includes("cycles"))       { window.initCyclesPage=undefined; delete window.initCyclesPage; }
+      if(baseSrc.includes("reports"))      { window.initReportsPage=undefined; delete window.initReportsPage; }
     } else {
       if(document.querySelector(`script[data-spms-src="${baseSrc}"]`)){resolve();return;}
     }
-
     const s=document.createElement("script");
     s.src=baseSrc+"?v="+Date.now();
     s.setAttribute("data-spms-src", baseSrc);
@@ -108,32 +111,42 @@ async function loadPage(page){
 
   // ── Active nav highlight ──
   document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
-  if(page.includes("dashboard"))     { const el=document.querySelector('.nav-item[onclick*="dashboard"]');    if(el)el.classList.add("active"); }
-  if(page.includes("subcontractor")) { const el=document.getElementById("subMenu");                           if(el)el.classList.add("active"); }
-  if(page.includes("payment"))       { const el=document.getElementById("payMenu");                           if(el)el.classList.add("active"); }
-  if(page.includes("roles"))         { const el=document.getElementById("rolesMenu");                         if(el)el.classList.add("active"); }
+  const navMap = {
+    "dashboard":     '.nav-item[onclick*="dashboard"]',
+    "subcontractor": "#subMenu",
+    "payment":       "#payMenu",
+    "roles":         "#rolesMenu",
+    "cycles":        "#cyclesMenu",
+    "reports":       "#reportsMenu"
+  };
+  Object.entries(navMap).forEach(([key, sel]) => {
+    if(page.includes(key)){
+      const el = sel.startsWith("#") ? document.getElementById(sel.slice(1)) : document.querySelector(sel);
+      if(el) el.classList.add("active");
+    }
+  });
 
   const token=localStorage.getItem("token");
   const role=localStorage.getItem("role");
   if(!token){alert("Please login");window.location.href="login.html";return;}
 
-// ── Access guards (NEW SYSTEM) ──
-const allowedPages = ROLE_PERMISSIONS[role] || [];
+  // ── Access guards ──
+  const allowedPages = window.ROLE_PERMISSIONS[role] || [];
+  const pageKey =
+    page.includes("dashboard")     ? "dashboard"     :
+    page.includes("subcontractor") ? "subcontractor" :
+    page.includes("payment")       ? "payment"       :
+    page.includes("roles")         ? "roles"         :
+    page.includes("cycles")        ? "cycles"        :
+    page.includes("reports")       ? "reports"       : "";
 
-const pageKey =
-  page.includes("dashboard") ? "dashboard" :
-  page.includes("subcontractor") ? "subcontractor" :
-  page.includes("payment") ? "payment" :
-  page.includes("roles") ? "roles" : "";
-
-if(!allowedPages.includes(pageKey)){
-  alert("Access denied");
-  return;
-}
+  if(!allowedPages.includes(pageKey)){
+    alert("Access denied");
+    return;
+  }
 
   const container=document.getElementById("mainContent");
 
-  // Inline spinner
   container.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:12px;">
     <div style="width:34px;height:34px;border:2px solid rgba(245,158,11,.25);border-top-color:#f59e0b;border-radius:50%;animation:spin .8s linear infinite;"></div>
     <div style="font-size:11px;letter-spacing:.12em;color:#3d4a6a;font-family:'JetBrains Mono',monospace;">LOADING</div>
@@ -145,7 +158,6 @@ if(!allowedPages.includes(pageKey)){
     if(!res.ok) throw new Error("HTTP "+res.status+" fetching "+page);
     const html=await res.text();
 
-    // Parse — extract body + inject head styles
     const parser=new DOMParser();
     const doc=parser.parseFromString(html,"text/html");
 
@@ -159,8 +171,6 @@ if(!allowedPages.includes(pageKey)){
     });
 
     container.innerHTML=doc.body.innerHTML;
-
-    // Fade in
     container.style.opacity=0;
     setTimeout(()=>{container.style.transition="opacity .25s";container.style.opacity=1;},30);
 
@@ -170,22 +180,15 @@ if(!allowedPages.includes(pageKey)){
     // ── DASHBOARD ──────────────────────────────────────
     if(page.includes("dashboard")){
       await loadScript("js/charts.min.js", false);
-      console.log("Chart available:", typeof Chart);
       executeScripts(container);
-      try{
-        await loadScript("js/dashboard.js", true);
-      }catch(e){
-        console.error("dashboard.js failed to load:", e);
-        container.innerHTML="<div style='padding:40px;color:#f43f5e;font-family:monospace'>Dashboard script failed to load. Check that <code>js/dashboard.js</code> exists.</div>";
+      try{ await loadScript("js/dashboard.js", true); }
+      catch(e){
+        container.innerHTML="<div style='padding:40px;color:#f43f5e;font-family:monospace'>Dashboard script failed to load.</div>";
         return;
       }
       await new Promise(r=>setTimeout(r,80));
-      if(typeof window.loadDashboard==="function"){
-        window.loadDashboard();
-      } else {
-        console.error("loadDashboard not found after script load");
-        container.innerHTML="<div style='padding:40px;color:#f43f5e;font-family:monospace'>Dashboard initialisation failed. Check js/dashboard.js.</div>";
-      }
+      if(typeof window.loadDashboard==="function") window.loadDashboard();
+      else container.innerHTML="<div style='padding:40px;color:#f43f5e;font-family:monospace'>Dashboard init failed.</div>";
     }
 
     // ── SUBCONTRACTORS ─────────────────────────────────
@@ -205,21 +208,29 @@ if(!allowedPages.includes(pageKey)){
     }
 
     // ── ROLES ──────────────────────────────────────────
-    // roles.html is self-contained (all JS inline) — just execute its scripts.
-    // No external JS file needed.
     if(page.includes("roles")){
       executeScripts(container);
-      // roles.html calls its own loadUsers() on DOMContentLoaded.
-      // Since DOMContentLoaded already fired, trigger it manually:
       await new Promise(r=>setTimeout(r,60));
-      if(typeof window._rolesPageInit==="function"){
-        window._rolesPageInit();
-      } else {
-        // Fallback: dispatch a custom event roles.html can listen to
+      if(typeof window._rolesPageInit==="function") window._rolesPageInit();
+      else {
         container.dispatchEvent(new CustomEvent("spms:pageload"));
-        // Also directly call loadUsers if it was registered globally
         if(typeof window._loadRolesUsers==="function") window._loadRolesUsers();
       }
+    }
+
+    // ── CYCLES ─────────────────────────────────────────
+    if(page.includes("cycles")){
+      executeScripts(container);
+      await new Promise(r=>setTimeout(r,60));
+      if(typeof window._cyclesPageInit==="function") window._cyclesPageInit();
+    }
+
+    // ── REPORTS ────────────────────────────────────────
+    if(page.includes("reports")){
+      await loadScript("js/charts.min.js", false);
+      executeScripts(container);
+      await new Promise(r=>setTimeout(r,60));
+      if(typeof window._reportsPageInit==="function") window._reportsPageInit();
     }
 
   }catch(err){
@@ -232,13 +243,12 @@ if(!allowedPages.includes(pageKey)){
 const _token=localStorage.getItem("token");
 if(_token){
   const role = localStorage.getItem("role");
-  const allowedPages = ROLE_PERMISSIONS[role] || [];
-
-  if(allowedPages.includes("dashboard")) loadPage("dashboard.html");
+  const allowedPages = window.ROLE_PERMISSIONS[role] || [];
+  if(allowedPages.includes("dashboard"))      loadPage("dashboard.html");
   else if(allowedPages.includes("subcontractor")) loadPage("subcontractor.html");
-  else if(allowedPages.includes("payment")) loadPage("payment.html");
+  else if(allowedPages.includes("payment"))   loadPage("payment.html");
+  else if(allowedPages.includes("reports"))   loadPage("reports.html");
   else loadPage("dashboard.html");
-
   loadSearchData();
 }
 else window.location.href="login.html";
@@ -278,7 +288,6 @@ window.openSearchModal=async function(){
   const inp=document.getElementById("popupSearchInput");
   if(inp) inp.focus();
 };
-
 window.closeSearchModal=function(){
   const modal=document.getElementById("searchModal");
   if(modal) modal.style.display="none";
@@ -289,14 +298,12 @@ window.closeSearchModal=function(){
   if(box) box.innerHTML="";
 };
 
-// ── Highlight ────────────────────────────────────────────
 function highlightText(text,query){
   if(!query) return text;
   const safe=query.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
   return text.replace(new RegExp(`(${safe})`,"gi"),'<span class="highlight">$1</span>');
 }
 
-// ── Popup search input ───────────────────────────────────
 function handlePopupSearch(){
   const inputEl=document.getElementById("popupSearchInput");
   const box=document.getElementById("popupSuggestions");
@@ -355,16 +362,14 @@ window.confirmSearch=function(){
     label.classList.add("show");
   }
   if(typeof window.applyGlobalFilter==="function") window.applyGlobalFilter(filtered);
-  else console.error("applyGlobalFilter not available — dashboard may not be loaded yet");
+  else console.error("applyGlobalFilter not available");
   closeSearchModal();
 };
 
-// ── Theme ────────────────────────────────────────────────
 window.toggleTheme=function(){
   const body=document.body;
   if(body.classList.contains("light-mode")){body.classList.remove("light-mode");localStorage.setItem("theme","dark");}
   else{body.classList.add("light-mode");localStorage.setItem("theme","light");}
 };
 
-// ── Logout ───────────────────────────────────────────────
 function logout(){localStorage.clear();window.location.href="login.html";}
