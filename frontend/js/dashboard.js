@@ -80,7 +80,7 @@ function initFilters(){
   populateSel(cEl,getUniq("company"));populateSel(tEl,getUniq("work_type"));populateSel(sEl,getUniq("subcontractor"));
   cEl.onchange=function(){FILTER_STATE.company=cEl.value;updDep();renderAll();};
   tEl.onchange=function(){FILTER_STATE.type=tEl.value;updDep();renderAll();};
-  sEl.onchange=function(){FILTER_STATE.subcontractor=sEl.value;updDep();renderAll();};
+  sEl.onchange = function() { FILTER_STATE.subcontractor = sEl.value; updDep(); renderAll(); };
 }
 function populateSel(el,vals){
   if(!el) return;var cur=el.value;
@@ -100,14 +100,15 @@ function applyFilt(){
   return AGG_DATA.filter(function(x){
     return(!FILTER_STATE.company||x.company.trim()===FILTER_STATE.company.trim())&&
            (!FILTER_STATE.type||x.work_type.trim()===FILTER_STATE.type.trim())&&
-           (!FILTER_STATE.subcontractor||x.subcontractor===FILTER_STATE.subcontractor);
+           (!FILTER_STATE.subcontractor || x.subcontractor === FILTER_STATE.subcontractor || x.subcontractor_id === FILTER_STATE.subcontractor);
   });
 }
 function getFilteredRaw(){
   return RAW_DATA.filter(function(x){
     return(!FILTER_STATE.company||(x.company_name||"").trim()===(FILTER_STATE.company||"").trim())&&
            (!FILTER_STATE.type||(x.work_type||"").trim()===(FILTER_STATE.type||"").trim())&&
-           (!FILTER_STATE.subcontractor||(x.subcontractor_name||"")===(FILTER_STATE.subcontractor||""));
+           (!FILTER_STATE.subcontractor || (x.subcontractor_name || "") === (FILTER_STATE.subcontractor || "") || (x.subcontractor_id || "") === (FILTER_STATE.subcontractor || ""))
+
   });
 }
 

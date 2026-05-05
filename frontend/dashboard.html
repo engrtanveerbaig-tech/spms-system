@@ -1218,7 +1218,13 @@ function drawBubbleChart(agg){
       var tableRaw=dateFilt.filter(function(r){return!statusF||(r.cert_status||r.status||"")===statusF;});
 
       var grouped={};
-      tableRaw.forEach(function(r){var key=(r.subcontractor_name||"")+"__"+(r.work_type||"");if(!grouped[key])grouped[key]={records:[],company:r.company_name,sub:r.subcontractor_name,wt:r.work_type};grouped[key].records.push(r);});
+      tableRaw.forEach(function(r){var key = (r.subcontractor_id || r.subcontractor_name || "") + "__" + (r.work_type || "");if (!grouped[key]) grouped[key] = {
+    records: [],
+    company: r.company_name,
+    sub: r.subcontractor_name,
+    sub_id: r.subcontractor_id,   // ← add this
+    wt: r.work_type
+};grouped[key].records.push(r);});
 
       observer.disconnect();
       var html="";
