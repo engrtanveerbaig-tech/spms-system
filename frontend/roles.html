@@ -312,7 +312,7 @@ function _rptApplyFilters(raw){
     var cd=(r.cert_date||'').substring(0,10);
     return(!co||(r.company_name||'')=== co)&&
            (!wk||(r.work_type||'')=== wk)&&
-           (!sb||(r.subcontractor_name||'')=== sb)&&
+           (!sb||(r.company_name||'')=== sb)&&
            (!st||(r.cert_status||r.status||'')=== st)&&
            (!fr||cd>=fr)&&(!to||cd<=to);
   });
