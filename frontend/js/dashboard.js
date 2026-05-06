@@ -1,6 +1,8 @@
 /* ============================================================
    SPMS v2 — dashboard.js
-   All API calls, data flow, and business logic unchanged.
+   Fix: buildDashboardHTML now groups by project + subcontractor + work_type
+        (contract_number removed from grouping key so all certs for the
+         same sub/work-type appear in ONE table block in the report)
    ============================================================ */
 (function(){
 var CURRENT_DATA=[],dashboardLoaded=false,RAW_DATA=[],ORIGINAL_DATA=[],AGG_DATA=[];
@@ -26,8 +28,8 @@ async function loadDashboard(){
     var data=await res.json();
     if(!Array.isArray(data)){alert("Failed to load dashboard data.");return;}
 
-    var skel = document.getElementById("dashSkeleton");
-var cont = document.getElementById("dashContent");
+    var skel=document.getElementById("dashSkeleton");
+    var cont=document.getElementById("dashContent");
     if(skel) skel.style.display="none";
     if(cont){cont.style.display="block";cont.classList.add("fade-in");}
 
@@ -80,7 +82,7 @@ function initFilters(){
   populateSel(cEl,getUniq("company"));populateSel(tEl,getUniq("work_type"));populateSel(sEl,getUniq("subcontractor"));
   cEl.onchange=function(){FILTER_STATE.company=cEl.value;updDep();renderAll();};
   tEl.onchange=function(){FILTER_STATE.type=tEl.value;updDep();renderAll();};
-  sEl.onchange = function() { FILTER_STATE.subcontractor = sEl.value; updDep(); renderAll(); };
+  sEl.onchange=function(){FILTER_STATE.subcontractor=sEl.value;updDep();renderAll();};
 }
 function populateSel(el,vals){
   if(!el) return;var cur=el.value;
@@ -100,15 +102,14 @@ function applyFilt(){
   return AGG_DATA.filter(function(x){
     return(!FILTER_STATE.company||x.company.trim()===FILTER_STATE.company.trim())&&
            (!FILTER_STATE.type||x.work_type.trim()===FILTER_STATE.type.trim())&&
-           (!FILTER_STATE.subcontractor || x.subcontractor === FILTER_STATE.subcontractor || x.subcontractor_id === FILTER_STATE.subcontractor);
+           (!FILTER_STATE.subcontractor||x.subcontractor===FILTER_STATE.subcontractor||x.subcontractor_id===FILTER_STATE.subcontractor);
   });
 }
 function getFilteredRaw(){
   return RAW_DATA.filter(function(x){
     return(!FILTER_STATE.company||(x.company_name||"").trim()===(FILTER_STATE.company||"").trim())&&
            (!FILTER_STATE.type||(x.work_type||"").trim()===(FILTER_STATE.type||"").trim())&&
-           (!FILTER_STATE.subcontractor || (x.subcontractor_name || "") === (FILTER_STATE.subcontractor || "") || (x.subcontractor_id || "") === (FILTER_STATE.subcontractor || ""))
-
+           (!FILTER_STATE.subcontractor||(x.subcontractor_name||"")===(FILTER_STATE.subcontractor||"")||(x.subcontractor_id||"")===(FILTER_STATE.subcontractor||""));
   });
 }
 
@@ -126,7 +127,6 @@ function renderKPIs(data){
   setEl("total_sar",fmt(sum(data,"total_net")));
   setEl("total_subs",""+data.length);
   setEl("avg_cert",data.length?(sum(data,"cert_count")/data.length).toFixed(1):"0");
-  // extra mini
   var types=[...new Set(data.map(function(d){return d.work_type;}).filter(Boolean))];
   setEl("mini_types",""+types.length);
   var top=data.length?data.reduce(function(a,b){return a.total_net>b.total_net?a:b;}):null;
@@ -236,24 +236,118 @@ window.resetDashboard=function(){
 };
 
 // ── REPORT HTML ──────────────────────────────────────────
+// FIX: Group by project_name + subcontractor_id + work_type ONLY.
+// Removed contract_number from the key so certificates belonging to the
+// same subcontractor/work-type are never split across multiple blocks,
+// regardless of whether they carry different contract numbers.
+// All unique contract numbers for the group are shown in the header.
 window.buildDashboardHTML=function(){
   var data=window.getReportSafeData();
   if(!data||!data.length) return"<h2>No data available</h2>";
-  data.sort(function(a,b){return(a.project_name||"").localeCompare(b.project_name||"")||(a.contract_number||"").localeCompare(b.contract_number||"")||Number(a.certificate_no)-Number(b.certificate_no);});
-  var groups={};
-  data.forEach(function(p){var k=p.project_name+"__"+p.contract_number+"__"+p.subcontractor_id;if(!groups[k]) groups[k]=[];groups[k].push(p);});
-  var html='<html><head><link href="https://fonts.googleapis.com/css2?family=Tajawal&display=swap" rel="stylesheet"><style>body{font-family:Tajawal,Arial;direction:rtl;text-align:right;padding:20px;font-size:13px;background:#f5f5f5}h1{text-align:center;color:#1f4e79;font-size:20px}h3{color:#c0392b;margin:5px 0}table{width:100%;border-collapse:collapse;margin-top:8px}th{background:#1f4e79;color:white;padding:4px 6px;font-size:11px}td,th{border:1px solid #ccc;padding:3px 5px;font-size:11px}.rb{page-break-inside:avoid;margin-bottom:16px;background:#fff;padding:12px;border-radius:6px}.tot{font-weight:bold;background:#eef0f8}.ft{margin-top:8px;font-size:10px;color:#888;border-top:1px solid #ddd;padding-top:4px}@page{size:A4;margin:8mm}</style></head><body>';
-  Object.values(groups).forEach(function(records){
-    var first=records[0];var tW=0,tN=0,tR=0,tD=0,tWd=0,tRf=0,tAV=0,tAd=0;
-    records.forEach(function(p){tW+=+p.work_value||0;tN+=+p.net_payment||0;tR+=+p.retention_amount||0;tD+=+p.deduction||0;tWd+=+p.withdrawn||0;tRf+=+p.refund||0;tAV+=+p.after_vat||0;tAd+=+p.advance_deduction||0;});
-    html+='<div class="rb"><h1>📊 تقرير الدفعات</h1><h3>المشروع: '+first.project_name+'</h3><div style="font-size:12px;line-height:1.7;margin-bottom:6px"><b>المقاول:</b> '+first.subcontractor_name+' &nbsp;|&nbsp; <b>نوع العمل:</b> '+first.work_type+'<br><b>الشركة:</b> '+(first.company_name||"-")+' &nbsp;|&nbsp; <b>العقد:</b> '+(first.contract_number||"-")+'<br><b>الهاتف:</b> '+(first.phone||"-")+' &nbsp;|&nbsp; <b>البريد:</b> '+(first.email||"-")+'<br><b>الرقم الضريبي:</b> '+(first.vat_number||"-")+' &nbsp;|&nbsp; <b>السجل التجاري:</b> '+(first.cr_number||"-")+'</div><table><tr><th>الشهادة</th><th>قيمة العمل</th><th>المسحوب</th><th>الخصم</th><th>الاسترجاع</th><th>بعد الضريبة</th><th>الاحتجاز</th><th>السلفة</th><th>الصافي</th></tr>';
-    records.forEach(function(p){html+='<tr><td>'+p.certificate_no+'</td><td>'+(+p.work_value).toFixed(2)+'</td><td>'+((+p.withdrawn)||0).toFixed(2)+'</td><td>'+(+p.deduction).toFixed(2)+'</td><td>'+((+p.refund)||0).toFixed(2)+'</td><td>'+((+p.after_vat)||0).toFixed(2)+'</td><td>'+(+p.retention_amount).toFixed(2)+'</td><td>'+((+p.advance_deduction)||0).toFixed(2)+'</td><td>'+(+p.net_payment).toFixed(2)+'</td></tr>';});
-    html+='<tr class="tot"><td>الإجمالي</td><td>'+tW.toFixed(2)+'</td><td>'+tWd.toFixed(2)+'</td><td>'+tD.toFixed(2)+'</td><td>'+tRf.toFixed(2)+'</td><td>'+tAV.toFixed(2)+'</td><td>'+tR.toFixed(2)+'</td><td>'+tAd.toFixed(2)+'</td><td>'+tN.toFixed(2)+'</td></tr></table><div class="ft">Prepared by: Eng. Tanveer Ahmad</div></div>';
+
+  // Sort: project → subcontractor → work_type → cert number
+  data.sort(function(a,b){
+    return(a.project_name||"").localeCompare(b.project_name||"")||
+           (a.subcontractor_name||"").localeCompare(b.subcontractor_name||"")||
+           (a.work_type||"").localeCompare(b.work_type||"")||
+           Number(a.certificate_no)-Number(b.certificate_no);
   });
-  html+='</body></html>';return html;
+
+  // Group by project + subcontractor + work_type (contract_number intentionally excluded)
+  var groups={};
+  data.forEach(function(p){
+    var k=(p.project_name||"")+"__"+(p.subcontractor_id||"")+"__"+(p.work_type||"");
+    if(!groups[k]) groups[k]=[];
+    groups[k].push(p);
+  });
+
+  var html='<html><head>'+
+    '<link href="https://fonts.googleapis.com/css2?family=Tajawal&display=swap" rel="stylesheet">'+
+    '<style>'+
+      'body{font-family:Tajawal,Arial;direction:rtl;text-align:right;padding:20px;font-size:13px;background:#f5f5f5}'+
+      'h1{text-align:center;color:#1f4e79;font-size:20px}'+
+      'h3{color:#c0392b;margin:5px 0}'+
+      'table{width:100%;border-collapse:collapse;margin-top:8px}'+
+      'th{background:#1f4e79;color:white;padding:4px 6px;font-size:11px}'+
+      'td,th{border:1px solid #ccc;padding:3px 5px;font-size:11px}'+
+      '.rb{page-break-inside:avoid;margin-bottom:16px;background:#fff;padding:12px;border-radius:6px}'+
+      '.tot{font-weight:bold;background:#eef0f8}'+
+      '.ft{margin-top:8px;font-size:10px;color:#888;border-top:1px solid #ddd;padding-top:4px}'+
+      '@page{size:A4;margin:8mm}'+
+    '</style></head><body>';
+
+  Object.values(groups).forEach(function(records){
+    var first=records[0];
+    var tW=0,tN=0,tR=0,tD=0,tWd=0,tRf=0,tAV=0,tAd=0;
+    records.forEach(function(p){
+      tW+=+p.work_value||0;
+      tN+=+p.net_payment||0;
+      tR+=+p.retention_amount||0;
+      tD+=+p.deduction||0;
+      tWd+=+(p.withdrawn||p.work_withdrawn)||0;
+      tRf+=+p.refund||0;
+      tAV+=+p.after_vat||0;
+      tAd+=+p.advance_deduction||0;
+    });
+
+    // Collect all unique contract numbers for this group
+    var contractNos=[...new Set(records.map(function(p){return p.contract_number||"";}).filter(Boolean))].join(" / ")||"-";
+
+    html+='<div class="rb">'+
+      '<h1>📊 تقرير الدفعات</h1>'+
+      '<h3>المشروع: '+first.project_name+'</h3>'+
+      '<div style="font-size:12px;line-height:1.7;margin-bottom:6px">'+
+        '<b>المقاول:</b> '+first.subcontractor_name+' &nbsp;|&nbsp; <b>نوع العمل:</b> '+first.work_type+'<br>'+
+        '<b>الشركة:</b> '+(first.company_name||"-")+' &nbsp;|&nbsp; <b>العقد:</b> '+contractNos+'<br>'+
+        '<b>الهاتف:</b> '+(first.phone||"-")+' &nbsp;|&nbsp; <b>البريد:</b> '+(first.email||"-")+'<br>'+
+        '<b>الرقم الضريبي:</b> '+(first.vat_number||"-")+' &nbsp;|&nbsp; <b>السجل التجاري:</b> '+(first.cr_number||"-")+
+      '</div>'+
+      '<table>'+
+        '<tr>'+
+          '<th>الشهادة</th><th>قيمة العمل</th><th>المسحوب</th><th>الخصم</th>'+
+          '<th>الاسترجاع</th><th>بعد الضريبة</th><th>الاحتجاز</th><th>السلفة</th><th>الصافي</th>'+
+        '</tr>';
+
+    records.forEach(function(p){
+      html+='<tr>'+
+        '<td>'+p.certificate_no+'</td>'+
+        '<td>'+(+p.work_value).toFixed(2)+'</td>'+
+        '<td>'+(+(p.withdrawn||p.work_withdrawn)||0).toFixed(2)+'</td>'+
+        '<td>'+(+p.deduction).toFixed(2)+'</td>'+
+        '<td>'+(+(p.refund)||0).toFixed(2)+'</td>'+
+        '<td>'+(+(p.after_vat)||0).toFixed(2)+'</td>'+
+        '<td>'+(+p.retention_amount).toFixed(2)+'</td>'+
+        '<td>'+(+(p.advance_deduction)||0).toFixed(2)+'</td>'+
+        '<td>'+(+p.net_payment).toFixed(2)+'</td>'+
+      '</tr>';
+    });
+
+    html+='<tr class="tot">'+
+      '<td>الإجمالي</td>'+
+      '<td>'+tW.toFixed(2)+'</td>'+
+      '<td>'+tWd.toFixed(2)+'</td>'+
+      '<td>'+tD.toFixed(2)+'</td>'+
+      '<td>'+tRf.toFixed(2)+'</td>'+
+      '<td>'+tAV.toFixed(2)+'</td>'+
+      '<td>'+tR.toFixed(2)+'</td>'+
+      '<td>'+tAd.toFixed(2)+'</td>'+
+      '<td>'+tN.toFixed(2)+'</td>'+
+    '</tr></table>'+
+    '<div class="ft">Prepared by: Eng. Tanveer Ahmad</div>'+
+    '</div>';
+  });
+
+  html+='</body></html>';
+  return html;
 };
 
-function openWin(print){var w=window.open("","_blank");w.document.open();w.document.write(window.buildDashboardHTML());w.document.close();if(print) setTimeout(function(){w.print();},500);}
+function openWin(print){
+  var w=window.open("","_blank");
+  w.document.open();
+  w.document.write(window.buildDashboardHTML());
+  w.document.close();
+  if(print) setTimeout(function(){w.print();},500);
+}
 
 window.generatePDFPreview=function(){openWin(false);};
 window.printPDF=function(){openWin(true);};
@@ -270,7 +364,14 @@ window.downloadExcel=function(){
 
 // ── LIVE UPDATE ──────────────────────────────────────────
 window.updateDashboardLive=function(newPayment){
-  RAW_DATA=[...RAW_DATA,Object.assign({},newPayment,{work_value:Number(newPayment.work_value||0),net_payment:Number(newPayment.net_payment||0),retention_amount:Number(newPayment.retention_amount||0),deduction:Number(newPayment.deduction||0),advance_deduction:Number(newPayment.advance_deduction||0),refund:Number(newPayment.refund||0)})];
+  RAW_DATA=[...RAW_DATA,Object.assign({},newPayment,{
+    work_value:Number(newPayment.work_value||0),
+    net_payment:Number(newPayment.net_payment||0),
+    retention_amount:Number(newPayment.retention_amount||0),
+    deduction:Number(newPayment.deduction||0),
+    advance_deduction:Number(newPayment.advance_deduction||0),
+    refund:Number(newPayment.refund||0)
+  })];
   buildAggregation();renderAll();
 };
 
