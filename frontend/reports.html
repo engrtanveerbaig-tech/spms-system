@@ -21,59 +21,76 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
   background:radial-gradient(ellipse 60% 40% at 70% 10%,rgba(139,92,246,.04) 0%,transparent 60%),
              radial-gradient(ellipse 50% 40% at 20% 80%,rgba(16,185,129,.04) 0%,transparent 60%);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-@keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+@keyframes expandIn{from{opacity:0;max-height:0}to{opacity:1;max-height:400px}}
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px;}
 
-.page{position:relative;z-index:1;padding:24px 28px 48px;max-width:1400px;margin:0 auto;}
+.page{position:relative;z-index:1;padding:24px 28px 48px;max-width:1500px;margin:0 auto;}
 
-/* Header */
-.page-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;animation:fadeUp .4s ease both;}
+/* ── Header ── */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:20px;animation:fadeUp .4s ease both;}
 .page-eyebrow{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);display:flex;align-items:center;gap:8px;}
 .page-eyebrow::before{content:"";width:24px;height:1px;background:var(--violet);opacity:.5;}
 .page-title{font-size:26px;font-weight:700;letter-spacing:-.03em;}
 .page-title span{background:linear-gradient(135deg,var(--violet),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 
-/* Report type cards */
-.report-types{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:24px;animation:fadeUp .4s .05s ease both;}
-.rtype-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;cursor:pointer;transition:.22s;position:relative;overflow:hidden;}
-.rtype-card::after{content:"";position:absolute;top:0;left:0;width:100%;height:2px;transform:scaleX(0);transform-origin:left;transition:.3s;}
-.rtype-card:hover::after{transform:scaleX(1);}
-.rtype-card:hover{border-color:var(--border2);transform:translateY(-2px);}
-.rtype-card.selected{border-width:2px;}
-.rt-1{border-color:rgba(139,92,246,.5);background:rgba(139,92,246,.04);}
-.rt-1::after{background:linear-gradient(90deg,var(--violet),var(--blue));}
-.rt-2{border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.04);}
-.rt-2::after{background:linear-gradient(90deg,var(--amber),var(--orange));}
-.rt-3{border-color:rgba(16,185,129,.5);background:rgba(16,185,129,.04);}
-.rt-3::after{background:linear-gradient(90deg,var(--green),var(--cyan));}
-.rt-4{border-color:rgba(59,130,246,.5);background:rgba(59,130,246,.04);}
-.rt-4::after{background:linear-gradient(90deg,var(--blue),var(--violet));}
-.rtype-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:16px;}
-.rt-1 .rtype-icon{background:rgba(139,92,246,.12);}
-.rt-2 .rtype-icon{background:rgba(245,158,11,.12);}
-.rt-3 .rtype-icon{background:rgba(16,185,129,.12);}
-.rt-4 .rtype-icon{background:rgba(59,130,246,.12);}
-.rtype-name{font-size:13px;font-weight:600;color:var(--text1);margin-bottom:4px;}
-.rtype-desc{font-size:10px;font-family:var(--mono);color:var(--text3);line-height:1.5;}
-.rtype-selected-badge{position:absolute;top:12px;right:12px;font-size:8px;font-family:var(--mono);padding:2px 8px;border-radius:20px;background:rgba(139,92,246,.15);color:var(--violet);border:1px solid rgba(139,92,246,.25);display:none;}
-.rtype-card.selected .rtype-selected-badge{display:inline-flex;}
+/* ── Report type cards row ── */
+.report-type-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:0;animation:fadeUp .4s .05s ease both;}
+@media(max-width:900px){.report-type-row{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:500px){.report-type-row{grid-template-columns:1fr;}}
 
-/* Config panel */
-.config-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:20px;animation:fadeUp .4s .1s ease both;}
-.config-title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);font-family:var(--mono);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.rtype-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px;cursor:pointer;transition:.2s;position:relative;overflow:hidden;}
+.rtype-card::after{content:"";position:absolute;top:0;left:0;width:100%;height:2px;transform:scaleX(0);transform-origin:left;transition:.3s;}
+.rtype-card:hover::after,.rtype-card.selected::after{transform:scaleX(1);}
+.rtype-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.rtype-card.selected{transform:translateY(0);}
+
+.rt-payment::after{background:linear-gradient(90deg,var(--amber),var(--orange));}
+.rt-payment.selected{border-color:rgba(245,158,11,.55);background:rgba(245,158,11,.04);}
+.rt-retention::after{background:linear-gradient(90deg,var(--violet),var(--blue));}
+.rt-retention.selected{border-color:rgba(139,92,246,.55);background:rgba(139,92,246,.04);}
+.rt-subcontractor::after{background:linear-gradient(90deg,var(--green),var(--cyan));}
+.rt-subcontractor.selected{border-color:rgba(16,185,129,.55);background:rgba(16,185,129,.04);}
+.rt-status::after{background:linear-gradient(90deg,var(--blue),var(--violet));}
+.rt-status.selected{border-color:rgba(59,130,246,.55);background:rgba(59,130,246,.04);}
+
+.rtype-icon{font-size:20px;margin-bottom:8px;}
+.rtype-name{font-size:12px;font-weight:600;color:var(--text1);margin-bottom:3px;}
+.rtype-desc{font-size:9px;font-family:var(--mono);color:var(--text3);line-height:1.5;}
+.rtype-badge{position:absolute;top:10px;right:10px;font-size:8px;font-family:var(--mono);padding:2px 7px;border-radius:20px;background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.25);display:none;}
+.rtype-card.selected .rtype-badge{display:inline-flex;}
+
+/* ── Payment sub-options ── */
+.payment-subopts{overflow:hidden;max-height:0;opacity:0;transition:max-height .3s ease,opacity .3s ease;margin-top:0;}
+.payment-subopts.open{max-height:400px;opacity:1;margin-top:10px;}
+.subopts-inner{background:rgba(245,158,11,.03);border:1px solid rgba(245,158,11,.2);border-radius:var(--r2);padding:16px 18px;}
+.subopts-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);font-family:var(--mono);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.subopts-label::before{content:"";width:16px;height:1px;background:var(--amber);opacity:.6;}
+.subopts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
+
+.chk-item{display:flex;align-items:flex-start;gap:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;cursor:pointer;transition:.18s;user-select:none;}
+.chk-item:hover{border-color:rgba(245,158,11,.3);}
+.chk-item.active{border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.05);}
+.chk-box{width:18px;height:18px;border:1.5px solid var(--border2);border-radius:5px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;transition:.15s;background:var(--bg4);}
+.chk-item.active .chk-box{background:var(--amber);border-color:var(--amber);color:#000;}
+.chk-title{font-size:11px;font-weight:600;color:var(--text1);margin-bottom:2px;}
+.chk-desc{font-size:9px;font-family:var(--mono);color:var(--text3);line-height:1.4;}
+
+/* ── Config panel ── */
+.config-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:18px 20px;margin-bottom:16px;animation:fadeUp .4s .1s ease both;margin-top:10px;}
+.config-title{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);font-family:var(--mono);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
 .config-title::after{content:"";flex:1;height:1px;background:var(--border);}
-.config-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;}
+.config-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;}
 .fg{display:flex;flex-direction:column;gap:4px;}
 .fg label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);}
-.fg select,.fg input{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--text1);outline:none;width:100%;}
-.fg select:focus,.fg input:focus{border-color:rgba(139,92,246,.4);}
-.fg.full{grid-column:1/-1;}
+.fg select,.fg input{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--text1);outline:none;width:100%;transition:.18s;}
+.fg select:focus,.fg input:focus{border-color:rgba(139,92,246,.4);box-shadow:0 0 0 3px rgba(139,92,246,.06);}
 
-/* Generate buttons */
-.gen-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border:none;border-radius:var(--r);font-family:var(--mono);font-size:10px;cursor:pointer;transition:.18s;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
+/* ── Buttons ── */
+.gen-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:none;border-radius:var(--r);font-family:var(--mono);font-size:10px;cursor:pointer;transition:.18s;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
 .btn-ghost{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);}
 .btn-ghost:hover{color:var(--text1);background:var(--bg4);}
 .btn-violet{background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);color:var(--violet);}
@@ -83,35 +100,49 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .btn-green{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:var(--green);}
 .btn-green:hover{background:rgba(16,185,129,.18);}
 .btn:disabled{opacity:.4;pointer-events:none;}
-.btn.loading svg{animation:spin .8s linear infinite;}
 
-/* Preview area */
+/* ── Preview ── */
 .preview-area{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;animation:fadeUp .4s .14s ease both;}
-.preview-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
-.preview-title{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);font-family:var(--mono);}
-.preview-actions{display:flex;gap:6px;}
+.preview-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+.preview-htitle{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);font-family:var(--mono);}
 
-/* Summary table */
-.tbox{overflow-x:auto;max-height:520px;}
+/* ── Section divider inside preview ── */
+.rpt-section{border-top:1px solid var(--border);}
+.rpt-section:first-child{border-top:none;}
+.rpt-section-hd{display:flex;align-items:center;justify-content:space-between;padding:10px 18px 6px;background:rgba(255,255,255,.015);}
+.rpt-section-lbl{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-family:var(--mono);}
+.rpt-section-cnt{font-size:9px;font-family:var(--mono);color:var(--text3);}
+
+/* ── Tables ── */
+.tbox{overflow-x:auto;max-height:560px;}
 table{width:100%;border-collapse:collapse;min-width:700px;}
 thead{position:sticky;top:0;z-index:5;}
-th{background:var(--bg3);padding:9px 12px;font-size:8px;letter-spacing:.12em;text-transform:uppercase;font-family:var(--mono);color:var(--text3);font-weight:500;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
-td{padding:9px 12px;font-size:11px;font-family:var(--mono);color:var(--text2);border-bottom:1px solid rgba(255,255,255,.03);white-space:nowrap;}
+th{background:var(--bg3);padding:8px 12px;font-size:8px;letter-spacing:.12em;text-transform:uppercase;font-family:var(--mono);color:var(--text3);font-weight:500;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:8px 12px;font-size:11px;font-family:var(--mono);color:var(--text2);border-bottom:1px solid rgba(255,255,255,.025);white-space:nowrap;}
 tbody tr:last-child td{border-bottom:none;}
 tbody tr:hover td{background:rgba(255,255,255,.02);color:var(--text1);}
 .td-num{text-align:right;color:var(--text1)!important;}
 .td-net{text-align:right;color:var(--green2)!important;font-weight:600;}
-tfoot td{background:var(--bg3);font-weight:600;color:var(--text1);padding:10px 12px;font-family:var(--mono);font-size:11px;border-top:1px solid var(--border2);}
+.td-red{text-align:right;color:var(--red)!important;font-weight:500;}
+.td-amber{text-align:right;color:var(--amber)!important;font-weight:500;}
+.td-cyan{text-align:right;color:var(--cyan)!important;font-weight:500;}
+.td-zero{color:var(--text3)!important;}
+.td-sub{font-weight:600;color:var(--text1)!important;}
+tfoot td{background:var(--bg3);font-weight:600;color:var(--text1)!important;padding:9px 12px;font-family:var(--mono);font-size:11px;border-top:1px solid var(--border2);}
 tfoot .td-net{color:var(--amber)!important;}
+tfoot .td-red{color:var(--red)!important;}
+tfoot .td-cyan{color:var(--cyan)!important;}
+tfoot .td-amber{color:var(--amber)!important;}
 
-/* Empty / loading state */
+/* group header / subtotal rows */
+.tr-grphd td{background:rgba(255,255,255,.035)!important;color:var(--text1)!important;font-weight:700;font-size:11px;border-top:1px solid rgba(245,158,11,.18);border-bottom:1px solid var(--border);}
+.tr-sub td{background:rgba(255,255,255,.012)!important;color:var(--text3)!important;font-size:10px;font-style:italic;border-bottom:2px solid var(--border2);}
+
+/* ── Empty state ── */
 .preview-empty{text-align:center;padding:60px 20px;color:var(--text3);font-family:var(--mono);font-size:11px;}
-.preview-empty .big{font-size:32px;margin-bottom:12px;}
+.preview-empty .big{font-size:36px;margin-bottom:12px;}
 
-/* Skeleton */
-.skel{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:600px 100%;animation:shimmer 1.6s infinite;border-radius:var(--r);}
-
-/* Status pills */
+/* ── Status pills ── */
 .st-pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:600;font-family:var(--mono);}
 .b-approved{background:rgba(16,185,129,.12);color:#10b981;}
 .b-review{background:rgba(245,158,11,.12);color:#f59e0b;}
@@ -120,6 +151,7 @@ tfoot .td-net{color:var(--amber)!important;}
 .b-released{background:rgba(52,211,153,.15);color:#34d399;}
 .b-pending{background:rgba(139,92,246,.12);color:#8b5cf6;}
 .b-submitted{background:rgba(6,182,212,.12);color:#06b6d4;}
+.b-mixed{background:rgba(255,255,255,.06);color:var(--text2);}
 </style>
 </head>
 <body>
@@ -134,31 +166,68 @@ tfoot .td-net{color:var(--amber)!important;}
     </div>
   </div>
 
-  <!-- Report Type Selection -->
-  <div class="report-types">
-    <div class="rtype-card" id="rt_payment" onclick="_rptSelectType('payment',this)">
-      <span class="rtype-selected-badge">✓ Selected</span>
+  <!-- Report Type Cards -->
+  <div class="report-type-row">
+    <div class="rtype-card rt-payment" id="rt_payment" onclick="_rptSelectType('payment',this)">
+      <span class="rtype-badge">✓ Selected</span>
       <div class="rtype-icon">💳</div>
       <div class="rtype-name">Payment Certificates</div>
-      <div class="rtype-desc">Full breakdown per subcontractor — work value, deductions, retention, net payment</div>
+      <div class="rtype-desc">Full breakdown with deductions, withdrawn, refund options</div>
     </div>
-    <div class="rtype-card" id="rt_retention" onclick="_rptSelectType('retention',this)">
-      <span class="rtype-selected-badge">✓ Selected</span>
+    <div class="rtype-card rt-retention" id="rt_retention" onclick="_rptSelectType('retention',this)">
+      <span class="rtype-badge">✓ Selected</span>
       <div class="rtype-icon">🛡️</div>
       <div class="rtype-name">Retention Summary</div>
-      <div class="rtype-desc">Total retention held per subcontractor and work type with release status</div>
+      <div class="rtype-desc">Retention held per subcontractor and work type</div>
     </div>
-    <div class="rtype-card" id="rt_subcontractor" onclick="_rptSelectType('subcontractor',this)">
-      <span class="rtype-selected-badge">✓ Selected</span>
+    <div class="rtype-card rt-subcontractor" id="rt_subcontractor" onclick="_rptSelectType('subcontractor',this)">
+      <span class="rtype-badge">✓ Selected</span>
       <div class="rtype-icon">👷</div>
-      <div class="rtype-name">Subcontractor Performance</div>
-      <div class="rtype-desc">Aggregated performance: certificates issued, total value, net payments, advances</div>
+      <div class="rtype-name">Subcontractor Summary</div>
+      <div class="rtype-desc">One row per sub — last IPC, totals, all fields</div>
     </div>
-    <div class="rtype-card" id="rt_status" onclick="_rptSelectType('status',this)">
-      <span class="rtype-selected-badge">✓ Selected</span>
+    <div class="rtype-card rt-status" id="rt_status" onclick="_rptSelectType('status',this)">
+      <span class="rtype-badge">✓ Selected</span>
       <div class="rtype-icon">📊</div>
-      <div class="rtype-name">Status Workflow Report</div>
-      <div class="rtype-desc">Certificates by workflow status — submitted, approved, released, rejected</div>
+      <div class="rtype-name">Status Workflow</div>
+      <div class="rtype-desc">Certificates by workflow status</div>
+    </div>
+  </div>
+
+  <!-- Payment Sub-options (slides open when payment selected) -->
+  <div class="payment-subopts" id="paymentSubopts">
+    <div class="subopts-inner">
+      <div class="subopts-label">Choose what to include in the report</div>
+      <div class="subopts-grid">
+        <div class="chk-item active" id="chk_full" onclick="_toggleChk('full',this)">
+          <div class="chk-box">✓</div>
+          <div>
+            <div class="chk-title">📋 Full Payment Report</div>
+            <div class="chk-desc">All columns per certificate — work, net, retention, advance</div>
+          </div>
+        </div>
+        <div class="chk-item" id="chk_deductions" onclick="_toggleChk('deductions',this)">
+          <div class="chk-box"></div>
+          <div>
+            <div class="chk-title">✂️ Deductions Only</div>
+            <div class="chk-desc">Certs with deductions — amount &amp; % of work value</div>
+          </div>
+        </div>
+        <div class="chk-item" id="chk_withdrawn" onclick="_toggleChk('withdrawn',this)">
+          <div class="chk-box"></div>
+          <div>
+            <div class="chk-title">📤 Work Withdrawn Only</div>
+            <div class="chk-desc">Certs with withdrawn — amount &amp; % of work value</div>
+          </div>
+        </div>
+        <div class="chk-item" id="chk_refund" onclick="_toggleChk('refund',this)">
+          <div class="chk-box"></div>
+          <div>
+            <div class="chk-title">↩️ Refunds Only</div>
+            <div class="chk-desc">Certs with refund credits returned to contractor</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -166,40 +235,23 @@ tfoot .td-net{color:var(--amber)!important;}
   <div class="config-panel">
     <div class="config-title">Report Configuration</div>
     <div class="config-grid">
-      <div class="fg">
-        <label>Company</label>
-        <select id="rpt_company"><option value="">All Companies</option></select>
-      </div>
-      <div class="fg">
-        <label>Work Type</label>
-        <select id="rpt_work"><option value="">All Work Types</option></select>
-      </div>
-      <div class="fg">
-        <label>Subcontractor</label>
-        <select id="rpt_sub"><option value="">All Subcontractors</option></select>
-      </div>
-      <div class="fg">
-        <label>Status</label>
-        <select id="rpt_status">
+      <div class="fg"><label>Company</label>
+        <select id="rpt_company"><option value="">All Companies</option></select></div>
+      <div class="fg"><label>Work Type</label>
+        <select id="rpt_work"><option value="">All Work Types</option></select></div>
+      <div class="fg"><label>Subcontractor</label>
+        <select id="rpt_sub"><option value="">All Subcontractors</option></select></div>
+      <div class="fg"><label>Status</label>
+        <select id="rpt_status_f">
           <option value="">All Statuses</option>
-          <option>Submitted</option>
-          <option>Under Review</option>
-          <option>Approved</option>
-          <option>Forwarded to Finance</option>
-          <option>Released</option>
-          <option>Rejected</option>
-          <option>On Site</option>
-          <option>Pending</option>
+          <option>Submitted</option><option>Under Review</option>
+          <option>Approved</option><option>Forwarded to Finance</option>
+          <option>Released</option><option>Rejected</option>
+          <option>On Site</option><option>Pending</option>
         </select>
       </div>
-      <div class="fg">
-        <label>Date From</label>
-        <input type="date" id="rpt_from">
-      </div>
-      <div class="fg">
-        <label>Date To</label>
-        <input type="date" id="rpt_to">
-      </div>
+      <div class="fg"><label>Date From</label><input type="date" id="rpt_from"></div>
+      <div class="fg"><label>Date To</label><input type="date" id="rpt_to"></div>
     </div>
     <div class="gen-btns">
       <button class="btn btn-violet" onclick="_rptGenerate()" id="rpt_gen_btn">
@@ -218,331 +270,649 @@ tfoot .td-net{color:var(--amber)!important;}
   <!-- Preview -->
   <div class="preview-area">
     <div class="preview-hd">
-      <span class="preview-title" id="preview_title">Report Preview</span>
+      <span class="preview-htitle" id="preview_title">Report Preview</span>
       <span style="font-size:9px;font-family:var(--mono);color:var(--text3);" id="preview_count"></span>
     </div>
     <div id="preview_body">
-      <div class="preview-empty"><div class="big">📄</div>Select a report type and click <strong style="color:var(--violet)">Generate Report</strong></div>
+      <div class="preview-empty">
+        <div class="big">📄</div>
+        Select a report type and click <strong style="color:var(--violet)">Generate Report</strong>
+      </div>
     </div>
   </div>
 
-</div>
+</div><!-- /page -->
 
 <script>
-var _rptAllData = [];
-var _rptCurrentType = null;
-var _rptCurrentResults = [];
+/* ═══════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════ */
+var _rptAllData    = [];
+var _rptType       = null;
+var _rptResults    = [];
+var _rptChks       = {full:true, deductions:false, withdrawn:false, refund:false};
 
+/* ═══════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════ */
 function fmt(n){return Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fz(n){var v=Number(n||0);return v===0?'<span class="td-zero">—</span>':fmt(v);}
+function wd(r){return +(r.work_withdrawn||r.withdrawn)||0;}
 
-/* ── Type selection ── */
-window._rptSelectType = function(type, el){
-  document.querySelectorAll('.rtype-card').forEach(function(c){
-    c.classList.remove('selected','rt-1','rt-2','rt-3','rt-4');
+function statusPill(s){
+  var m={
+    'Approved':['b-approved','✓ Approved'],
+    'Under Review':['b-review','⏳ Under Review'],
+    'Forwarded to Finance':['b-forwarded','📤 Fwd Finance'],
+    'Released':['b-released','💚 Released'],
+    'Rejected':['b-rejected','✕ Rejected'],
+    'Submitted':['b-submitted','◉ Submitted'],
+    'Pending':['b-pending','◷ Pending'],
+    'On Site':['b-forwarded','📍 On Site'],
+    'Mixed':['b-mixed','⚡ Mixed']
+  };
+  var x=m[s]||['b-pending',s||'—'];
+  return '<span class="st-pill '+x[0]+'">'+x[1]+'</span>';
+}
+
+/* group raw certs by subcontractor+work_type, sorted by cert_no */
+function groupBySub(data){
+  var map={};
+  data.forEach(function(r){
+    var k=(r.subcontractor_name||'?')+'|||'+(r.work_type||'Other');
+    if(!map[k])map[k]={sub:r.subcontractor_name,company:r.company_name,work:r.work_type||'Other',recs:[]};
+    map[k].recs.push(r);
   });
-  el.classList.add('selected');
-  var colorMap={payment:'rt-2',retention:'rt-1',subcontractor:'rt-3',status:'rt-4'};
-  el.classList.add(colorMap[type]||'rt-1');
-  _rptCurrentType=type;
+  return Object.values(map)
+    .sort(function(a,b){return (a.sub||'').localeCompare(b.sub||'')||a.work.localeCompare(b.work);})
+    .map(function(g){
+      g.recs.sort(function(a,b){return Number(a.certificate_no)-Number(b.certificate_no);});
+      return g;
+    });
+}
 
-  var names={payment:'Payment Certificates Report',retention:'Retention Summary Report',subcontractor:'Subcontractor Performance Report',status:'Status Workflow Report'};
-  document.getElementById('rpt_subtitle').textContent=names[type]||'';
-  document.getElementById('preview_body').innerHTML='<div class="preview-empty"><div class="big">⚙️</div>Configure filters above and click <strong style="color:var(--violet)">Generate Report</strong></div>';
-  document.getElementById('preview_title').textContent=names[type]||'Report Preview';
+/* ═══════════════════════════════════════════════════════
+   CHECKBOX TOGGLE
+═══════════════════════════════════════════════════════ */
+window._toggleChk = function(key, el){
+  _rptChks[key] = !_rptChks[key];
+  el.classList.toggle('active', _rptChks[key]);
+  el.querySelector('.chk-box').textContent = _rptChks[key] ? '✓' : '';
+};
+
+/* ═══════════════════════════════════════════════════════
+   TYPE SELECTION
+═══════════════════════════════════════════════════════ */
+window._rptSelectType = function(type, el){
+  document.querySelectorAll('.rtype-card').forEach(function(c){c.classList.remove('selected');});
+  el.classList.add('selected');
+  _rptType = type;
+  document.getElementById('paymentSubopts').classList.toggle('open', type==='payment');
+  var names={payment:'Payment Certificates Report',retention:'Retention Summary Report',subcontractor:'Subcontractor Summary Report',status:'Status Workflow Report'};
+  document.getElementById('rpt_subtitle').textContent = names[type]||'';
+  _clearPreview();
+};
+
+function _clearPreview(){
+  document.getElementById('preview_body').innerHTML='<div class="preview-empty"><div class="big">⚙️</div>Configure filters and click <strong style="color:var(--violet)">Generate Report</strong></div>';
+  document.getElementById('preview_title').textContent='Report Preview';
   document.getElementById('preview_count').textContent='';
   document.getElementById('rpt_csv_btn').disabled=true;
   document.getElementById('rpt_print_btn').disabled=true;
-};
+}
 
-/* ── Filter data ── */
-function _rptApplyFilters(raw){
+/* ═══════════════════════════════════════════════════════
+   FILTER
+═══════════════════════════════════════════════════════ */
+function _applyFilters(raw){
   var co=document.getElementById('rpt_company').value;
   var wk=document.getElementById('rpt_work').value;
   var sb=document.getElementById('rpt_sub').value;
-  var st=document.getElementById('rpt_status').value;
+  var st=document.getElementById('rpt_status_f').value;
   var fr=document.getElementById('rpt_from').value;
   var to=document.getElementById('rpt_to').value;
   return raw.filter(function(r){
     var cd=(r.cert_date||'').substring(0,10);
-    return(!co||(r.company_name||'')=== co)&&
-           (!wk||(r.work_type||'')=== wk)&&
-           (!sb||(r.subcontractor_name||'')=== sb)&&
-           (!st||(r.cert_status||r.status||'')=== st)&&
+    return (!co||(r.company_name||'')===co)&&
+           (!wk||(r.work_type||'')===wk)&&
+           (!sb||(r.subcontractor_name||'')===sb)&&
+           (!st||(r.cert_status||r.status||'')===st)&&
            (!fr||cd>=fr)&&(!to||cd<=to);
   });
 }
 
-/* ── Status pill ── */
-function statusPill(s){
-  var m={
-    'Approved':['b-approved','✓'],'Under Review':['b-review','⏳'],
-    'Forwarded to Finance':['b-forwarded','📤'],'Released':['b-released','💚'],
-    'Rejected':['b-rejected','✕'],'Submitted':['b-submitted','◉'],
-    'Pending':['b-pending','◷'],'On Site':['b-forwarded','📍']
-  };
-  var x=m[s]||['b-pending','●'];
-  return'<span class="st-pill '+x[0]+'">'+x[1]+' '+(s||'—')+'</span>';
-}
-
-/* ── GENERATE ── */
+/* ═══════════════════════════════════════════════════════
+   GENERATE
+═══════════════════════════════════════════════════════ */
 window._rptGenerate = function(){
-  if(!_rptCurrentType){alert('Please select a report type first.');return;}
+  if(!_rptType){alert('Please select a report type first.');return;}
   if(!_rptAllData.length){alert('Data not loaded yet. Please wait.');return;}
-
+  if(_rptType==='payment'&&!Object.values(_rptChks).some(function(v){return v;})){
+    alert('Please select at least one option (Full, Deductions, Withdrawn, or Refund).');return;
+  }
   var btn=document.getElementById('rpt_gen_btn');
-  btn.disabled=true;btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin .8s linear infinite"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Generating…';
+  btn.disabled=true;
+  btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin .8s linear infinite"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Generating…';
 
   setTimeout(function(){
-    var filtered=_rptApplyFilters(_rptAllData);
-    _rptCurrentResults=filtered;
-
+    var filtered=_applyFilters(_rptAllData);
+    _rptResults=filtered;
     var body=document.getElementById('preview_body');
-    var cnt=document.getElementById('preview_count');
     var title=document.getElementById('preview_title');
+    var cnt=document.getElementById('preview_count');
 
     if(!filtered.length){
       body.innerHTML='<div class="preview-empty"><div class="big">🔍</div>No records match your filters.</div>';
       cnt.textContent='0 records';
-      btn.disabled=false;btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Generate Report';
-      return;
+    } else {
+      if(_rptType==='payment')          _renderPayment(filtered,body,title,cnt);
+      else if(_rptType==='retention')   _renderRetention(filtered,body,title,cnt);
+      else if(_rptType==='subcontractor') _renderSubSummary(filtered,body,title,cnt);
+      else if(_rptType==='status')      _renderStatus(filtered,body,title,cnt);
+      document.getElementById('rpt_csv_btn').disabled=false;
+      document.getElementById('rpt_print_btn').disabled=false;
     }
-
-    if(_rptCurrentType==='payment') _rptRenderPayment(filtered,body,title,cnt);
-    else if(_rptCurrentType==='retention') _rptRenderRetention(filtered,body,title,cnt);
-    else if(_rptCurrentType==='subcontractor') _rptRenderSubcontractor(filtered,body,title,cnt);
-    else if(_rptCurrentType==='status') _rptRenderStatus(filtered,body,title,cnt);
-
-    document.getElementById('rpt_csv_btn').disabled=false;
-    document.getElementById('rpt_print_btn').disabled=false;
-    btn.disabled=false;btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Generate Report';
-  },100);
+    btn.disabled=false;
+    btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Generate Report';
+  },120);
 };
 
-/* ── PAYMENT CERTS REPORT ── */
-function _rptRenderPayment(data,body,title,cnt){
-  title.textContent='Payment Certificates Report';
+/* ═══════════════════════════════════════════════════════
+   REPORT 1 — PAYMENT CERTIFICATES (multi-section)
+═══════════════════════════════════════════════════════ */
+function _renderPayment(data,body,title,cnt){
+  var labels=[];
+  if(_rptChks.full)       labels.push('Full Payment');
+  if(_rptChks.deductions) labels.push('Deductions');
+  if(_rptChks.withdrawn)  labels.push('Withdrawn');
+  if(_rptChks.refund)     labels.push('Refunds');
+  title.textContent='Payment Report — '+labels.join(' · ');
   cnt.textContent=data.length+' certificates';
-  data.sort(function(a,b){return(a.company_name||'').localeCompare(b.company_name||'')||Number(a.certificate_no)-Number(b.certificate_no);});
-  var tW=0,tWd=0,tDed=0,tRef=0,tRet=0,tAdv=0,tNet=0;
-  var rows=data.map(function(r){
-    tW+=+r.work_value||0;tWd+=+r.work_withdrawn||0;tDed+=+r.deduction||0;
-    tRef+=+r.refund||0;tRet+=+r.retention_amount||0;tAdv+=+r.advance_deduction||0;tNet+=+r.net_payment||0;
-    return'<tr>'+
-      '<td>'+r.certificate_no+'</td>'+
-      '<td>'+r.company_name+'</td>'+
-      '<td>'+r.subcontractor_name+'</td>'+
-      '<td>'+r.work_type+'</td>'+
-      '<td>'+(r.cert_date?new Date(r.cert_date).toLocaleDateString():'—')+'</td>'+
-      '<td class="td-num">'+fmt(r.work_value)+'</td>'+
-      '<td class="td-num">'+fmt(r.work_withdrawn)+'</td>'+
-      '<td class="td-num">'+fmt(r.deduction)+'</td>'+
-      '<td class="td-num">'+fmt(r.refund)+'</td>'+
-      '<td class="td-num">'+fmt(r.retention_amount)+'</td>'+
-      '<td class="td-num">'+fmt(r.advance_deduction||0)+'</td>'+
-      '<td class="td-net">'+fmt(r.net_payment)+'</td>'+
-      '<td>'+statusPill(r.cert_status||r.status)+'</td>'+
-    '</tr>';
-  }).join('');
-  body.innerHTML='<div class="tbox"><table>'+
-    '<thead><tr><th>Cert#</th><th>Company</th><th>Subcontractor</th><th>Work Type</th><th>Cert Date</th>'+
-    '<th>Work Value</th><th>Withdrawn</th><th>Deduction</th><th>Refund</th><th>Retention</th><th>Advance</th><th>Net Payment</th><th>Status</th></tr></thead>'+
+
+  var sections='';
+  var sectionColors={full:'var(--amber)',deductions:'var(--red)',withdrawn:'var(--cyan)',refund:'var(--green2)'};
+
+  if(_rptChks.full){
+    sections+='<div class="rpt-section">'+
+      '<div class="rpt-section-hd">'+
+        '<span class="rpt-section-lbl" style="color:var(--amber)">📋 Full Payment Report</span>'+
+        '<span class="rpt-section-cnt">'+data.length+' certificates</span>'+
+      '</div>'+_buildFullTable(data)+'</div>';
+  }
+  if(_rptChks.deductions){
+    var ded=data.filter(function(r){return(+r.deduction||0)>0;});
+    sections+='<div class="rpt-section">'+
+      '<div class="rpt-section-hd">'+
+        '<span class="rpt-section-lbl" style="color:var(--red)">✂️ Deductions Report</span>'+
+        '<span class="rpt-section-cnt">'+(ded.length?ded.length+' certificates with deductions':'No deductions found')+'</span>'+
+      '</div>'+(ded.length?_buildDeductionsTable(ded):'<div class="preview-empty" style="padding:30px"><div class="big" style="font-size:24px">✅</div>No deductions in current filter.</div>')+'</div>';
+  }
+  if(_rptChks.withdrawn){
+    var wdd=data.filter(function(r){return wd(r)>0;});
+    sections+='<div class="rpt-section">'+
+      '<div class="rpt-section-hd">'+
+        '<span class="rpt-section-lbl" style="color:var(--cyan)">📤 Work Withdrawn Report</span>'+
+        '<span class="rpt-section-cnt">'+(wdd.length?wdd.length+' certificates with withdrawn':'No withdrawn found')+'</span>'+
+      '</div>'+(wdd.length?_buildWithdrawnTable(wdd):'<div class="preview-empty" style="padding:30px"><div class="big" style="font-size:24px">✅</div>No withdrawn amounts in current filter.</div>')+'</div>';
+  }
+  if(_rptChks.refund){
+    var ref=data.filter(function(r){return(+r.refund||0)>0;});
+    sections+='<div class="rpt-section">'+
+      '<div class="rpt-section-hd">'+
+        '<span class="rpt-section-lbl" style="color:var(--green2)">↩️ Refund Report</span>'+
+        '<span class="rpt-section-cnt">'+(ref.length?ref.length+' certificates with refunds':'No refunds found')+'</span>'+
+      '</div>'+(ref.length?_buildRefundTable(ref):'<div class="preview-empty" style="padding:30px"><div class="big" style="font-size:24px">✅</div>No refunds in current filter.</div>')+'</div>';
+  }
+  body.innerHTML=sections;
+}
+
+/* Full payment table — grouped by subcontractor + work type */
+function _buildFullTable(data){
+  var groups=groupBySub(data);
+  var gW=0,gWd=0,gDed=0,gRef=0,gRet=0,gAdv=0,gNet=0;
+  var rows='';
+  groups.forEach(function(g){
+    var sW=0,sWd=0,sDed=0,sRef=0,sRet=0,sAdv=0,sNet=0;
+    rows+='<tr class="tr-grphd">'+
+      '<td colspan="3">👷 '+g.sub+' &nbsp;<span style="color:var(--text3);font-weight:400;font-size:10px">· '+g.work+'</span></td>'+
+      '<td colspan="5" style="color:var(--text3);font-weight:400;font-size:10px">'+g.company+'</td>'+
+      '<td colspan="3"></td></tr>';
+    g.recs.forEach(function(r){
+      var wv=+r.work_value||0,wdv=wd(r),ded=+r.deduction||0,rf=+r.refund||0,ret=+r.retention_amount||0,adv=+r.advance_deduction||0,net=+r.net_payment||0;
+      sW+=wv;sWd+=wdv;sDed+=ded;sRef+=rf;sRet+=ret;sAdv+=adv;sNet+=net;
+      rows+='<tr>'+
+        '<td style="padding-left:24px;color:var(--text3)">Cert #'+r.certificate_no+'</td>'+
+        '<td>'+(r.cert_date?new Date(r.cert_date).toLocaleDateString():'—')+'</td>'+
+        '<td>'+statusPill(r.cert_status||r.status)+'</td>'+
+        '<td class="td-num">'+fmt(wv)+'</td>'+
+        '<td class="td-cyan">'+fz(wdv)+'</td>'+
+        '<td class="td-red">'+fz(ded)+'</td>'+
+        '<td style="text-align:right;color:var(--green2)">'+fz(rf)+'</td>'+
+        '<td class="td-amber">'+fmt(ret)+'</td>'+
+        '<td class="td-num">'+fz(adv)+'</td>'+
+        '<td class="td-net">'+fmt(net)+'</td>'+
+        '<td style="font-size:9px;color:var(--text3)">'+((r.comment||'').substring(0,30)+(r.comment&&r.comment.length>30?'…':''))+'</td>'+
+      '</tr>';
+    });
+    rows+='<tr class="tr-sub">'+
+      '<td colspan="3" style="padding-left:24px">Subtotal — '+g.recs.length+' cert'+(g.recs.length!==1?'s':'')+'</td>'+
+      '<td class="td-num">'+fmt(sW)+'</td>'+
+      '<td class="td-cyan">'+fz(sWd)+'</td>'+
+      '<td class="td-red">'+fz(sDed)+'</td>'+
+      '<td style="text-align:right;color:var(--green2)">'+fz(sRef)+'</td>'+
+      '<td class="td-amber">'+fmt(sRet)+'</td>'+
+      '<td class="td-num">'+fz(sAdv)+'</td>'+
+      '<td class="td-net">'+fmt(sNet)+'</td>'+
+      '<td></td></tr>';
+    gW+=sW;gWd+=sWd;gDed+=sDed;gRef+=sRef;gRet+=sRet;gAdv+=sAdv;gNet+=sNet;
+  });
+  return '<div class="tbox"><table>'+
+    '<thead><tr><th>Certificate</th><th>Date</th><th>Status</th>'+
+    '<th>Work Value</th><th>Withdrawn</th><th>Deduction</th><th>Refund</th>'+
+    '<th>Retention</th><th>Advance</th><th>Net Payment</th><th>Comment</th></tr></thead>'+
     '<tbody>'+rows+'</tbody>'+
-    '<tfoot><tr><td colspan="5" style="font-family:var(--mono);font-size:11px">TOTAL ('+data.length+' certs)</td>'+
-    '<td class="td-num">'+fmt(tW)+'</td><td class="td-num">'+fmt(tWd)+'</td><td class="td-num">'+fmt(tDed)+'</td>'+
-    '<td class="td-num">'+fmt(tRef)+'</td><td class="td-num">'+fmt(tRet)+'</td><td class="td-num">'+fmt(tAdv)+'</td>'+
-    '<td class="td-net">'+fmt(tNet)+'</td><td></td></tr></tfoot>'+
+    '<tfoot><tr><td colspan="3">GRAND TOTAL — '+data.length+' certificates</td>'+
+    '<td class="td-num">'+fmt(gW)+'</td>'+
+    '<td class="td-cyan">'+fmt(gWd)+'</td>'+
+    '<td class="td-red">'+fmt(gDed)+'</td>'+
+    '<td style="text-align:right;color:var(--green2);font-weight:600">'+fmt(gRef)+'</td>'+
+    '<td class="td-amber">'+fmt(gRet)+'</td>'+
+    '<td class="td-num">'+fmt(gAdv)+'</td>'+
+    '<td class="td-net">'+fmt(gNet)+'</td>'+
+    '<td></td></tr></tfoot>'+
   '</table></div>';
 }
 
-/* ── RETENTION REPORT ── */
-function _rptRenderRetention(data,body,title,cnt){
+/* Deductions table */
+function _buildDeductionsTable(data){
+  var groups=groupBySub(data);
+  var gDed=0,gW=0,gNet=0;
+  var rows='';
+  groups.forEach(function(g){
+    var sDed=0,sW=0,sNet=0;
+    rows+='<tr class="tr-grphd"><td colspan="3">👷 '+g.sub+' &nbsp;<span style="color:var(--text3);font-weight:400;font-size:10px">· '+g.work+'</span></td><td colspan="4" style="color:var(--text3);font-weight:400;font-size:10px">'+g.company+'</td></tr>';
+    g.recs.forEach(function(r){
+      var d=+r.deduction||0,wv=+r.work_value||0,net=+r.net_payment||0;
+      sDed+=d;sW+=wv;sNet+=net;
+      rows+='<tr>'+
+        '<td style="padding-left:24px;color:var(--text3)">Cert #'+r.certificate_no+'</td>'+
+        '<td>'+(r.cert_date?new Date(r.cert_date).toLocaleDateString():'—')+'</td>'+
+        '<td>'+statusPill(r.cert_status||r.status)+'</td>'+
+        '<td class="td-num">'+fmt(wv)+'</td>'+
+        '<td class="td-red">'+fmt(d)+'</td>'+
+        '<td class="td-num">'+(wv>0?((d/wv)*100).toFixed(2)+'%':'—')+'</td>'+
+        '<td class="td-net">'+fmt(net)+'</td>'+
+      '</tr>';
+    });
+    rows+='<tr class="tr-sub"><td colspan="3" style="padding-left:24px">Subtotal ('+g.recs.length+' certs)</td>'+
+      '<td class="td-num">'+fmt(sW)+'</td>'+
+      '<td class="td-red">'+fmt(sDed)+'</td>'+
+      '<td class="td-num">'+(sW>0?((sDed/sW)*100).toFixed(2)+'%':'—')+'</td>'+
+      '<td class="td-net">'+fmt(sNet)+'</td></tr>';
+    gDed+=sDed;gW+=sW;gNet+=sNet;
+  });
+  return '<div class="tbox"><table>'+
+    '<thead><tr><th>Certificate</th><th>Date</th><th>Status</th>'+
+    '<th>Work Value</th><th>Deduction (SAR)</th><th>Deduction %</th><th>Net Payment</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody>'+
+    '<tfoot><tr><td colspan="3">GRAND TOTAL — '+data.length+' certs</td>'+
+    '<td class="td-num">'+fmt(gW)+'</td><td class="td-red">'+fmt(gDed)+'</td>'+
+    '<td class="td-num">'+(gW>0?((gDed/gW)*100).toFixed(2)+'%':'—')+'</td>'+
+    '<td class="td-net">'+fmt(gNet)+'</td></tr></tfoot>'+
+  '</table></div>';
+}
+
+/* Withdrawn table */
+function _buildWithdrawnTable(data){
+  var groups=groupBySub(data);
+  var gWd=0,gW=0,gNet=0;
+  var rows='';
+  groups.forEach(function(g){
+    var sWd=0,sW=0,sNet=0;
+    rows+='<tr class="tr-grphd"><td colspan="3">👷 '+g.sub+' &nbsp;<span style="color:var(--text3);font-weight:400;font-size:10px">· '+g.work+'</span></td><td colspan="4" style="color:var(--text3);font-weight:400;font-size:10px">'+g.company+'</td></tr>';
+    g.recs.forEach(function(r){
+      var w=wd(r),wv=+r.work_value||0,net=+r.net_payment||0;
+      sWd+=w;sW+=wv;sNet+=net;
+      rows+='<tr>'+
+        '<td style="padding-left:24px;color:var(--text3)">Cert #'+r.certificate_no+'</td>'+
+        '<td>'+(r.cert_date?new Date(r.cert_date).toLocaleDateString():'—')+'</td>'+
+        '<td>'+statusPill(r.cert_status||r.status)+'</td>'+
+        '<td class="td-num">'+fmt(wv)+'</td>'+
+        '<td class="td-cyan">'+fmt(w)+'</td>'+
+        '<td class="td-num">'+(wv>0?((w/wv)*100).toFixed(2)+'%':'—')+'</td>'+
+        '<td class="td-net">'+fmt(net)+'</td>'+
+      '</tr>';
+    });
+    rows+='<tr class="tr-sub"><td colspan="3" style="padding-left:24px">Subtotal ('+g.recs.length+' certs)</td>'+
+      '<td class="td-num">'+fmt(sW)+'</td>'+
+      '<td class="td-cyan">'+fmt(sWd)+'</td>'+
+      '<td class="td-num">'+(sW>0?((sWd/sW)*100).toFixed(2)+'%':'—')+'</td>'+
+      '<td class="td-net">'+fmt(sNet)+'</td></tr>';
+    gWd+=sWd;gW+=sW;gNet+=sNet;
+  });
+  return '<div class="tbox"><table>'+
+    '<thead><tr><th>Certificate</th><th>Date</th><th>Status</th>'+
+    '<th>Work Value</th><th>Withdrawn (SAR)</th><th>Withdrawn %</th><th>Net Payment</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody>'+
+    '<tfoot><tr><td colspan="3">GRAND TOTAL — '+data.length+' certs</td>'+
+    '<td class="td-num">'+fmt(gW)+'</td><td class="td-cyan">'+fmt(gWd)+'</td>'+
+    '<td class="td-num">'+(gW>0?((gWd/gW)*100).toFixed(2)+'%':'—')+'</td>'+
+    '<td class="td-net">'+fmt(gNet)+'</td></tr></tfoot>'+
+  '</table></div>';
+}
+
+/* Refund table */
+function _buildRefundTable(data){
+  var groups=groupBySub(data);
+  var gRef=0,gW=0,gNet=0;
+  var rows='';
+  groups.forEach(function(g){
+    var sRef=0,sW=0,sNet=0;
+    rows+='<tr class="tr-grphd"><td colspan="3">👷 '+g.sub+' &nbsp;<span style="color:var(--text3);font-weight:400;font-size:10px">· '+g.work+'</span></td><td colspan="3" style="color:var(--text3);font-weight:400;font-size:10px">'+g.company+'</td></tr>';
+    g.recs.forEach(function(r){
+      var rf=+r.refund||0,wv=+r.work_value||0,net=+r.net_payment||0;
+      sRef+=rf;sW+=wv;sNet+=net;
+      rows+='<tr>'+
+        '<td style="padding-left:24px;color:var(--text3)">Cert #'+r.certificate_no+'</td>'+
+        '<td>'+(r.cert_date?new Date(r.cert_date).toLocaleDateString():'—')+'</td>'+
+        '<td>'+statusPill(r.cert_status||r.status)+'</td>'+
+        '<td class="td-num">'+fmt(wv)+'</td>'+
+        '<td style="text-align:right;color:var(--green2);font-weight:600">'+fmt(rf)+'</td>'+
+        '<td class="td-net">'+fmt(net)+'</td>'+
+      '</tr>';
+    });
+    rows+='<tr class="tr-sub"><td colspan="3" style="padding-left:24px">Subtotal ('+g.recs.length+' certs)</td>'+
+      '<td class="td-num">'+fmt(sW)+'</td>'+
+      '<td style="text-align:right;color:var(--green2);font-weight:600">'+fmt(sRef)+'</td>'+
+      '<td class="td-net">'+fmt(sNet)+'</td></tr>';
+    gRef+=sRef;gW+=sW;gNet+=sNet;
+  });
+  return '<div class="tbox"><table>'+
+    '<thead><tr><th>Certificate</th><th>Date</th><th>Status</th>'+
+    '<th>Work Value</th><th>Refund (SAR)</th><th>Net Payment</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody>'+
+    '<tfoot><tr><td colspan="3">GRAND TOTAL — '+data.length+' certs</td>'+
+    '<td class="td-num">'+fmt(gW)+'</td>'+
+    '<td style="text-align:right;color:var(--green2);font-weight:700">'+fmt(gRef)+'</td>'+
+    '<td class="td-net">'+fmt(gNet)+'</td></tr></tfoot>'+
+  '</table></div>';
+}
+
+/* ═══════════════════════════════════════════════════════
+   REPORT 2 — RETENTION SUMMARY
+═══════════════════════════════════════════════════════ */
+function _renderRetention(data,body,title,cnt){
   title.textContent='Retention Summary Report';
   var map={};
   data.forEach(function(r){
-    var k=(r.subcontractor_name||'Unknown')+'__'+(r.work_type||'Other');
-    if(!map[k])map[k]={sub:r.subcontractor_name,work:r.work_type,company:r.company_name,total_work:0,total_retention:0,total_net:0,certs:0};
-    map[k].total_work+=+r.work_value||0;
-    map[k].total_retention+=+r.retention_amount||0;
-    map[k].total_net+=+r.net_payment||0;
-    map[k].certs++;
+    var k=(r.subcontractor_name||'?')+'|||'+(r.work_type||'Other');
+    if(!map[k])map[k]={sub:r.subcontractor_name,work:r.work_type,company:r.company_name,tW:0,tRet:0,tNet:0,n:0};
+    map[k].tW+=+r.work_value||0;map[k].tRet+=+r.retention_amount||0;map[k].tNet+=+r.net_payment||0;map[k].n++;
   });
-  var rows=Object.values(map).sort(function(a,b){return b.total_retention-a.total_retention;});
-  cnt.textContent=rows.length+' subcontractors';
-  var tRet=rows.reduce(function(s,r){return s+r.total_retention;},0);
-  var tWork=rows.reduce(function(s,r){return s+r.total_work;},0);
-  body.innerHTML='<div class="tbox"><table>'+
-    '<thead><tr><th>Subcontractor</th><th>Company</th><th>Work Type</th><th>Certs</th><th>Total Work</th><th>Retention</th><th>Retention %</th><th>Net Payment</th></tr></thead>'+
+  var rows=Object.values(map).sort(function(a,b){return b.tRet-a.tRet;});
+  cnt.textContent=rows.length+' groups · '+data.length+' certificates';
+  var tRet=rows.reduce(function(s,r){return s+r.tRet;},0);
+  var tWork=rows.reduce(function(s,r){return s+r.tW;},0);
+  body.innerHTML='<div class="rpt-section"><div class="tbox"><table>'+
+    '<thead><tr><th>Subcontractor</th><th>Company</th><th>Work Type</th><th>Certs</th>'+
+    '<th>Total Work</th><th>Retention (SAR)</th><th>Retention %</th><th>Net Payment</th></tr></thead>'+
     '<tbody>'+rows.map(function(r){
-      var pct=r.total_work?((r.total_retention/r.total_work)*100).toFixed(1)+'%':'—';
-      return'<tr><td>'+r.sub+'</td><td>'+r.company+'</td><td>'+r.work+'</td>'+
-        '<td class="td-num">'+r.certs+'</td>'+
-        '<td class="td-num">'+fmt(r.total_work)+'</td>'+
-        '<td class="td-num" style="color:var(--amber)">'+fmt(r.total_retention)+'</td>'+
+      var pct=r.tW?((r.tRet/r.tW)*100).toFixed(1)+'%':'—';
+      return '<tr>'+
+        '<td class="td-sub">'+r.sub+'</td><td>'+r.company+'</td><td>'+r.work+'</td>'+
+        '<td class="td-num">'+r.n+'</td>'+
+        '<td class="td-num">'+fmt(r.tW)+'</td>'+
+        '<td class="td-amber">'+fmt(r.tRet)+'</td>'+
         '<td class="td-num">'+pct+'</td>'+
-        '<td class="td-net">'+fmt(r.total_net)+'</td></tr>';
+        '<td class="td-net">'+fmt(r.tNet)+'</td></tr>';
     }).join('')+'</tbody>'+
-    '<tfoot><tr><td colspan="4">TOTAL</td><td class="td-num">'+fmt(tWork)+'</td>'+
-    '<td class="td-num" style="color:var(--amber)">'+fmt(tRet)+'</td>'+
-    '<td class="td-num">'+(tWork?((tRet/tWork)*100).toFixed(1)+'%':'—')+'</td><td></td></tr></tfoot>'+
-  '</table></div>';
+    '<tfoot><tr><td colspan="4">TOTAL — '+rows.length+' subcontractor groups</td>'+
+    '<td class="td-num">'+fmt(tWork)+'</td>'+
+    '<td class="td-amber">'+fmt(tRet)+'</td>'+
+    '<td class="td-num">'+(tWork?((tRet/tWork)*100).toFixed(1)+'%':'—')+'</td>'+
+    '<td></td></tr></tfoot>'+
+  '</table></div></div>';
 }
 
-/* ── SUBCONTRACTOR PERFORMANCE ── */
-function _rptRenderSubcontractor(data,body,title,cnt){
-  title.textContent='Subcontractor Performance Report';
+/* ═══════════════════════════════════════════════════════
+   REPORT 3 — SUBCONTRACTOR SUMMARY
+   One row per subcontractor — last IPC no, total certs, all totals
+═══════════════════════════════════════════════════════ */
+function _renderSubSummary(data,body,title,cnt){
+  title.textContent='Subcontractor Summary Report';
+  /* aggregate per subcontractor (across all work types) */
   var map={};
   data.forEach(function(r){
-    var k=r.subcontractor_id||r.subcontractor_name;
-    if(!map[k])map[k]={sub:r.subcontractor_name,company:r.company_name,works:new Set(),total_work:0,total_net:0,total_retention:0,total_advance:0,total_deduction:0,certs:0};
-    map[k].works.add(r.work_type);
-    map[k].total_work+=+r.work_value||0;
-    map[k].total_net+=+r.net_payment||0;
-    map[k].total_retention+=+r.retention_amount||0;
-    map[k].total_advance+=+r.advance_deduction||0;
-    map[k].total_deduction+=+r.deduction||0;
-    map[k].certs++;
+    var k=r.subcontractor_id||r.subcontractor_name||'?';
+    if(!map[k])map[k]={
+      sub:r.subcontractor_name,company:r.company_name,
+      works:new Set(),lastCertNo:0,lastCertDate:'',
+      tW:0,tWd:0,tDed:0,tRef:0,tRet:0,tAdv:0,tNet:0,n:0,
+      statuses:new Set()
+    };
+    map[k].works.add(r.work_type||'—');
+    map[k].tW+=+r.work_value||0;
+    map[k].tWd+=wd(r);
+    map[k].tDed+=+r.deduction||0;
+    map[k].tRef+=+r.refund||0;
+    map[k].tRet+=+r.retention_amount||0;
+    map[k].tAdv+=+r.advance_deduction||0;
+    map[k].tNet+=+r.net_payment||0;
+    map[k].n++;
+    map[k].statuses.add(r.cert_status||r.status||'');
+    /* track last (highest) cert number */
+    var cn=Number(r.certificate_no)||0;
+    if(cn>map[k].lastCertNo){map[k].lastCertNo=cn;map[k].lastCertDate=r.cert_date||'';}
   });
-  var rows=Object.values(map).sort(function(a,b){return b.total_net-a.total_net;});
-  cnt.textContent=rows.length+' subcontractors';
-  var tNet=rows.reduce(function(s,r){return s+r.total_net;},0);
-  body.innerHTML='<div class="tbox"><table>'+
-    '<thead><tr><th>#</th><th>Subcontractor</th><th>Company</th><th>Work Types</th><th>Certs</th><th>Total Work</th><th>Deductions</th><th>Retention</th><th>Advance</th><th>Net Payment</th></tr></thead>'+
+
+  var rows=Object.values(map).sort(function(a,b){return b.tNet-a.tNet;});
+  cnt.textContent=rows.length+' subcontractors · '+data.length+' certificates';
+
+  var tW=0,tWd=0,tDed=0,tRef=0,tRet=0,tAdv=0,tNet=0;
+  rows.forEach(function(r){tW+=r.tW;tWd+=r.tWd;tDed+=r.tDed;tRef+=r.tRef;tRet+=r.tRet;tAdv+=r.tAdv;tNet+=r.tNet;});
+
+  body.innerHTML='<div class="rpt-section"><div class="tbox"><table>'+
+    '<thead><tr>'+
+      '<th>#</th><th>Subcontractor</th><th>Company</th><th>Work Types</th>'+
+      '<th>Certs</th><th>Last IPC</th><th>Last Date</th>'+
+      '<th>Work Value</th><th>Withdrawn</th><th>Deduction</th>'+
+      '<th>Refund</th><th>Retention</th><th>Advance</th><th>Net Payment</th><th>Status</th>'+
+    '</tr></thead>'+
     '<tbody>'+rows.map(function(r,i){
-      return'<tr><td class="td-num">'+(i+1)+'</td><td>'+r.sub+'</td><td>'+r.company+'</td>'+
-        '<td>'+[...r.works].join(', ')+'</td>'+
-        '<td class="td-num">'+r.certs+'</td>'+
-        '<td class="td-num">'+fmt(r.total_work)+'</td>'+
-        '<td class="td-num">'+fmt(r.total_deduction)+'</td>'+
-        '<td class="td-num">'+fmt(r.total_retention)+'</td>'+
-        '<td class="td-num">'+fmt(r.total_advance)+'</td>'+
-        '<td class="td-net">'+fmt(r.total_net)+'</td></tr>';
+      var stArr=[...r.statuses].filter(Boolean);
+      var stDisplay=stArr.length===1?stArr[0]:(stArr.length>1?'Mixed':'—');
+      var lastDate=r.lastCertDate?new Date(r.lastCertDate).toLocaleDateString():'—';
+      return '<tr>'+
+        '<td class="td-num">'+(i+1)+'</td>'+
+        '<td class="td-sub">'+r.sub+'</td>'+
+        '<td>'+r.company+'</td>'+
+        '<td style="font-size:10px">'+[...r.works].join(', ')+'</td>'+
+        '<td class="td-num">'+r.n+'</td>'+
+        '<td class="td-num" style="color:var(--amber)">IPC #'+r.lastCertNo+'</td>'+
+        '<td style="font-size:10px">'+lastDate+'</td>'+
+        '<td class="td-num">'+fmt(r.tW)+'</td>'+
+        '<td class="td-cyan">'+fz(r.tWd)+'</td>'+
+        '<td class="td-red">'+fz(r.tDed)+'</td>'+
+        '<td style="text-align:right;color:var(--green2)">'+fz(r.tRef)+'</td>'+
+        '<td class="td-amber">'+fmt(r.tRet)+'</td>'+
+        '<td class="td-num">'+fz(r.tAdv)+'</td>'+
+        '<td class="td-net">'+fmt(r.tNet)+'</td>'+
+        '<td>'+statusPill(stDisplay)+'</td>'+
+      '</tr>';
     }).join('')+'</tbody>'+
-    '<tfoot><tr><td colspan="9">TOTAL</td><td class="td-net">'+fmt(tNet)+'</td></tr></tfoot>'+
-  '</table></div>';
+    '<tfoot><tr>'+
+      '<td colspan="7">GRAND TOTAL — '+rows.length+' subcontractors</td>'+
+      '<td class="td-num">'+fmt(tW)+'</td>'+
+      '<td class="td-cyan">'+fmt(tWd)+'</td>'+
+      '<td class="td-red">'+fmt(tDed)+'</td>'+
+      '<td style="text-align:right;color:var(--green2);font-weight:700">'+fmt(tRef)+'</td>'+
+      '<td class="td-amber">'+fmt(tRet)+'</td>'+
+      '<td class="td-num">'+fmt(tAdv)+'</td>'+
+      '<td class="td-net">'+fmt(tNet)+'</td>'+
+      '<td></td>'+
+    '</tr></tfoot>'+
+  '</table></div></div>';
 }
 
-/* ── STATUS WORKFLOW REPORT ── */
-function _rptRenderStatus(data,body,title,cnt){
+/* ═══════════════════════════════════════════════════════
+   REPORT 4 — STATUS WORKFLOW
+═══════════════════════════════════════════════════════ */
+function _renderStatus(data,body,title,cnt){
   title.textContent='Status Workflow Report';
-  var STATUS_ORDER=['Submitted','Under Review','Approved','Forwarded to Finance','Released','On Site','Pending','Rejected'];
+  var ORDER=['Submitted','Under Review','Approved','Forwarded to Finance','Released','On Site','Pending','Rejected'];
   var map={};
-  STATUS_ORDER.forEach(function(s){map[s]={status:s,certs:[],total_net:0,total_work:0};});
+  ORDER.forEach(function(s){map[s]={status:s,n:0,tW:0,tNet:0};});
   data.forEach(function(r){
     var st=r.cert_status||r.status||'Pending';
-    if(!map[st])map[st]={status:st,certs:[],total_net:0,total_work:0};
-    map[st].certs.push(r);
-    map[st].total_net+=+r.net_payment||0;
-    map[st].total_work+=+r.work_value||0;
+    if(!map[st])map[st]={status:st,n:0,tW:0,tNet:0};
+    map[st].n++;map[st].tW+=+r.work_value||0;map[st].tNet+=+r.net_payment||0;
   });
-  var rows=Object.values(map).filter(function(g){return g.certs.length>0;});
+  var rows=Object.values(map).filter(function(g){return g.n>0;});
   cnt.textContent=data.length+' certificates · '+rows.length+' statuses';
   var tNet=data.reduce(function(s,r){return s+(+r.net_payment||0);},0);
-  body.innerHTML='<div class="tbox"><table>'+
-    '<thead><tr><th>Status</th><th>Certificates</th><th>% of Total</th><th>Total Work</th><th>Net Payment</th></tr></thead>'+
+  body.innerHTML='<div class="rpt-section"><div class="tbox"><table>'+
+    '<thead><tr><th>Status</th><th>Certificates</th><th>% of Total</th><th>Total Work Value</th><th>Net Payment</th></tr></thead>'+
     '<tbody>'+rows.map(function(g){
-      var pct=data.length?((g.certs.length/data.length)*100).toFixed(1)+'%':'—';
-      return'<tr>'+
+      var pct=data.length?((g.n/data.length)*100).toFixed(1)+'%':'—';
+      return '<tr>'+
         '<td>'+statusPill(g.status)+'</td>'+
-        '<td class="td-num">'+g.certs.length+'</td>'+
+        '<td class="td-num">'+g.n+'</td>'+
         '<td class="td-num">'+pct+'</td>'+
-        '<td class="td-num">'+fmt(g.total_work)+'</td>'+
-        '<td class="td-net">'+fmt(g.total_net)+'</td></tr>';
+        '<td class="td-num">'+fmt(g.tW)+'</td>'+
+        '<td class="td-net">'+fmt(g.tNet)+'</td></tr>';
     }).join('')+'</tbody>'+
     '<tfoot><tr><td>TOTAL</td><td class="td-num">'+data.length+'</td><td class="td-num">100%</td><td></td><td class="td-net">'+fmt(tNet)+'</td></tr></tfoot>'+
-  '</table></div>';
+  '</table></div></div>';
 }
 
-/* ── EXPORT CSV ── */
+/* ═══════════════════════════════════════════════════════
+   EXPORT CSV
+═══════════════════════════════════════════════════════ */
 window._rptExportCSV = function(){
-  if(!_rptCurrentResults.length){alert('No data to export. Generate a report first.');return;}
-  var headers=['Cert#','Company','Subcontractor','Work Type','Cert Date','Work Value','Withdrawn','Deduction','Refund','Retention','Advance','Net Payment','Status'];
-  var rows=[headers];
-  _rptCurrentResults.forEach(function(r){
-    rows.push([r.certificate_no,r.company_name,r.subcontractor_name,r.work_type,
-      r.cert_date?new Date(r.cert_date).toLocaleDateString():'',
-      r.work_value,r.work_withdrawn,r.deduction,r.refund,r.retention_amount,r.advance_deduction||0,r.net_payment,
-      r.cert_status||r.status||'']);
-  });
-  var csv=rows.map(function(r){return r.map(function(v){return'"'+String(v||'').replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  if(!_rptResults.length){alert('No data. Generate a report first.');return;}
+  var h,rows;
+  if(_rptType==='subcontractor'){
+    /* build same aggregation as _renderSubSummary */
+    var map={};
+    _rptResults.forEach(function(r){
+      var k=r.subcontractor_id||r.subcontractor_name;
+      if(!map[k])map[k]={sub:r.subcontractor_name,company:r.company_name,works:new Set(),lastCertNo:0,lastCertDate:'',tW:0,tWd:0,tDed:0,tRef:0,tRet:0,tAdv:0,tNet:0,n:0};
+      map[k].works.add(r.work_type||'—');map[k].tW+=+r.work_value||0;map[k].tWd+=wd(r);
+      map[k].tDed+=+r.deduction||0;map[k].tRef+=+r.refund||0;map[k].tRet+=+r.retention_amount||0;
+      map[k].tAdv+=+r.advance_deduction||0;map[k].tNet+=+r.net_payment||0;map[k].n++;
+      var cn=Number(r.certificate_no)||0;if(cn>map[k].lastCertNo){map[k].lastCertNo=cn;map[k].lastCertDate=r.cert_date||'';}
+    });
+    h=['Subcontractor','Company','Work Types','Total Certs','Last IPC#','Last Date','Work Value','Withdrawn','Deduction','Refund','Retention','Advance','Net Payment'];
+    rows=Object.values(map).sort(function(a,b){return b.tNet-a.tNet;}).map(function(r){
+      return[r.sub,r.company,[...r.works].join(' | '),r.n,'IPC#'+r.lastCertNo,
+        r.lastCertDate?new Date(r.lastCertDate).toLocaleDateString():'',
+        r.tW,r.tWd,r.tDed,r.tRef,r.tRet,r.tAdv,r.tNet];
+    });
+  } else {
+    h=['Cert#','Company','Subcontractor','Work Type','Cert Date','Work Value','Withdrawn','Deduction','Refund','Retention','Advance','Net Payment','Status','Comment'];
+    rows=_rptResults.map(function(r){
+      return[r.certificate_no,r.company_name,r.subcontractor_name,r.work_type,
+        r.cert_date?new Date(r.cert_date).toLocaleDateString():'',
+        r.work_value,wd(r),r.deduction,r.refund,r.retention_amount,r.advance_deduction||0,
+        r.net_payment,r.cert_status||r.status||'',r.comment||''];
+    });
+  }
+  var csv=[h].concat(rows).map(function(r){
+    return r.map(function(v){return'"'+String(v||'').replace(/"/g,'""')+'"';}).join(',');
+  }).join('\n');
   var a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
-  a.download='SPMS_Report_'+(_rptCurrentType||'export')+'_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.download='SPMS_'+(_rptType||'report')+'_'+new Date().toISOString().slice(0,10)+'.csv';
   a.click();
 };
 
-/* ── PRINT ── */
+/* ═══════════════════════════════════════════════════════
+   PRINT
+═══════════════════════════════════════════════════════ */
 window._rptPrint = function(){
-  if(!_rptCurrentResults.length){alert('Generate a report first.');return;}
-  var previewHtml=document.getElementById('preview_body').innerHTML;
+  if(!_rptResults.length){alert('Generate a report first.');return;}
   var win=window.open('','_blank');
   win.document.write('<html><head><style>'+
-    'body{font-family:monospace;padding:20px;font-size:12px;}'+
-    'table{width:100%;border-collapse:collapse;}'+
-    'th{background:#1f4e79;color:#fff;padding:6px 8px;font-size:11px;text-align:left;}'+
-    'td{border:1px solid #ccc;padding:4px 8px;font-size:11px;}'+
-    'tfoot td{background:#eef;font-weight:bold;}'+
-    '.td-num,.td-net{text-align:right;}'+
+    'body{font-family:monospace;padding:20px;font-size:11px;}'+
+    'table{width:100%;border-collapse:collapse;margin-bottom:20px;}'+
+    'th{background:#1f4e79;color:#fff;padding:5px 8px;font-size:10px;text-align:left;}'+
+    'td{border:1px solid #ddd;padding:4px 7px;font-size:10px;}'+
+    'tfoot td{background:#eef4ff;font-weight:bold;}'+
+    '.td-num,.td-net,.td-red,.td-amber,.td-cyan{text-align:right;}'+
     '.td-net{color:#059669;font-weight:700;}'+
-    '.st-pill{padding:2px 6px;border-radius:4px;font-size:10px;}'+
-    'h1{margin-bottom:8px;color:#1f4e79;}'+
-    '@page{size:A4 landscape;margin:8mm}'+
+    '.td-red{color:#dc2626;font-weight:600;}'+
+    '.td-amber{color:#d97706;font-weight:600;}'+
+    '.td-cyan{color:#0891b2;font-weight:600;}'+
+    '.td-zero{color:#94a3b8;}'+
+    '.td-sub{font-weight:700;}'+
+    '.st-pill{padding:1px 5px;border-radius:3px;font-size:9px;background:#eee;}'+
+    '.tr-grphd td{background:#dbeafe;font-weight:700;border-top:2px solid #1f4e79;}'+
+    '.tr-sub td{background:#f8faff;font-style:italic;border-bottom:2px solid #cbd5e1;}'+
+    '.rpt-section-hd{font-weight:700;font-size:12px;color:#1f4e79;margin:16px 0 6px;border-bottom:2px solid #1f4e79;padding-bottom:3px;}'+
+    'h1{color:#1f4e79;margin-bottom:4px;}'+
+    '@page{size:A4 landscape;margin:7mm}'+
   '</style></head><body>'+
     '<h1>SPMS — '+document.getElementById('preview_title').textContent+'</h1>'+
-    '<p style="font-size:10px;color:#666;margin-bottom:12px">Generated: '+new Date().toLocaleString()+' · '+_rptCurrentResults.length+' records</p>'+
-    previewHtml+
+    '<p style="font-size:10px;color:#555;margin-bottom:14px">Generated: '+new Date().toLocaleString()+' &nbsp;·&nbsp; '+_rptResults.length+' records</p>'+
+    document.getElementById('preview_body').innerHTML+
   '</body></html>');
   win.document.close();
   setTimeout(function(){win.print();},400);
 };
 
-/* ── RESET ── */
+/* ═══════════════════════════════════════════════════════
+   RESET
+═══════════════════════════════════════════════════════ */
 window._rptReset = function(){
-  ['rpt_company','rpt_work','rpt_sub','rpt_status'].forEach(function(id){
-    var el=document.getElementById(id);if(el)el.value='';
-  });
+  ['rpt_company','rpt_work','rpt_sub','rpt_status_f'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('rpt_from').value='';
   document.getElementById('rpt_to').value='';
-  _rptCurrentResults=[];
-  _rptCurrentType=null;
-  document.querySelectorAll('.rtype-card').forEach(function(c){c.classList.remove('selected','rt-1','rt-2','rt-3','rt-4');});
+  _rptResults=[];_rptType=null;
+  _rptChks={full:true,deductions:false,withdrawn:false,refund:false};
+  document.querySelectorAll('.rtype-card').forEach(function(c){c.classList.remove('selected');});
+  document.getElementById('paymentSubopts').classList.remove('open');
+  /* reset checkboxes */
+  ['full','deductions','withdrawn','refund'].forEach(function(k){
+    var el=document.getElementById('chk_'+k);if(!el)return;
+    var on=(k==='full');el.classList.toggle('active',on);el.querySelector('.chk-box').textContent=on?'✓':'';
+  });
   document.getElementById('rpt_subtitle').textContent='Select a report type to begin';
-  document.getElementById('preview_title').textContent='Report Preview';
-  document.getElementById('preview_count').textContent='';
-  document.getElementById('preview_body').innerHTML='<div class="preview-empty"><div class="big">📄</div>Select a report type and click <strong style="color:var(--violet)">Generate Report</strong></div>';
-  document.getElementById('rpt_csv_btn').disabled=true;
-  document.getElementById('rpt_print_btn').disabled=true;
+  _clearPreview();
 };
 
-/* ── INIT ── */
+/* ═══════════════════════════════════════════════════════
+   INIT — load data, populate dropdowns
+═══════════════════════════════════════════════════════ */
 window._reportsPageInit = async function(){
   try{
     var token=localStorage.getItem('token');
-    var res=await fetch('https://spms-backend-jxzn.onrender.com/api/payments/all-full',{
-      headers:{'Authorization':'Bearer '+token}
-    });
-    if(!res.ok){console.error('Reports data failed');return;}
+    var res=await fetch('https://spms-backend-jxzn.onrender.com/api/payments/all-full',{headers:{'Authorization':'Bearer '+token}});
+    if(!res.ok){console.error('Reports data load failed: '+res.status);return;}
     var data=await res.json();
-    if(!Array.isArray(data))return;
+    if(!Array.isArray(data)){console.error('Expected array');return;}
     _rptAllData=data;
 
-    // Populate dropdowns
     var popSel=function(id,key){
       var sel=document.getElementById(id);if(!sel)return;
       var vals=[...new Set(data.map(function(r){return r[key];}).filter(Boolean))].sort();
-      vals.forEach(function(v){sel.innerHTML+='<option value="'+v+'">'+v+'</option>';});
+      vals.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
     };
     popSel('rpt_company','company_name');
     popSel('rpt_work','work_type');
     popSel('rpt_sub','subcontractor_name');
 
+    var uniqSubs=[...new Set(data.map(function(r){return r.subcontractor_name;}))].length;
+    var uniqCos=[...new Set(data.map(function(r){return r.company_name;}))].length;
+    var tDed=data.reduce(function(s,r){return s+(+r.deduction||0);},0);
+    var tWd=data.reduce(function(s,r){return s+wd(r);},0);
+    var tRef=data.reduce(function(s,r){return s+(+r.refund||0);},0);
     document.getElementById('rpt_subtitle').textContent=
-      data.length+' certificates loaded · '+
-      [...new Set(data.map(function(r){return r.company_name;}))].length+' companies · '+
-      [...new Set(data.map(function(r){return r.subcontractor_name;}))].length+' subcontractors';
-
+      data.length+' certificates · '+uniqCos+' companies · '+uniqSubs+' subcontractors'
+      +' · Ded: '+fmt(tDed)+' · Wd: '+fmt(tWd)+' · Ref: '+fmt(tRef)+' SAR';
   }catch(e){console.error('Reports init error:',e);}
 };
 
+/* auto-init if standalone, otherwise SPA calls _reportsPageInit */
 if(document.getElementById('preview_body')){
   window._reportsPageInit();
 }
