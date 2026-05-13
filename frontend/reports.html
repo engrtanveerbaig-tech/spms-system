@@ -151,6 +151,70 @@ tfoot .td-amber{color:var(--amber)!important;}
 .preview-empty{text-align:center;padding:60px 20px;color:var(--text3);font-family:var(--mono);font-size:11px;}
 .preview-empty .big{font-size:36px;margin-bottom:12px;}
 
+/* ── Summary Page ── */
+.summary-page{padding:20px 22px 24px;border-bottom:1px solid var(--border);}
+.summary-masthead{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid var(--border2);}
+.summary-title-block .sm-eyebrow{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--violet);font-family:var(--mono);margin-bottom:6px;}
+.summary-title-block .sm-title{font-size:22px;font-weight:800;letter-spacing:-.03em;color:var(--text1);}
+.summary-title-block .sm-title span{background:linear-gradient(135deg,var(--amber),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.summary-title-block .sm-meta{font-size:9px;font-family:var(--mono);color:var(--text3);margin-top:4px;}
+.summary-badge{background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);border-radius:var(--r);padding:8px 14px;text-align:right;}
+.summary-badge .sb-label{font-size:8px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em;}
+.summary-badge .sb-val{font-size:13px;font-weight:700;color:var(--violet);}
+
+/* KPI strip */
+.sm-kpi-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:10px;margin-bottom:20px;}
+.sm-kpi{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;position:relative;overflow:hidden;}
+.sm-kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;}
+.sm-kpi.kv-green::before{background:linear-gradient(90deg,var(--green),var(--green2));}
+.sm-kpi.kv-amber::before{background:linear-gradient(90deg,var(--amber),var(--orange));}
+.sm-kpi.kv-blue::before{background:linear-gradient(90deg,var(--blue),var(--violet));}
+.sm-kpi.kv-cyan::before{background:linear-gradient(90deg,var(--cyan),var(--blue));}
+.sm-kpi.kv-red::before{background:linear-gradient(90deg,var(--red),var(--orange));}
+.sm-kpi.kv-violet::before{background:linear-gradient(90deg,var(--violet),var(--cyan));}
+.sm-kpi-icon{font-size:18px;margin-bottom:6px;}
+.sm-kpi-label{font-size:8px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px;}
+.sm-kpi-val{font-size:17px;font-weight:700;color:var(--text1);line-height:1;}
+.sm-kpi-sub{font-size:8px;font-family:var(--mono);color:var(--text3);margin-top:3px;}
+
+/* Summary two-column block */
+.sm-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+@media(max-width:700px){.sm-grid2{grid-template-columns:1fr;}}
+.sm-card{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);overflow:hidden;}
+.sm-card-hd{padding:9px 14px;border-bottom:1px solid var(--border);font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-family:var(--mono);display:flex;align-items:center;gap:7px;}
+.sm-card-body{padding:0;}
+.sm-row{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;border-bottom:1px solid rgba(255,255,255,.03);font-size:11px;font-family:var(--mono);}
+.sm-row:last-child{border-bottom:none;}
+.sm-row:hover{background:rgba(255,255,255,.02);}
+.sm-row-label{color:var(--text2);font-size:10px;}
+.sm-row-val{color:var(--text1);font-weight:600;text-align:right;}
+.sm-row-val.v-green{color:var(--green2);}
+.sm-row-val.v-amber{color:var(--amber);}
+.sm-row-val.v-red{color:var(--red);}
+.sm-row-val.v-cyan{color:var(--cyan);}
+.sm-row-val.v-blue{color:var(--blue);}
+.sm-row-val.v-violet{color:var(--violet);}
+.sm-row-val.v-dim{color:var(--text3);}
+
+/* work type breakdown table inside summary */
+.sm-wt-table{width:100%;border-collapse:collapse;}
+.sm-wt-table th{background:var(--bg4);padding:6px 12px;font-size:8px;letter-spacing:.1em;text-transform:uppercase;font-family:var(--mono);color:var(--text3);text-align:left;border-bottom:1px solid var(--border);}
+.sm-wt-table td{padding:6px 12px;font-size:10px;font-family:var(--mono);color:var(--text2);border-bottom:1px solid rgba(255,255,255,.025);}
+.sm-wt-table tbody tr:last-child td{border-bottom:none;}
+.sm-wt-table tbody tr:hover td{background:rgba(255,255,255,.02);}
+.sm-wt-table tfoot td{background:var(--bg4);font-weight:700;color:var(--text1)!important;border-top:1px solid var(--border2);font-size:10px;}
+.sm-wt-num{text-align:right;color:var(--text1)!important;}
+.sm-wt-net{text-align:right;color:var(--green2)!important;font-weight:700;}
+.sm-wt-amber{text-align:right;color:var(--amber)!important;font-weight:600;}
+
+/* status breakdown inside summary */
+.sm-status-row{display:flex;align-items:center;gap:10px;padding:6px 14px;border-bottom:1px solid rgba(255,255,255,.03);}
+.sm-status-row:last-child{border-bottom:none;}
+.sm-status-bar-wrap{flex:1;background:var(--bg4);border-radius:20px;height:5px;overflow:hidden;}
+.sm-status-bar{height:5px;border-radius:20px;}
+.sm-status-n{font-size:10px;font-family:var(--mono);color:var(--text1);font-weight:600;min-width:24px;text-align:right;}
+.sm-status-pct{font-size:8px;font-family:var(--mono);color:var(--text3);min-width:36px;text-align:right;}
+
 /* ── Status pills ── */
 .st-pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:600;font-family:var(--mono);}
 .b-approved{background:rgba(16,185,129,.12);color:#10b981;}
@@ -385,6 +449,229 @@ function groupByCompanyThenSub(data){
 }
 
 /* ═══════════════════════════════════════════════════════
+   SUMMARY PAGE — first section of every report
+   data = filtered cert records
+   rptTypeName = human label for report type
+═══════════════════════════════════════════════════════ */
+function _buildSummaryPage(data, rptTypeName){
+  var now = new Date();
+  var genDate = now.toLocaleDateString('en-SA',{year:'numeric',month:'long',day:'numeric'});
+  var genTime = now.toLocaleTimeString('en-SA',{hour:'2-digit',minute:'2-digit'});
+
+  /* ── Aggregate totals ── */
+  var totalCerts   = data.length;
+  var totalWork    = 0, totalNet = 0, totalRet = 0, totalDed = 0, totalWd = 0, totalRef = 0, totalAdv = 0;
+  var companies    = new Set(), subs = new Set(), workTypes = new Set(), statuses = {};
+
+  data.forEach(function(r){
+    totalWork += +r.work_value||0;
+    totalNet  += +r.net_payment||0;
+    totalRet  += +r.retention_amount||0;
+    totalDed  += +r.deduction||0;
+    totalWd   += wd(r);
+    totalRef  += +r.refund||0;
+    totalAdv  += +r.advance_deduction||0;
+    companies.add(r.company_name||'Unknown');
+    subs.add(r.subcontractor_name||'Unknown');
+    workTypes.add(r.work_type||'Other');
+    var st = r.cert_status||r.status||'Pending';
+    statuses[st] = (statuses[st]||0)+1;
+  });
+
+  /* ── Filters applied text ── */
+  var fCo  = document.getElementById('rpt_company').value;
+  var fWk  = document.getElementById('rpt_work').value;
+  var fSb  = document.getElementById('rpt_sub').value;
+  var fSt  = document.getElementById('rpt_status_f').value;
+  var fFr  = document.getElementById('rpt_from').value;
+  var fTo  = document.getElementById('rpt_to').value;
+  var filterParts = [];
+  if(fCo) filterParts.push('Company: '+fCo);
+  if(fWk) filterParts.push('Work Type: '+fWk);
+  if(fSb) filterParts.push('Subcontractor: '+fSb);
+  if(fSt) filterParts.push('Status: '+fSt);
+  if(fFr) filterParts.push('From: '+fFr);
+  if(fTo) filterParts.push('To: '+fTo);
+  var filterText = filterParts.length ? filterParts.join('  ·  ') : 'No filters applied — showing all data';
+
+  /* ── Work type breakdown ── */
+  var wtMap = {};
+  data.forEach(function(r){
+    var wt = r.work_type||'Other';
+    if(!wtMap[wt]) wtMap[wt]={work:wt,n:0,subs:new Set(),cos:new Set(),tW:0,tNet:0,tRet:0,tDed:0};
+    wtMap[wt].n++;
+    wtMap[wt].subs.add(r.subcontractor_name||'?');
+    wtMap[wt].cos.add(r.company_name||'?');
+    wtMap[wt].tW   += +r.work_value||0;
+    wtMap[wt].tNet += +r.net_payment||0;
+    wtMap[wt].tRet += +r.retention_amount||0;
+    wtMap[wt].tDed += +r.deduction||0;
+  });
+  var wtRows = Object.values(wtMap).sort(function(a,b){return b.tNet-a.tNet;});
+
+  /* ── Company breakdown ── */
+  var coAgg = {};
+  data.forEach(function(r){
+    var co = r.company_name||'Unknown';
+    if(!coAgg[co]) coAgg[co]={co:co,n:0,subs:new Set(),tW:0,tNet:0,tRet:0};
+    coAgg[co].n++;
+    coAgg[co].subs.add(r.subcontractor_name||'?');
+    coAgg[co].tW   += +r.work_value||0;
+    coAgg[co].tNet += +r.net_payment||0;
+    coAgg[co].tRet += +r.retention_amount||0;
+  });
+  var coRows = Object.values(coAgg).sort(function(a,b){return b.tNet-a.tNet;});
+
+  /* ── Status breakdown ── */
+  var stOrder = ['Approved','Released','Submitted','Under Review','Forwarded to Finance','On Site','Pending','Rejected'];
+  var stColors = {
+    'Approved':'#10b981','Released':'#34d399','Submitted':'#06b6d4',
+    'Under Review':'#f59e0b','Forwarded to Finance':'#3b82f6',
+    'On Site':'#3b82f6','Pending':'#8b5cf6','Rejected':'#f43f5e'
+  };
+  var stEntries = stOrder
+    .filter(function(s){return statuses[s];})
+    .map(function(s){return{s:s,n:statuses[s],pct:((statuses[s]/totalCerts)*100).toFixed(1)};});
+  Object.keys(statuses).forEach(function(s){
+    if(!stOrder.includes(s)) stEntries.push({s:s,n:statuses[s],pct:((statuses[s]/totalCerts)*100).toFixed(1)});
+  });
+
+  /* ── Net efficiency ── */
+  var efficiency = totalWork>0 ? ((totalNet/totalWork)*100).toFixed(1) : '—';
+  var retPct     = totalWork>0 ? ((totalRet/totalWork)*100).toFixed(1) : '—';
+
+  /* ── Work type table rows ── */
+  var wtHtml = wtRows.map(function(r){
+    return '<tr>'+
+      '<td style="font-weight:600;color:var(--text1)">'+r.work+'</td>'+
+      '<td class="sm-wt-num">'+r.cos.size+'</td>'+
+      '<td class="sm-wt-num">'+r.subs.size+'</td>'+
+      '<td class="sm-wt-num">'+r.n+'</td>'+
+      '<td class="sm-wt-num">'+fmt(r.tW)+'</td>'+
+      '<td class="sm-wt-amber">'+fmt(r.tRet)+'</td>'+
+      '<td class="sm-wt-num" style="color:var(--red)">'+(r.tDed?fmt(r.tDed):'<span style="color:var(--text3)">—</span>')+'</td>'+
+      '<td class="sm-wt-net">'+fmt(r.tNet)+'</td>'+
+    '</tr>';
+  }).join('');
+
+  /* ── Company rows ── */
+  var coHtml = coRows.map(function(r){
+    return '<div class="sm-row">'+
+      '<span class="sm-row-label">🏢 '+r.co+'</span>'+
+      '<span style="display:flex;gap:18px;align-items:center">'+
+        '<span style="font-size:9px;font-family:var(--mono);color:var(--text3)">'+r.subs.size+' sub · '+r.n+' certs</span>'+
+        '<span class="sm-row-val v-amber" style="min-width:90px">Ret: '+fmt(r.tRet)+'</span>'+
+        '<span class="sm-row-val v-green" style="min-width:100px">'+fmt(r.tNet)+' SAR</span>'+
+      '</span>'+
+    '</div>';
+  }).join('');
+
+  /* ── Status bars ── */
+  var stHtml = stEntries.map(function(e){
+    var col = stColors[e.s]||'#8b5cf6';
+    return '<div class="sm-status-row">'+
+      '<span style="min-width:120px">'+statusPill(e.s)+'</span>'+
+      '<div class="sm-status-bar-wrap"><div class="sm-status-bar" style="width:'+e.pct+'%;background:'+col+'"></div></div>'+
+      '<span class="sm-status-n">'+e.n+'</span>'+
+      '<span class="sm-status-pct">'+e.pct+'%</span>'+
+    '</div>';
+  }).join('');
+
+  return '<div class="summary-page">'+
+
+    /* masthead */
+    '<div class="summary-masthead">'+
+      '<div class="summary-title-block">'+
+        '<div class="sm-eyebrow">SPMS · Report Summary</div>'+
+        '<div class="sm-title">'+rptTypeName.replace('Report','<span>Report</span>')+'</div>'+
+        '<div class="sm-meta">Generated: '+genDate+' at '+genTime+'&nbsp;&nbsp;·&nbsp;&nbsp;Prepared by: <strong style="color:var(--violet)">'+PREPARED_BY+'</strong></div>'+
+        '<div class="sm-meta" style="margin-top:3px;color:var(--text3)">Filters: '+filterText+'</div>'+
+      '</div>'+
+      '<div class="summary-badge">'+
+        '<div class="sb-label">Net Payment Total</div>'+
+        '<div class="sb-val" style="color:var(--green2);font-size:18px">'+fmt(totalNet)+' SAR</div>'+
+        '<div class="sb-label" style="margin-top:4px">Work Value Total</div>'+
+        '<div class="sb-val">'+fmt(totalWork)+' SAR</div>'+
+      '</div>'+
+    '</div>'+
+
+    /* KPI strip */
+    '<div class="sm-kpi-strip">'+
+      '<div class="sm-kpi kv-blue"><div class="sm-kpi-icon">🏢</div><div class="sm-kpi-label">Companies</div><div class="sm-kpi-val">'+companies.size+'</div><div class="sm-kpi-sub">in this report</div></div>'+
+      '<div class="sm-kpi kv-violet"><div class="sm-kpi-icon">👷</div><div class="sm-kpi-label">Subcontractors</div><div class="sm-kpi-val">'+subs.size+'</div><div class="sm-kpi-sub">'+workTypes.size+' work type'+(workTypes.size!==1?'s':'')+'</div></div>'+
+      '<div class="sm-kpi kv-cyan"><div class="sm-kpi-icon">📄</div><div class="sm-kpi-label">Certificates</div><div class="sm-kpi-val">'+totalCerts+'</div><div class="sm-kpi-sub">payment certs</div></div>'+
+      '<div class="sm-kpi kv-green"><div class="sm-kpi-icon">💰</div><div class="sm-kpi-label">Net Payment</div><div class="sm-kpi-val" style="font-size:13px">'+fmt(totalNet)+'</div><div class="sm-kpi-sub">SAR paid out</div></div>'+
+      '<div class="sm-kpi kv-amber"><div class="sm-kpi-icon">🛡️</div><div class="sm-kpi-label">Retention Held</div><div class="sm-kpi-val" style="font-size:13px">'+fmt(totalRet)+'</div><div class="sm-kpi-sub">'+retPct+'% of work value</div></div>'+
+      (totalDed>0?'<div class="sm-kpi kv-red"><div class="sm-kpi-icon">✂️</div><div class="sm-kpi-label">Deductions</div><div class="sm-kpi-val" style="font-size:13px">'+fmt(totalDed)+'</div><div class="sm-kpi-sub">SAR deducted</div></div>':'')+
+      (totalWd>0 ?'<div class="sm-kpi kv-cyan"><div class="sm-kpi-icon">📤</div><div class="sm-kpi-label">Withdrawn</div><div class="sm-kpi-val" style="font-size:13px">'+fmt(totalWd)+'</div><div class="sm-kpi-sub">SAR withdrawn</div></div>':'')+
+      (totalRef>0?'<div class="sm-kpi kv-green"><div class="sm-kpi-icon">↩️</div><div class="sm-kpi-label">Refunds</div><div class="sm-kpi-val" style="font-size:13px">'+fmt(totalRef)+'</div><div class="sm-kpi-sub">SAR refunded</div></div>':'')+
+      (totalAdv>0?'<div class="sm-kpi kv-violet"><div class="sm-kpi-icon">⬇️</div><div class="sm-kpi-label">Advance Deducted</div><div class="sm-kpi-val" style="font-size:13px">'+fmt(totalAdv)+'</div><div class="sm-kpi-sub">SAR advance</div></div>':'')+
+      '<div class="sm-kpi kv-green"><div class="sm-kpi-icon">📈</div><div class="sm-kpi-label">Net Efficiency</div><div class="sm-kpi-val">'+efficiency+'%</div><div class="sm-kpi-sub">net / work value</div></div>'+
+    '</div>'+
+
+    /* work type table + company breakdown */
+    '<div class="sm-grid2">'+
+
+      /* Work Type Breakdown */
+      '<div class="sm-card" style="grid-column:1/-1">'+
+        '<div class="sm-card-hd" style="color:var(--blue)">🔧 Breakdown by Work Type</div>'+
+        '<div class="sm-card-body">'+
+          '<table class="sm-wt-table">'+
+            '<thead><tr>'+
+              '<th>Work Type</th><th>Companies</th><th>Subcontractors</th><th>Certs</th>'+
+              '<th>Work Value (SAR)</th><th>Retention (SAR)</th><th>Deduction (SAR)</th><th>Net Payment (SAR)</th>'+
+            '</tr></thead>'+
+            '<tbody>'+wtHtml+'</tbody>'+
+            '<tfoot><tr>'+
+              '<td style="font-weight:700">TOTAL</td>'+
+              '<td class="sm-wt-num">'+companies.size+'</td>'+
+              '<td class="sm-wt-num">'+subs.size+'</td>'+
+              '<td class="sm-wt-num">'+totalCerts+'</td>'+
+              '<td class="sm-wt-num">'+fmt(totalWork)+'</td>'+
+              '<td class="sm-wt-amber">'+fmt(totalRet)+'</td>'+
+              '<td class="sm-wt-num" style="color:var(--red)">'+fmt(totalDed)+'</td>'+
+              '<td class="sm-wt-net">'+fmt(totalNet)+'</td>'+
+            '</tr></tfoot>'+
+          '</table>'+
+        '</div>'+
+      '</div>'+
+
+      /* Company Breakdown */
+      '<div class="sm-card">'+
+        '<div class="sm-card-hd" style="color:var(--blue)">🏢 Breakdown by Company</div>'+
+        '<div class="sm-card-body">'+coHtml+'</div>'+
+      '</div>'+
+
+      /* Status Breakdown */
+      '<div class="sm-card">'+
+        '<div class="sm-card-hd" style="color:var(--violet)">📊 Certificate Status Distribution</div>'+
+        '<div class="sm-card-body">'+stHtml+'</div>'+
+      '</div>'+
+
+    '</div>'+/* end sm-grid2 */
+
+    /* Financial flow row */
+    '<div class="sm-card" style="margin-top:0">'+
+      '<div class="sm-card-hd" style="color:var(--amber)">💳 Financial Flow Summary</div>'+
+      '<div class="sm-card-body" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">'+
+        '<div class="sm-row"><span class="sm-row-label">Total Work Value</span><span class="sm-row-val">'+fmt(totalWork)+' SAR</span></div>'+
+        '<div class="sm-row"><span class="sm-row-label">Retention Held</span><span class="sm-row-val v-amber">− '+fmt(totalRet)+' SAR</span></div>'+
+        '<div class="sm-row"><span class="sm-row-label">Deductions</span><span class="sm-row-val v-red">− '+fmt(totalDed)+' SAR</span></div>'+
+        '<div class="sm-row"><span class="sm-row-label">Work Withdrawn</span><span class="sm-row-val v-cyan">− '+fmt(totalWd)+' SAR</span></div>'+
+        '<div class="sm-row"><span class="sm-row-label">Advance Deducted</span><span class="sm-row-val v-violet">− '+fmt(totalAdv)+' SAR</span></div>'+
+        '<div class="sm-row"><span class="sm-row-label">Refunds Credited</span><span class="sm-row-val v-green">+ '+fmt(totalRef)+' SAR</span></div>'+
+        '<div class="sm-row" style="background:rgba(52,211,153,.04);border-top:1px solid rgba(52,211,153,.2)">'+
+          '<span class="sm-row-label" style="font-weight:700;color:var(--text1)">NET PAYMENT</span>'+
+          '<span class="sm-row-val v-green" style="font-size:14px">'+fmt(totalNet)+' SAR</span>'+
+        '</div>'+
+        '<div class="sm-row"><span class="sm-row-label">Net / Work Efficiency</span><span class="sm-row-val v-green">'+efficiency+'%</span></div>'+
+      '</div>'+
+    '</div>'+
+
+  '</div>';/* end summary-page */
+}
+
+/* ═══════════════════════════════════════════════════════
    CHECKBOX TOGGLE
 ═══════════════════════════════════════════════════════ */
 window._toggleChk = function(key, el){
@@ -483,7 +770,7 @@ function _renderPayment(data,body,title,cnt){
   title.textContent='Payment Report — '+labels.join(' · ');
   cnt.textContent=data.length+' certificates';
 
-  var sections='';
+  var sections=_buildSummaryPage(data,'Payment Certificates Report');
 
   if(_rptChks.full){
     sections+='<div class="rpt-section">'+
@@ -765,7 +1052,8 @@ function _renderRetention(data,body,title,cnt){
   var companies=Object.values(coMap).sort(function(a,b){return a.company.localeCompare(b.company);});
   var tRetAll=0,tWorkAll=0,totalGroups=0;
 
-  var html='<div class="rpt-section"><div class="tbox"><table>'+
+  var html=_buildSummaryPage(data,'Retention Summary Report')+
+    '<div class="rpt-section"><div class="tbox"><table>'+
     '<thead><tr><th>Subcontractor</th><th>Work Type</th><th>Certs</th>'+
     '<th>Total Work</th><th>Retention (SAR)</th><th>Retention %</th><th>Net Payment</th></tr></thead><tbody>';
 
@@ -842,7 +1130,8 @@ function _renderSubSummary(data,body,title,cnt){
   var companies=Object.values(coMap).sort(function(a,b){return a.company.localeCompare(b.company);});
   var tW=0,tWd=0,tDed=0,tRef=0,tRet=0,tAdv=0,tNet=0,totalSubs=0;
 
-  var html='<div class="rpt-section"><div class="tbox"><table>'+
+  var html=_buildSummaryPage(data,'Subcontractor Summary Report')+
+    '<div class="rpt-section"><div class="tbox"><table>'+
     '<thead><tr>'+
       '<th>#</th><th>Subcontractor</th><th>Work Types</th>'+
       '<th>Certs</th><th>Last IPC</th><th>Last Date</th>'+
@@ -935,7 +1224,8 @@ function _renderStatus(data,body,title,cnt){
   var rows=Object.values(map).filter(function(g){return g.n>0;});
   cnt.textContent=data.length+' certificates · '+rows.length+' statuses';
   var tNet=data.reduce(function(s,r){return s+(+r.net_payment||0);},0);
-  body.innerHTML='<div class="rpt-section"><div class="tbox"><table>'+
+  body.innerHTML=_buildSummaryPage(data,'Status Workflow Report')+
+    '<div class="rpt-section"><div class="tbox"><table>'+
     '<thead><tr><th>Status</th><th>Certificates</th><th>% of Total</th><th>Total Work Value</th><th>Net Payment</th></tr></thead>'+
     '<tbody>'+rows.map(function(g){
       var pct=data.length?((g.n/data.length)*100).toFixed(1)+'%':'—';
@@ -1098,6 +1388,60 @@ window._rptPrint = function(){
 
   /* Co header inside table row (td wrapping) */
   td[colspan]:has(.co-header){padding:0!important;border:none!important;}
+
+  /* ── SUMMARY PAGE PRINT STYLES ── */
+  .summary-page{padding:0 0 14px;page-break-after:always;border-bottom:none;}
+  .summary-masthead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #1f4e79;}
+  .sm-eyebrow{font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:#1f4e79;font-family:'Courier New',monospace;margin-bottom:4px;}
+  .sm-title{font-size:18px;font-weight:800;color:#1f4e79;}
+  .sm-title span{color:#d97706;}
+  .sm-meta{font-size:7.5px;color:#555;font-family:'Courier New',monospace;margin-top:2px;}
+  .summary-badge{background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:6px 12px;text-align:right;}
+  .sb-label{font-size:7px;text-transform:uppercase;letter-spacing:.1em;color:#555;font-family:'Courier New',monospace;}
+  .sb-val{font-size:13px;font-weight:800;color:#059669;}
+
+  .sm-kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:12px;}
+  .sm-kpi{background:#f8faff;border:1px solid #dde3f0;border-radius:5px;padding:7px 9px;position:relative;overflow:hidden;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
+  .sm-kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
+  .sm-kpi.kv-green::before{background:#10b981;}
+  .sm-kpi.kv-amber::before{background:#f59e0b;}
+  .sm-kpi.kv-blue::before{background:#3b82f6;}
+  .sm-kpi.kv-cyan::before{background:#06b6d4;}
+  .sm-kpi.kv-red::before{background:#f43f5e;}
+  .sm-kpi.kv-violet::before{background:#8b5cf6;}
+  .sm-kpi-icon{font-size:13px;margin-bottom:3px;}
+  .sm-kpi-label{font-size:6.5px;text-transform:uppercase;letter-spacing:.1em;color:#888;font-family:'Courier New',monospace;margin-bottom:2px;}
+  .sm-kpi-val{font-size:13px;font-weight:800;color:#1a1a2e;}
+  .sm-kpi-sub{font-size:6.5px;color:#aaa;font-family:'Courier New',monospace;margin-top:1px;}
+
+  .sm-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+  .sm-card{background:#f8faff;border:1px solid #dde3f0;border-radius:5px;overflow:hidden;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
+  .sm-card-hd{padding:5px 10px;border-bottom:1px solid #dde3f0;font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-family:'Courier New',monospace;color:#1f4e79;background:#eff6ff;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
+  .sm-row{display:flex;align-items:center;justify-content:space-between;padding:4px 10px;border-bottom:1px solid #f0f4ff;font-size:8.5px;font-family:'Courier New',monospace;}
+  .sm-row:last-child{border-bottom:none;}
+  .sm-row-label{color:#555;}
+  .sm-row-val{font-weight:700;color:#1a1a2e;}
+  .sm-row-val.v-green{color:#059669!important;}
+  .sm-row-val.v-amber{color:#d97706!important;}
+  .sm-row-val.v-red{color:#dc2626!important;}
+  .sm-row-val.v-cyan{color:#0891b2!important;}
+  .sm-row-val.v-blue{color:#2563eb!important;}
+  .sm-row-val.v-violet{color:#7c3aed!important;}
+
+  .sm-wt-table{width:100%;border-collapse:collapse;}
+  .sm-wt-table th{background:#1f4e79!important;color:#fff!important;padding:4px 7px;font-size:7px;letter-spacing:.08em;text-transform:uppercase;font-family:'Courier New',monospace;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
+  .sm-wt-table td{border:1px solid #dde3f0;padding:3px 7px;font-size:8.5px;font-family:'Courier New',monospace;}
+  .sm-wt-table tfoot td{background:#0f2d55!important;color:#fff!important;font-weight:700;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
+  .sm-wt-num{text-align:right;font-weight:600;}
+  .sm-wt-net{text-align:right;font-weight:700;color:#059669!important;}
+  .sm-wt-amber{text-align:right;font-weight:600;color:#d97706!important;}
+
+  .sm-status-row{display:flex;align-items:center;gap:8px;padding:4px 10px;border-bottom:1px solid #f0f4ff;font-size:8px;}
+  .sm-status-bar-wrap{flex:1;background:#e5e7eb;border-radius:20px;height:4px;overflow:hidden;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
+  .sm-status-bar{height:4px;border-radius:20px;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
+  .sm-status-n{font-family:'Courier New',monospace;font-weight:700;min-width:20px;text-align:right;}
+  .sm-status-pct{font-family:'Courier New',monospace;color:#888;min-width:32px;text-align:right;}
+  .st-pill{padding:1px 5px;border-radius:3px;font-size:7px;font-weight:700;background:#eef;border:1px solid #ccd;min-width:90px;display:inline-block;}
 </style>
 </head><body>
 
