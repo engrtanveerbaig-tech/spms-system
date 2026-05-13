@@ -6,19 +6,79 @@
 <link rel="stylesheet" href="css/style.css">
 <style>
 body{margin:0;background:var(--night);}
+
+/* ── Work value highlight ── */
 #work{color:var(--green);font-family:var(--mono);font-size:15px;font-weight:600;background:rgba(16,185,129,.05);border-color:rgba(16,185,129,.25);}
+
+/* ── Save button full-width ── */
 #saveBtn{width:100%;padding:13px;font-size:14px;font-weight:600;}
+
+/* ── Skeleton loading ── */
 .skeleton-row{height:34px;background:linear-gradient(90deg,var(--card) 25%,var(--card2) 50%,var(--card) 75%);background-size:800px 100%;animation:shimmer 1.6s infinite;border-radius:4px;margin-bottom:4px;}
 @keyframes shimmer{0%{background-position:-800px 0}100%{background-position:800px 0}}
 
-/* Status badge in form select */
-#cert_status option[value="Approved"]     { color: #10b981; }
-#cert_status option[value="Under Review"] { color: #f59e0b; }
-#cert_status option[value="On Site"]      { color: #3b82f6; }
-#cert_status option[value="Pending"]      { color: #8b5cf6; }
-#cert_status option[value="Rejected"]     { color: #ef4444; }
+/* ── Status badge in form ── */
+#cert_status option[value="Submitted"]            { color: #06b6d4; }
+#cert_status option[value="Under Review"]         { color: #f59e0b; }
+#cert_status option[value="Approved"]             { color: #10b981; }
+#cert_status option[value="Forwarded to Finance"] { color: #3b82f6; }
+#cert_status option[value="Released"]             { color: #34d399; }
+#cert_status option[value="On Site"]              { color: #3b82f6; }
+#cert_status option[value="Pending"]              { color: #8b5cf6; }
+#cert_status option[value="Rejected"]             { color: #ef4444; }
 
-/* Date range picker */
+/* ── Submitted auto-hint ── */
+#cert_status_hint{
+  display:none;
+  font-size:9px;
+  font-family:var(--mono);
+  letter-spacing:.06em;
+  color:var(--cyan, #06b6d4);
+  background:rgba(6,182,212,.08);
+  border:1px solid rgba(6,182,212,.25);
+  border-radius:6px;
+  padding:4px 10px;
+  margin-top:4px;
+  text-transform:uppercase;
+}
+
+/* ── Status workflow badge strip ── */
+.workflow-strip{
+  display:flex;
+  align-items:center;
+  gap:0;
+  flex-wrap:wrap;
+  margin-bottom:16px;
+  background:var(--card2,rgba(255,255,255,.03));
+  border:1px solid var(--borderb,rgba(255,255,255,.08));
+  border-radius:var(--r,10px);
+  padding:10px 14px;
+}
+.wf-step{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-size:9px;
+  font-family:var(--mono);
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  padding:4px 0;
+}
+.wf-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;
+}
+.wf-arr{
+  color:var(--text3,#3d4a6a);
+  margin:0 6px;
+  font-size:11px;
+}
+.wf-submitted .wf-dot  { background:#06b6d4; } .wf-submitted  { color:#06b6d4; }
+.wf-review .wf-dot     { background:#f59e0b; } .wf-review     { color:#f59e0b; }
+.wf-approved .wf-dot   { background:#10b981; } .wf-approved   { color:#10b981; }
+.wf-forwarded .wf-dot  { background:#3b82f6; } .wf-forwarded  { color:#3b82f6; }
+.wf-released .wf-dot   { background:#34d399; } .wf-released   { color:#34d399; }
+
+/* ── Date range picker ── */
 .date-range-wrap{display:flex;align-items:center;gap:8px;}
 .date-range-wrap input[type=date]{flex:1;min-width:120px;}
 .date-sep{font-size:11px;color:var(--text3);font-weight:600;flex-shrink:0;}
@@ -30,16 +90,36 @@ body{margin:0;background:var(--night);}
 <body>
 <div style="padding:0 24px 32px;">
 
-  <!-- Header -->
+  <!-- ── Header ── -->
   <div class="page-hd">
-    <div><div class="page-title">💳 Payment Certificates</div><div class="page-sub">Record and manage subcontractor payment certificates</div></div>
+    <div>
+      <div class="page-title">💳 Payment Certificates</div>
+      <div class="page-sub">Record and manage subcontractor payment certificates</div>
+    </div>
     <button class="btn-secondary btn-sm" id="exportBtn">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       Generate Report
     </button>
   </div>
 
-  <!-- Contract Details -->
+  <!-- ── Workflow status strip (visual reference) ── -->
+  <div class="workflow-strip">
+    <div class="wf-step wf-submitted"><div class="wf-dot"></div>◉ Submitted</div>
+    <span class="wf-arr">→</span>
+    <div class="wf-step wf-review"><div class="wf-dot"></div>⏳ Under Review</div>
+    <span class="wf-arr">→</span>
+    <div class="wf-step wf-approved"><div class="wf-dot"></div>✓ Approved</div>
+    <span class="wf-arr">→</span>
+    <div class="wf-step wf-forwarded"><div class="wf-dot"></div>📤 Forwarded to Finance</div>
+    <span class="wf-arr">→</span>
+    <div class="wf-step wf-released"><div class="wf-dot"></div>💚 Released</div>
+    <span class="wf-arr" style="margin-left:16px;color:var(--text3);font-size:9px;font-family:var(--mono)">Also:</span>
+    <div class="wf-step" style="color:#3b82f6;margin-left:8px"><div class="wf-dot" style="background:#3b82f6"></div>📍 On Site</div>
+    <div class="wf-step" style="color:#8b5cf6;margin-left:8px"><div class="wf-dot" style="background:#8b5cf6"></div>◷ Pending</div>
+    <div class="wf-step" style="color:#ef4444;margin-left:8px"><div class="wf-dot" style="background:#ef4444"></div>✕ Rejected</div>
+  </div>
+
+  <!-- ── Contract Details ── -->
   <div class="pay-sec">
     <div class="pay-sec-hd">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -52,7 +132,7 @@ body{margin:0;background:var(--night);}
     </div>
   </div>
 
-  <!-- Selection -->
+  <!-- ── Selection ── -->
   <div class="pay-sec">
     <div class="pay-sec-hd">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
@@ -74,7 +154,7 @@ body{margin:0;background:var(--night);}
     </div>
   </div>
 
-  <!-- Payment Entry -->
+  <!-- ── Payment Entry ── -->
   <div class="pay-sec">
     <div class="pay-sec-hd">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -88,35 +168,50 @@ body{margin:0;background:var(--night);}
     </div>
   </div>
 
-  <!-- Certificate Meta (NEW) -->
+  <!-- ── Certificate Details & Status ── -->
   <div class="pay-sec">
     <div class="pay-sec-hd">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Certificate Details &amp; Status
     </div>
     <div class="form-grid">
+
+      <!-- Cert Date -->
       <div class="col-3">
         <label>Certificate Date</label>
         <input type="date" id="cert_date">
       </div>
+
+      <!-- Status — NEW CERT: locked to Submitted / EDIT: full dropdown -->
       <div class="col-3">
-        <label>Status</label>
+        <label>
+          Status
+          <span id="status_edit_badge" style="display:none;margin-left:6px;font-size:8px;font-family:var(--mono);letter-spacing:.06em;color:var(--amber,#f59e0b);background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:4px;padding:1px 6px;text-transform:uppercase;">Edit mode</span>
+        </label>
         <select id="cert_status">
-          <option value="Approved">✓ Approved</option>
+          <option value="Submitted">◉ Submitted</option>
           <option value="Under Review">⏳ Under Review</option>
+          <option value="Approved">✓ Approved</option>
+          <option value="Forwarded to Finance">📤 Forwarded to Finance</option>
+          <option value="Released">💚 Released / Paid</option>
           <option value="On Site">📍 On Site</option>
           <option value="Pending">◷ Pending</option>
           <option value="Rejected">✕ Rejected</option>
         </select>
+        <!-- Shown when status field is locked for new certs -->
+        <div id="cert_status_hint">◉ Auto-set to Submitted on save</div>
       </div>
+
+      <!-- Comment -->
       <div class="col-6">
         <label>Comment / Note</label>
         <input type="text" id="cert_comment" placeholder="e.g. Certificate at site awaiting engineer signature…">
       </div>
+
     </div>
   </div>
 
-  <!-- Financial Summary -->
+  <!-- ── Computed Financial Summary ── -->
   <div class="pay-sec">
     <div class="pay-sec-hd">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -130,13 +225,14 @@ body{margin:0;background:var(--night);}
     </div>
   </div>
 
-  <p id="msg"></p>
+  <p id="msg" style="font-family:var(--mono);font-size:12px;min-height:20px;margin:0 0 8px;"></p>
+
   <button id="saveBtn" class="btn-primary btn-full">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
     Save Payment Certificate
   </button>
 
-  <!-- Bulk Delete -->
+  <!-- ── Bulk Delete ── -->
   <div class="bulk-sec" style="margin-top:22px;">
     <div class="bulk-title">⚠ Bulk Delete Certificates</div>
     <div class="form-grid">
@@ -154,12 +250,12 @@ body{margin:0;background:var(--night);}
     </div>
   </div>
 
-  <!-- Records Table -->
+  <!-- ── Records Table ── -->
   <div style="margin-top:10px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;flex-wrap:wrap;gap:8px;">
       <span style="font-size:12px;font-weight:600;color:var(--text2)">Payment Records</span>
 
-      <!-- DATE RANGE FILTER (NEW) -->
+      <!-- Date range filter -->
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <div class="date-range-box">
           <label style="font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;display:block">
@@ -198,16 +294,20 @@ body{margin:0;background:var(--night);}
             <th><select id="f_retention" onchange="applyFilter()"><option value="">All</option></select></th>
             <th><select id="f_advance"   onchange="applyFilter()"><option value="">All</option></select></th>
             <th><select id="f_net"       onchange="applyFilter()"><option value="">All</option></select></th>
-            <th>—</th><!-- cert_date: filtered via date range picker above -->
+            <th>—</th><!-- cert_date: filtered via date range picker -->
             <th><select id="f_date"      onchange="applyFilter()"><option value="">All</option></select></th>
             <th>
+              <!-- Full workflow statuses matching dashboard -->
               <select id="f_status" onchange="applyFilter()">
                 <option value="">All</option>
-                <option value="Approved">Approved</option>
-                <option value="Under Review">Under Review</option>
-                <option value="On Site">On Site</option>
-                <option value="Pending">Pending</option>
-                <option value="Rejected">Rejected</option>
+                <option value="Submitted">◉ Submitted</option>
+                <option value="Under Review">⏳ Under Review</option>
+                <option value="Approved">✓ Approved</option>
+                <option value="Forwarded to Finance">📤 Fwd Finance</option>
+                <option value="Released">💚 Released</option>
+                <option value="On Site">📍 On Site</option>
+                <option value="Pending">◷ Pending</option>
+                <option value="Rejected">✕ Rejected</option>
               </select>
             </th>
             <th>—</th>
@@ -243,16 +343,16 @@ body{margin:0;background:var(--night);}
 </div>
 
 <script>
-// Date range label updater
+/* ── Date range label helper ── */
 function updateDateRangeLabel() {
   const from  = document.getElementById("date_from")?.value;
   const to    = document.getElementById("date_to")?.value;
   const label = document.getElementById("date_range_label");
   if (!label) return;
   if (from && to) {
-    const fStr = new Date(from).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"});
-    const tStr = new Date(to).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"});
-    label.innerHTML = `<span id="date_range_label" style="color:var(--violet)">📅 ${fStr}</span><br><span style="color:var(--text3)">↳ ${tStr}</span>`;
+    const fStr = new Date(from).toLocaleDateString(undefined, { day:"numeric", month:"short", year:"numeric" });
+    const tStr = new Date(to).toLocaleDateString(undefined,   { day:"numeric", month:"short", year:"numeric" });
+    label.innerHTML = `<span style="color:var(--violet)">📅 ${fStr} → ${tStr}</span>`;
   } else if (from) {
     label.innerHTML = `<span style="color:var(--violet)">📅 From: ${new Date(from).toLocaleDateString()}</span>`;
   } else if (to) {
@@ -272,6 +372,32 @@ function clearDateRange() {
   if (l) l.innerHTML = "";
   if (typeof applyFilter === "function") applyFilter();
 }
+
+/* ── Edit mode badge sync ── */
+/* Called from payment.js syncStatusFieldMode to update the badge */
+(function patchSyncStatusMode() {
+  const orig = window.syncStatusFieldMode;
+  /* payment.js defines this; if it's already loaded, leave it.
+     We augment it to also toggle the edit badge. */
+  const augment = function (isEditMode) {
+    const badge = document.getElementById("status_edit_badge");
+    const hint  = document.getElementById("cert_status_hint");
+    if (badge) badge.style.display = isEditMode ? "inline" : "none";
+    if (hint)  hint.style.display  = isEditMode ? "none"   : "block";
+  };
+  /* Wrap after payment.js loads */
+  window.addEventListener("DOMContentLoaded", function () {
+    const orig2 = window.syncStatusFieldMode;
+    if (typeof orig2 === "function") {
+      window.syncStatusFieldMode = function (isEditMode) {
+        orig2(isEditMode);
+        augment(isEditMode);
+      };
+    }
+    /* Show hint initially (new cert mode) */
+    augment(false);
+  });
+})();
 </script>
 </body>
 </html>
