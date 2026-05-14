@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SPMS · Editable Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&family=Roboto:wght@400;500;700&family=Tajawal:wght@400;500;700&family=Noto+Kufi+Arabic:wght@400;600&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#07090f;--bg2:#0e1118;--bg3:#141820;--bg4:#1c2030;--bg5:#232840;
@@ -320,6 +320,58 @@ tbody tr:last-child td{border-bottom:none;}
 .mini-val{font-size:14px;font-weight:600;font-family:var(--mono);color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
 body.edit-mode::after{content:"✏️ EDIT MODE — Drag widgets · Click × to hide · Resize with dots";position:fixed;bottom:0;left:0;right:0;background:rgba(245,166,35,.12);border-top:1px solid rgba(245,166,35,.25);color:var(--amber);font-family:var(--mono);font-size:9.5px;padding:7px 18px;text-align:center;z-index:200;letter-spacing:.06em;}
+
+/* ══ SIMPLE / EXCEL MODE ══ */
+body.simple-mode{--bg:#fff;--bg2:#fff;--bg3:#f5f5f5;--bg4:#ebebeb;--bg5:#ddd;--bdr:rgba(0,0,0,.18);--bdr2:rgba(0,0,0,.25);--bdr3:rgba(0,0,0,.35);--t1:#000;--t2:#222;--t3:#666;--t4:#aaa;--amber:#000;--amber2:#000;--amber3:#f0f0f0;--green:#000;--green2:#000;--green3:#f0f0f0;--red:#000;--red3:#f0f0f0;--blue:#000;--blue3:#f0f0f0;--violet:#000;--violet3:#f0f0f0;--cyan:#000;--cyan3:#f0f0f0;--orange:#000;--sh:none;--sh2:none;--r:0px;--r2:0px;--r3:0px;}
+body.simple-mode *{animation:none!important;transition:none!important;box-shadow:none!important;text-shadow:none!important;}
+body.simple-mode .kpi{border:1px solid #ccc;border-radius:0;}
+body.simple-mode .kpi::after{display:none;}
+body.simple-mode .kpi-icon{display:none;}
+body.simple-mode .kpi-val{color:#000!important;font-size:15px;}
+body.simple-mode .stc{border:1px solid #bbb;border-radius:0;}
+body.simple-mode .stc::before{display:none;}
+body.simple-mode .stc-badge,.body.simple-mode .spill{background:#eee!important;color:#000!important;border-radius:0;}
+body.simple-mode .stc-n{color:#000!important;}
+body.simple-mode .widget{border:1px solid #ccc;border-radius:0;}
+body.simple-mode .widget::before{display:none;}
+body.simple-mode .hero-total{border:1px solid #ccc;border-radius:0;animation:none;}
+body.simple-mode .live-dot{display:none;}
+body.simple-mode thead th{background:#d0d0d0!important;color:#000!important;}
+body.simple-mode tbody tr:nth-child(even) td{background:#f5f5f5!important;}
+body.simple-mode .spill{background:#eee!important;color:#000!important;border:1px solid #bbb!important;border-radius:0!important;}
+body.simple-mode .brand-name span{color:#000;-webkit-text-fill-color:#000;}
+body.simple-mode .mini{border:1px solid #ccc;border-radius:0;}
+body.simple-mode .fbar,.body.simple-mode .tbl-section{border:1px solid #ccc;border-radius:0;}
+body.simple-mode .ms-trigger{border-radius:0;background:#fff;}
+body.simple-mode .tbtn{border-radius:0;background:#efefef;color:#000;border-color:#bbb;}
+body.simple-mode .hero-val{color:#000!important;}
+
+/* ══ FONT VARS ══ */
+body.font-en-syne{--font:'Syne',sans-serif;}
+body.font-en-jetbrains{--font:'JetBrains Mono',monospace;}
+body.font-en-roboto{--font:'Roboto',sans-serif;}
+body.font-ar-tajawal{--font-ar:'Tajawal',sans-serif;}
+body.font-ar-noto{--font-ar:'Noto Kufi Arabic',sans-serif;}
+body.font-ar-cairo{--font-ar:'Cairo',sans-serif;}
+[lang="ar"],[dir="rtl"],.ar-text{font-family:var(--font-ar,'Tajawal',sans-serif)!important;}
+
+/* ══ CERT CARD IN PANEL ══ */
+.cert-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:13px;margin-bottom:9px;}
+.cert-hd2{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.cert-no2{font-size:11px;font-family:var(--mono);font-weight:600;color:var(--t1);}
+.cert-sub2{font-size:9px;font-family:var(--mono);color:var(--t3);}
+.cert-kv2{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0;}
+.cert-kv-lbl2{font-size:7.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);font-family:var(--mono);}
+.cert-kv-val2{font-size:10.5px;font-family:var(--mono);color:var(--t1);}
+.cert-kv-val2.g{color:var(--green);}
+
+/* ══ REPORT SETTINGS ══ */
+.rpt-field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+.rpt-field label{font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);font-family:var(--mono);}
+.rpt-input{background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:7px 10px;font-family:var(--mono);font-size:10.5px;color:var(--t1);outline:none;width:100%;transition:.15s;}
+.rpt-input:focus{border-color:rgba(245,166,35,.45);}
+.rpt-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
 </style>
 </head>
 <body>
@@ -343,7 +395,10 @@ body.edit-mode::after{content:"✏️ EDIT MODE — Drag widgets · Click × to 
       <button class="tbtn" onclick="openModal('styleModal')" title="Customize appearance">
         🎨 Style
       </button>
-      <button class="tbtn" id="editBtn" onclick="toggleEditMode()" title="Toggle drag-to-rearrange mode">
+      <button class="tbtn" id="simpleBtn" onclick="toggleSimpleMode()" title="Excel-like simple mode">
+        📋 Simple
+      </button>
+      <button class="tbtn" onclick="toggleEditMode()" id="editBtn" title="Toggle drag-to-rearrange mode">
         ✏️ Edit Layout
       </button>
       <button class="tbtn tbtn-green" onclick="saveLayout()" title="Save dashboard config">
@@ -703,14 +758,35 @@ body.edit-mode::after{content:"✏️ EDIT MODE — Drag widgets · Click × to 
 
 <!-- Report preview -->
 <div class="overlay" id="reportModalOv" onclick="closeModal('reportModal')">
-<div class="modal" onclick="event.stopPropagation()" style="max-width:500px;">
+<div class="modal" onclick="event.stopPropagation()" style="max-width:560px;">
   <div class="modal-hd">
-    <div><div class="modal-title">📄 Generate Report</div></div>
+    <div><div class="modal-title">📄 Report Settings</div><div class="modal-sub">Customize header, footer and column selection for print</div></div>
     <button class="modal-close" onclick="closeModal('reportModal')">✕</button>
   </div>
-  <div class="modal-body" style="display:flex;flex-direction:column;gap:10px;">
-    <button class="tbtn" style="width:100%;justify-content:center;padding:12px;" onclick="printReport()">🖨️ Print / PDF</button>
-    <button class="tbtn" style="width:100%;justify-content:center;padding:12px;" onclick="downloadCSV()">⬇️ Download CSV</button>
+  <div class="modal-body">
+    <div class="rpt-row">
+      <div class="rpt-field"><label>Report Title (Arabic)</label><input class="rpt-input" id="rptTitleAr" value="تقرير الدفعات — نظام إدارة مدفوعات المقاولين من الباطن" placeholder="Arabic title…"></div>
+      <div class="rpt-field"><label>Report Title (English)</label><input class="rpt-input" id="rptTitleEn" value="SPMS Payment Report" placeholder="English title…"></div>
+    </div>
+    <div class="rpt-row">
+      <div class="rpt-field"><label>Company / Project Header</label><input class="rpt-input" id="rptCompany" value="" placeholder="e.g. Al Sedqa Contracting Co."></div>
+      <div class="rpt-field"><label>Prepared By</label><input class="rpt-input" id="rptPrepBy" value="Eng. Tanveer Ahmad" placeholder="Name…"></div>
+    </div>
+    <div class="rpt-row">
+      <div class="rpt-field"><label>Left Footer</label><input class="rpt-input" id="rptFootL" value="SPMS — Subcontractor Payment Management System" placeholder="Footer left…"></div>
+      <div class="rpt-field"><label>Right Footer</label><input class="rpt-input" id="rptFootR" value="" placeholder="Footer right… (auto: date+page)"></div>
+    </div>
+    <div class="rpt-row">
+      <div class="rpt-field"><label>Logo URL (optional)</label><input class="rpt-input" id="rptLogo" placeholder="https://…/logo.png"></div>
+      <div class="rpt-field"><label>Print Orientation</label>
+        <select class="rpt-input" id="rptOrient"><option value="portrait">Portrait (A4)</option><option value="landscape">Landscape (A4)</option></select>
+      </div>
+    </div>
+    <div class="rpt-field"><label>Additional Notes / Footer Note</label><input class="rpt-input" id="rptNote" placeholder="Any notes to appear at bottom of each page…"></div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="tbtn tbtn-green" style="flex:1;justify-content:center;padding:11px;" onclick="printReport()">🖨️ Print / Save PDF</button>
+      <button class="tbtn" style="flex:1;justify-content:center;padding:11px;" onclick="downloadCSV()">⬇ CSV Export</button>
+    </div>
   </div>
 </div>
 </div>
