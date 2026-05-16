@@ -51,7 +51,7 @@ body{font-family:var(--font);background:var(--night);color:var(--text);font-size
 
 /* ── Sidebar shell (referenced by index.html) ── */
 .sidebar{position:fixed;left:0;top:0;width:var(--sw);height:100vh;background:var(--panel);border-right:1px solid var(--border);z-index:200;}
-.content{margin-left:var(--sw);background:var(--night);}
+.content{background:var(--night);}
 
 /* ── Nav items ── */
 .nav-item{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.18s;position:relative;border:1px solid transparent;background:transparent;}
