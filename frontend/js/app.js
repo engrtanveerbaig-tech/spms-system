@@ -17,10 +17,10 @@ let CURRENT_SEARCH_TYPE="company";
 window.ROLE_PERMISSIONS = window.ROLE_PERMISSIONS || {
   admin:               ["dashboard","subcontractor","payment","roles","cycles","reports"],
   manager:             ["dashboard","cycles","reports"],
-  finance:             ["dashboard","payment","reports"],
+  finance:             ["dashboard","reports","cycles"],
   engineer:            ["dashboard"],
   viewer:              ["payment"],
-  contract_department: ["subcontractor","reports"]
+  contract_department: ["subcontractor"]
 };
 
 // Theme
