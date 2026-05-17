@@ -50,6 +50,124 @@ const originalData = window.originalData;
     return Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
+  /* ── SEARCHABLE DROPDOWN WIDGET ─────────────────────
+     Replaces the native <select id="subcontractor_form">
+     with a click-to-open panel that has a search box.
+     The hidden <input id="subcontractor_form"> still holds
+     the selected id so all existing code keeps working.
+  ──────────────────────────────────────────────────── */
+  let _subOptions = []; /* [{id, label}] full list */
+
+  function buildSearchableDropdown() {
+    const wrapper = document.getElementById("sub_search_wrapper");
+    if (!wrapper) return;
+    wrapper.innerHTML = `
+      <div class="ssd-trigger" id="ssd_trigger" tabindex="0">
+        <span id="ssd_label" class="ssd-placeholder">Select Subcontractor</span>
+        <svg class="ssd-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="ssd-panel" id="ssd_panel">
+        <div class="ssd-search-wrap">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="ssd_search" class="ssd-search" placeholder="Search subcontractor…" autocomplete="off">
+        </div>
+        <ul class="ssd-list" id="ssd_list"></ul>
+      </div>`;
+
+    const trigger = document.getElementById("ssd_trigger");
+    const panel   = document.getElementById("ssd_panel");
+    const search  = document.getElementById("ssd_search");
+    const list    = document.getElementById("ssd_list");
+
+    /* Toggle open/close */
+    trigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isOpen = panel.classList.toggle("ssd-open");
+      if (isOpen) {
+        search.value = "";
+        renderSsdList("");
+        setTimeout(() => search.focus(), 50);
+      }
+    });
+    trigger.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); trigger.click(); }
+    });
+
+    /* Search filtering */
+    search.addEventListener("input", () => renderSsdList(search.value));
+    search.addEventListener("click", (e) => e.stopPropagation());
+
+    /* Close on outside click */
+    document.addEventListener("click", () => panel.classList.remove("ssd-open"));
+
+    function renderSsdList(query) {
+      const q = query.trim().toLowerCase();
+      const filtered = q
+        ? _subOptions.filter(o => o.label.toLowerCase().includes(q))
+        : _subOptions;
+
+      list.innerHTML = "";
+      if (!filtered.length) {
+        list.innerHTML = `<li class="ssd-empty">No results</li>`;
+        return;
+      }
+      filtered.forEach(o => {
+        const li = document.createElement("li");
+        li.className = "ssd-item";
+        li.dataset.id = o.id;
+        /* Highlight matching text */
+        if (q) {
+          const idx = o.label.toLowerCase().indexOf(q);
+          li.innerHTML = o.label.slice(0, idx) +
+            `<mark>${o.label.slice(idx, idx + q.length)}</mark>` +
+            o.label.slice(idx + q.length);
+        } else {
+          li.textContent = o.label;
+        }
+        const hidden = document.getElementById("subcontractor_form");
+        if (hidden && String(hidden.value) === String(o.id)) li.classList.add("ssd-selected");
+        li.addEventListener("click", (e) => {
+          e.stopPropagation();
+          selectSsdOption(o.id, o.label);
+          panel.classList.remove("ssd-open");
+        });
+        list.appendChild(li);
+      });
+    }
+    window._renderSsdList = renderSsdList; /* expose for re-render after load */
+  }
+
+  function selectSsdOption(id, label) {
+    const hidden  = document.getElementById("subcontractor_form");
+    const display = document.getElementById("ssd_label");
+    if (hidden)  { hidden.value = id; hidden.dispatchEvent(new Event("change")); }
+    if (display) { display.textContent = label; display.classList.remove("ssd-placeholder"); }
+  }
+
+  function setSsdOptions(options, selectedId) {
+    /* options = [{id, label}] */
+    _subOptions = options;
+    const list    = document.getElementById("ssd_list");
+    const panel   = document.getElementById("ssd_panel");
+    const display = document.getElementById("ssd_label");
+
+    if (!list) return;
+    if (!panel?.classList.contains("ssd-open") && window._renderSsdList) {
+      window._renderSsdList("");
+    }
+
+    if (selectedId) {
+      const found = options.find(o => String(o.id) === String(selectedId));
+      if (found && display) {
+        display.textContent = found.label;
+        display.classList.remove("ssd-placeholder");
+      }
+    } else if (display) {
+      display.textContent = "Select Subcontractor";
+      display.classList.add("ssd-placeholder");
+    }
+  }
+
   /* ── INIT ─────────────────────────────────────────── */
   function initPaymentPage() {
     ["work", "withdrawn", "deduction", "refund"].forEach(id => {
@@ -73,6 +191,8 @@ const originalData = window.originalData;
     document.getElementById("subcontractor_form")?.addEventListener("change", onSubcontractorChange);
     document.getElementById("date_from")?.addEventListener("change", applyFilter);
     document.getElementById("date_to")?.addEventListener("change", applyFilter);
+
+    buildSearchableDropdown();
 
     showTableSkeleton();
     loadFullData();
@@ -110,11 +230,13 @@ const originalData = window.originalData;
   /* ── LOAD SUBS BY WORK TYPE ──────────────────────── */
   async function loadSubcontractors() {
     const work_type = document.getElementById("work_type_form")?.value;
-    const select    = document.getElementById("subcontractor_form");
-    if (!select) return;
+    const hidden    = document.getElementById("subcontractor_form");
+    const display   = document.getElementById("ssd_label");
 
     if (!work_type) {
-      select.innerHTML = "<option>Select Work Type First</option>";
+      _subOptions = [];
+      if (display) { display.textContent = "Select Work Type First"; display.classList.add("ssd-placeholder"); }
+      if (hidden)  hidden.value = "";
       return;
     }
 
@@ -125,14 +247,16 @@ const originalData = window.originalData;
     const data = await res.json();
     if (!Array.isArray(data)) { console.error("Invalid sub response:", data); return; }
 
-    select.innerHTML = "<option value=''>Select Subcontractor</option>";
-    data.forEach(s => {
-      select.innerHTML += `<option value="${s.id}">${s.name} (${s.project}) - ${s.company_name}</option>`;
-    });
+    const options = data.map(s => ({
+      id:    s.id,
+      label: `${s.name} (${s.project}) — ${s.company_name}`
+    }));
 
-    if (!select.value && select.options.length > 1) {
-      select.value = select.options[1].value;
-      select.dispatchEvent(new Event("change"));
+    setSsdOptions(options, null);
+
+    /* Auto-select first option */
+    if (options.length > 0) {
+      selectSsdOption(options[0].id, options[0].label);
     }
   }
 
@@ -305,8 +429,12 @@ const originalData = window.originalData;
 
     if (!wasEdit) {
       await loadSubcontractors();
-      const sel = document.getElementById("subcontractor_form");
-      if (sel && currentSub) { sel.value = currentSub; sel.dispatchEvent(new Event("change")); }
+      const hidden = document.getElementById("subcontractor_form");
+      if (hidden && currentSub) {
+        const found = _subOptions.find(o => String(o.id) === String(currentSub));
+        if (found) selectSsdOption(found.id, found.label);
+        else { hidden.value = currentSub; hidden.dispatchEvent(new Event("change")); }
+      }
     }
 
     await loadFullData();
@@ -494,7 +622,17 @@ const originalData = window.originalData;
 
     setTimeout(async () => {
       const subEl = document.getElementById("subcontractor_form");
-      if (subEl) { subEl.value = p.subcontractor_id; await onSubcontractorChange(); }
+      if (subEl) {
+        subEl.value = p.subcontractor_id;
+        await onSubcontractorChange();
+        /* Restore searchable dropdown label */
+        const found = _subOptions.find(o => String(o.id) === String(p.subcontractor_id));
+        if (found) selectSsdOption(found.id, found.label);
+        else {
+          const display = document.getElementById("ssd_label");
+          if (display) { display.textContent = p.subcontractor_name || ""; display.classList.remove("ssd-placeholder"); }
+        }
+      }
 
       const sv = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ""; };
       sv("work",           p.work_value);

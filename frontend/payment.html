@@ -44,39 +44,21 @@ body{margin:0;background:var(--night);}
 
 /* ── Status workflow badge strip ── */
 .workflow-strip{
-  display:flex;
-  align-items:center;
-  gap:0;
-  flex-wrap:wrap;
+  display:flex;align-items:center;gap:0;flex-wrap:wrap;
   margin-bottom:16px;
   background:var(--card2,rgba(255,255,255,.03));
   border:1px solid var(--borderb,rgba(255,255,255,.08));
   border-radius:var(--r,10px);
   padding:10px 14px;
 }
-.wf-step{
-  display:flex;
-  align-items:center;
-  gap:5px;
-  font-size:9px;
-  font-family:var(--mono);
-  letter-spacing:.06em;
-  text-transform:uppercase;
-  padding:4px 0;
-}
-.wf-dot{
-  width:8px;height:8px;border-radius:50%;flex-shrink:0;
-}
-.wf-arr{
-  color:var(--text3,#3d4a6a);
-  margin:0 6px;
-  font-size:11px;
-}
-.wf-submitted .wf-dot  { background:#06b6d4; } .wf-submitted  { color:#06b6d4; }
-.wf-review .wf-dot     { background:#f59e0b; } .wf-review     { color:#f59e0b; }
-.wf-approved .wf-dot   { background:#10b981; } .wf-approved   { color:#10b981; }
-.wf-forwarded .wf-dot  { background:#3b82f6; } .wf-forwarded  { color:#3b82f6; }
-.wf-released .wf-dot   { background:#34d399; } .wf-released   { color:#34d399; }
+.wf-step{display:flex;align-items:center;gap:5px;font-size:9px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:4px 0;}
+.wf-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.wf-arr{color:var(--text3,#3d4a6a);margin:0 6px;font-size:11px;}
+.wf-submitted .wf-dot{background:#06b6d4;} .wf-submitted{color:#06b6d4;}
+.wf-review .wf-dot{background:#f59e0b;} .wf-review{color:#f59e0b;}
+.wf-approved .wf-dot{background:#10b981;} .wf-approved{color:#10b981;}
+.wf-forwarded .wf-dot{background:#3b82f6;} .wf-forwarded{color:#3b82f6;}
+.wf-released .wf-dot{background:#34d399;} .wf-released{color:#34d399;}
 
 /* ── Date range picker ── */
 .date-range-wrap{display:flex;align-items:center;gap:8px;}
@@ -85,6 +67,85 @@ body{margin:0;background:var(--night);}
 .date-range-box{background:var(--card2);border:1px solid var(--borderb);border-radius:var(--rsm);padding:8px 12px;}
 .date-range-display{font-size:10px;color:var(--text3);margin-top:5px;font-family:var(--mono);}
 #date_range_label{color:var(--violet);font-size:11px;}
+
+/* ══════════════════════════════════════════════════
+   SEARCHABLE DROPDOWN (SSD)
+══════════════════════════════════════════════════ */
+.ssd-wrapper{position:relative;width:100%;}
+
+.ssd-trigger{
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;box-sizing:border-box;
+  padding:8px 12px;
+  background:var(--input,rgba(255,255,255,.04));
+  border:1px solid var(--borderb,rgba(255,255,255,.1));
+  border-radius:var(--rsm,6px);
+  color:var(--text,#e2e8f0);
+  font-size:13px;font-family:var(--sans,'Outfit',sans-serif);
+  cursor:pointer;
+  transition:border-color .15s;
+  min-height:36px;
+  gap:6px;
+}
+.ssd-trigger:hover{border-color:rgba(255,255,255,.22);}
+.ssd-trigger:focus{outline:none;border-color:var(--violet,#7c3aed);box-shadow:0 0 0 2px rgba(124,58,237,.18);}
+
+.ssd-arrow{flex-shrink:0;color:var(--text3,#4a5270);transition:transform .2s;}
+.ssd-panel.ssd-open ~ .ssd-trigger .ssd-arrow,
+.ssd-wrapper:has(.ssd-open) .ssd-arrow{transform:rotate(180deg);}
+
+.ssd-placeholder{color:var(--text3,#4a5270);}
+
+.ssd-panel{
+  display:none;
+  position:absolute;
+  top:calc(100% + 4px);left:0;right:0;
+  z-index:9999;
+  background:var(--card,#1a2035);
+  border:1px solid var(--borderb,rgba(255,255,255,.12));
+  border-radius:var(--rsm,6px);
+  box-shadow:0 8px 24px rgba(0,0,0,.45);
+  overflow:hidden;
+}
+.ssd-panel.ssd-open{display:block;}
+
+.ssd-search-wrap{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 10px;
+  border-bottom:1px solid var(--borderb,rgba(255,255,255,.08));
+  background:var(--card2,rgba(255,255,255,.03));
+}
+.ssd-search-wrap svg{flex-shrink:0;color:var(--text3,#4a5270);}
+.ssd-search{
+  flex:1;border:none;outline:none;background:transparent;
+  color:var(--text,#e2e8f0);font-size:12px;font-family:var(--sans,'Outfit',sans-serif);
+  padding:0;
+}
+.ssd-search::placeholder{color:var(--text3,#4a5270);}
+
+.ssd-list{
+  list-style:none;margin:0;padding:4px 0;
+  max-height:220px;overflow-y:auto;
+}
+.ssd-list::-webkit-scrollbar{width:4px;}
+.ssd-list::-webkit-scrollbar-thumb{background:var(--borderb,rgba(255,255,255,.12));border-radius:2px;}
+
+.ssd-item{
+  padding:8px 12px;
+  font-size:12px;color:var(--text2,#94a3b8);
+  cursor:pointer;
+  transition:background .1s,color .1s;
+  line-height:1.4;
+}
+.ssd-item:hover{background:rgba(255,255,255,.05);color:var(--text,#e2e8f0);}
+.ssd-item.ssd-selected{color:var(--violet,#7c3aed);background:rgba(124,58,237,.08);}
+.ssd-item mark{background:transparent;color:var(--violet,#7c3aed);font-weight:600;}
+
+.ssd-empty{
+  padding:12px;text-align:center;
+  font-size:12px;color:var(--text3,#4a5270);
+  font-style:italic;
+}
 </style>
 </head>
 <body>
@@ -102,7 +163,7 @@ body{margin:0;background:var(--night);}
     </button>
   </div>
 
-  <!-- ── Workflow status strip (visual reference) ── -->
+  <!-- ── Workflow status strip ── -->
   <div class="workflow-strip">
     <div class="wf-step wf-submitted"><div class="wf-dot"></div>◉ Submitted</div>
     <span class="wf-arr">→</span>
@@ -148,7 +209,16 @@ body{margin:0;background:var(--night);}
           <option>Electrical</option><option>Mechanical</option>
         </select>
       </div>
-      <div class="col-3"><label>Subcontractor</label><select id="subcontractor_form"></select></div>
+
+      <!-- ── Searchable Subcontractor Dropdown ── -->
+      <div class="col-3">
+        <label>Subcontractor</label>
+        <!-- Hidden input holds the selected id — all existing JS reads this -->
+        <input type="hidden" id="subcontractor_form">
+        <!-- Custom searchable dropdown -->
+        <div class="ssd-wrapper" id="sub_search_wrapper"></div>
+      </div>
+
       <div class="col-3"><label>Project</label><input id="project_form" readonly></div>
       <div class="col-3"><label>Certificate No</label><input id="certificate_no" readonly class="hi"></div>
     </div>
@@ -175,14 +245,10 @@ body{margin:0;background:var(--night);}
       Certificate Details &amp; Status
     </div>
     <div class="form-grid">
-
-      <!-- Cert Date -->
       <div class="col-3">
         <label>Certificate Date</label>
         <input type="date" id="cert_date">
       </div>
-
-      <!-- Status — NEW CERT: locked to Submitted / EDIT: full dropdown -->
       <div class="col-3">
         <label>
           Status
@@ -198,16 +264,12 @@ body{margin:0;background:var(--night);}
           <option value="Pending">◷ Pending</option>
           <option value="Rejected">✕ Rejected</option>
         </select>
-        <!-- Shown when status field is locked for new certs -->
         <div id="cert_status_hint">◉ Auto-set to Submitted on save</div>
       </div>
-
-      <!-- Comment -->
       <div class="col-6">
         <label>Comment / Note</label>
         <input type="text" id="cert_comment" placeholder="e.g. Certificate at site awaiting engineer signature…">
       </div>
-
     </div>
   </div>
 
@@ -254,8 +316,6 @@ body{margin:0;background:var(--night);}
   <div style="margin-top:10px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;flex-wrap:wrap;gap:8px;">
       <span style="font-size:12px;font-weight:600;color:var(--text2)">Payment Records</span>
-
-      <!-- Date range filter -->
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <div class="date-range-box">
           <label style="font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;display:block">
@@ -276,7 +336,6 @@ body{margin:0;background:var(--night);}
     <div class="table-box">
       <table>
         <thead>
-          <!-- Filter Row -->
           <tr>
             <th><select id="f_scid"      onchange="applyFilter()"><option value="">All</option></select></th>
             <th><select id="f_project"   onchange="applyFilter()"><option value="">All</option></select></th>
@@ -294,10 +353,9 @@ body{margin:0;background:var(--night);}
             <th><select id="f_retention" onchange="applyFilter()"><option value="">All</option></select></th>
             <th><select id="f_advance"   onchange="applyFilter()"><option value="">All</option></select></th>
             <th><select id="f_net"       onchange="applyFilter()"><option value="">All</option></select></th>
-            <th>—</th><!-- cert_date: filtered via date range picker -->
+            <th>—</th>
             <th><select id="f_date"      onchange="applyFilter()"><option value="">All</option></select></th>
             <th>
-              <!-- Full workflow statuses matching dashboard -->
               <select id="f_status" onchange="applyFilter()">
                 <option value="">All</option>
                 <option value="Submitted">◉ Submitted</option>
@@ -313,7 +371,6 @@ body{margin:0;background:var(--night);}
             <th>—</th>
             <th></th>
           </tr>
-          <!-- Label Row -->
           <tr>
             <th>SC ID</th><th>Project</th><th>Contract</th><th>Company</th>
             <th>Subcontractor</th><th>Work Type</th><th>Cert #</th>
@@ -374,27 +431,21 @@ function clearDateRange() {
 }
 
 /* ── Edit mode badge sync ── */
-/* Called from payment.js syncStatusFieldMode to update the badge */
 (function patchSyncStatusMode() {
-  const orig = window.syncStatusFieldMode;
-  /* payment.js defines this; if it's already loaded, leave it.
-     We augment it to also toggle the edit badge. */
-  const augment = function (isEditMode) {
-    const badge = document.getElementById("status_edit_badge");
-    const hint  = document.getElementById("cert_status_hint");
-    if (badge) badge.style.display = isEditMode ? "inline" : "none";
-    if (hint)  hint.style.display  = isEditMode ? "none"   : "block";
-  };
-  /* Wrap after payment.js loads */
   window.addEventListener("DOMContentLoaded", function () {
     const orig2 = window.syncStatusFieldMode;
+    const augment = function (isEditMode) {
+      const badge = document.getElementById("status_edit_badge");
+      const hint  = document.getElementById("cert_status_hint");
+      if (badge) badge.style.display = isEditMode ? "inline" : "none";
+      if (hint)  hint.style.display  = isEditMode ? "none"   : "block";
+    };
     if (typeof orig2 === "function") {
       window.syncStatusFieldMode = function (isEditMode) {
         orig2(isEditMode);
         augment(isEditMode);
       };
     }
-    /* Show hint initially (new cert mode) */
     augment(false);
   });
 })();
