@@ -79,7 +79,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .chk-desc{font-size:9px;font-family:var(--mono);color:var(--text3);line-height:1.4;}
 
 /* ── Config panel ── */
-.config-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:18px 20px;margin-bottom:16px;animation:fadeUp .4s .1s ease both;margin-top:10px;position:relative;}
+.config-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:18px 20px;margin-bottom:16px;animation:fadeUp .4s .1s ease both;margin-top:10px;position:relative;overflow:visible;}
 .config-title{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);font-family:var(--mono);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
 .config-title::after{content:"";flex:1;height:1px;background:var(--border);}
 .config-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
@@ -90,24 +90,25 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .fg input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.5);}
 
 /* ── Multi-select ── */
-.ms-wrap{position:relative;}
+.ms-wrap{position:relative;z-index:100;}
 .ms-trigger{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--text1);cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;transition:.18s;min-height:36px;user-select:none;}
 .ms-trigger:hover{border-color:var(--border2);}
 .ms-trigger.open{border-color:rgba(139,92,246,.4);box-shadow:0 0 0 3px rgba(139,92,246,.06);}
+.ms-wrap:has(.ms-dropdown.open){z-index:9999;}
 .ms-trigger-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:var(--text3);}
 .ms-trigger-arrow{font-size:9px;color:var(--text3);transition:.2s;flex-shrink:0;}
 .ms-trigger.open .ms-trigger-arrow{transform:rotate(180deg);}
 /* FIXED: dropdown is fixed positioned to avoid clipping/z-index issues.
    top/bottom/maxHeight are set dynamically by msPositionDropdown() */
-.ms-dropdown{position:fixed;background:var(--bg3);border:1px solid rgba(139,92,246,.35);border-radius:var(--r);box-shadow:0 12px 40px rgba(0,0,0,.8);z-index:9999;width:240px;max-height:260px;overflow:hidden;display:none;flex-direction:column;}
+.ms-dropdown{position:absolute;top:calc(100% + 5px);left:0;right:0;min-width:220px;background:var(--bg3);border:1px solid rgba(139,92,246,.45);border-radius:var(--r);box-shadow:0 16px 48px rgba(0,0,0,.9);z-index:9999;display:none;flex-direction:column;overflow:hidden;}
 .ms-dropdown.open{display:flex;animation:fadeIn .15s ease both;}
-.ms-dd-scroll{overflow-y:auto;flex:1;}
-.ms-search{padding:8px;border-bottom:1px solid var(--border);flex-shrink:0;}
-.ms-search input{background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:6px 8px;font-family:var(--mono);font-size:10px;color:var(--text1);outline:none;width:100%;transition:.15s;}
-.ms-search input:focus{border-color:rgba(139,92,246,.4);}
-.ms-actions{display:flex;gap:6px;padding:6px 8px;border-bottom:1px solid var(--border);flex-shrink:0;}
-.ms-act-btn{font-size:8px;font-family:var(--mono);color:var(--violet);cursor:pointer;padding:2px 6px;border-radius:5px;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);transition:.12s;user-select:none;}
-.ms-act-btn:hover{background:rgba(139,92,246,.2);}
+.ms-dd-scroll{overflow-y:auto;max-height:200px;}
+.ms-search{padding:8px 8px 6px;flex-shrink:0;}
+.ms-search input{background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text1);outline:none;width:100%;transition:.15s;}
+.ms-search input:focus{border-color:rgba(139,92,246,.5);}
+.ms-actions{display:flex;gap:6px;padding:5px 8px 7px;border-top:1px solid var(--border);flex-shrink:0;}
+.ms-act-btn{font-size:9px;font-family:var(--mono);font-weight:600;color:var(--violet);cursor:pointer;padding:4px 0;border-radius:6px;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);transition:.12s;user-select:none;flex:1;text-align:center;}
+.ms-act-btn:hover{background:rgba(139,92,246,.25);}
 .ms-opt{display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;transition:.12s;font-size:10px;font-family:var(--mono);user-select:none;}
 .ms-opt:hover{background:rgba(255,255,255,.04);}
 .ms-opt.selected{background:rgba(139,92,246,.08);}
@@ -395,11 +396,11 @@ tfoot .td-amber{color:var(--amber)!important;}
           </div>
           <div class="ms-dropdown" id="ms_company_dd">
             <div class="ms-search"><input type="text" placeholder="Search companies…" id="ms_company_search" oninput="msSearch('company',this.value)"></div>
+            <div class="ms-dd-scroll" id="ms_company_opts"></div>
             <div class="ms-actions">
               <span class="ms-act-btn" onclick="msSelectAll(event,'company')">All</span>
               <span class="ms-act-btn" onclick="msClearAll(event,'company')">Clear</span>
             </div>
-            <div class="ms-dd-scroll" id="ms_company_opts"></div>
           </div>
         </div>
       </div>
@@ -412,11 +413,11 @@ tfoot .td-amber{color:var(--amber)!important;}
           </div>
           <div class="ms-dropdown" id="ms_work_dd">
             <div class="ms-search"><input type="text" placeholder="Search work types…" id="ms_work_search" oninput="msSearch('work',this.value)"></div>
+            <div class="ms-dd-scroll" id="ms_work_opts"></div>
             <div class="ms-actions">
               <span class="ms-act-btn" onclick="msSelectAll(event,'work')">All</span>
               <span class="ms-act-btn" onclick="msClearAll(event,'work')">Clear</span>
             </div>
-            <div class="ms-dd-scroll" id="ms_work_opts"></div>
           </div>
         </div>
       </div>
@@ -429,11 +430,11 @@ tfoot .td-amber{color:var(--amber)!important;}
           </div>
           <div class="ms-dropdown" id="ms_sub_dd">
             <div class="ms-search"><input type="text" placeholder="Search subcontractors…" id="ms_sub_search" oninput="msSearch('sub',this.value)"></div>
+            <div class="ms-dd-scroll" id="ms_sub_opts"></div>
             <div class="ms-actions">
               <span class="ms-act-btn" onclick="msSelectAll(event,'sub')">All</span>
               <span class="ms-act-btn" onclick="msClearAll(event,'sub')">Clear</span>
             </div>
-            <div class="ms-dd-scroll" id="ms_sub_opts"></div>
           </div>
         </div>
       </div>
@@ -446,11 +447,11 @@ tfoot .td-amber{color:var(--amber)!important;}
           </div>
           <div class="ms-dropdown" id="ms_status_dd">
             <div class="ms-search"><input type="text" placeholder="Search statuses…" id="ms_status_search" oninput="msSearch('status',this.value)"></div>
+            <div class="ms-dd-scroll" id="ms_status_opts"></div>
             <div class="ms-actions">
               <span class="ms-act-btn" onclick="msSelectAll(event,'status')">All</span>
               <span class="ms-act-btn" onclick="msClearAll(event,'status')">Clear</span>
             </div>
-            <div class="ms-dd-scroll" id="ms_status_opts"></div>
           </div>
         </div>
       </div>
@@ -676,35 +677,7 @@ function groupByCompanyThenSub(data){
 /* ═══════════════════════════════════════════════════════
    MULTI-SELECT — Fixed positioning approach
 ═══════════════════════════════════════════════════════ */
-function msPositionDropdown(key) {
-  var trigger = document.getElementById('ms_'+key+'_trigger');
-  var dd = document.getElementById('ms_'+key+'_dd');
-  var rect = trigger.getBoundingClientRect();
-  var ddH = 260; // max dropdown height
-  var ddW = Math.max(rect.width, 240);
-  var spaceBelow = window.innerHeight - rect.bottom - 8;
-  var spaceAbove = rect.top - 8;
-
-  // Decide: open downward or upward
-  var openUp = spaceBelow < ddH && spaceAbove > spaceBelow;
-
-  // Horizontal: prevent going off right edge
-  var left = rect.left;
-  if (left + ddW > window.innerWidth - 8) left = window.innerWidth - ddW - 8;
-  if (left < 8) left = 8;
-
-  dd.style.left  = left + 'px';
-  dd.style.width = ddW + 'px';
-  dd.style.maxHeight = Math.min(ddH, openUp ? spaceAbove : spaceBelow) + 'px';
-
-  if (openUp) {
-    dd.style.top    = 'auto';
-    dd.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
-  } else {
-    dd.style.bottom = 'auto';
-    dd.style.top    = (rect.bottom + 4) + 'px';
-  }
-}
+// msPositionDropdown removed — using CSS absolute positioning
 
 function msToggle(e, key) {
   e.stopPropagation();
@@ -714,7 +687,6 @@ function msToggle(e, key) {
   if (dd.classList.contains('open')) {
     msClose(key);
   } else {
-    msPositionDropdown(key);
     dd.classList.add('open');
     tr.classList.add('open');
     RPT.msOpenKey = key;
@@ -743,8 +715,8 @@ document.addEventListener('click', function(e) {
 });
 
 // Reposition on scroll/resize
-window.addEventListener('scroll', function() { if(RPT.msOpenKey) msPositionDropdown(RPT.msOpenKey); }, true);
-window.addEventListener('resize', function() { if(RPT.msOpenKey) msPositionDropdown(RPT.msOpenKey); });
+window.addEventListener('scroll', function() { if(RPT.msOpenKey) msClose(RPT.msOpenKey); }, true);
+
 
 function msBuildOpts(key, vals) {
   var container = document.getElementById('ms_'+key+'_opts');
@@ -1202,19 +1174,21 @@ function buildSummaryPage(data, rptTypeName) {
       (totalRef>0?'<div class="sm-kpi kv-green"><div class="sm-kpi-icon">↩️</div><div class="sm-kpi-label">Refunds</div><div class="sm-kpi-val" style="font-size:13px">'+fmt(totalRef)+'</div><div class="sm-kpi-sub">SAR refunded</div></div>':'')+
       '<div class="sm-kpi kv-green"><div class="sm-kpi-icon">📈</div><div class="sm-kpi-label">Net Efficiency</div><div class="sm-kpi-val">'+efficiency+'%</div><div class="sm-kpi-sub">net / work value</div></div>'+
     '</div>'+
+    /* Work Type table — full width */
+    '<div class="sm-card" style="margin-bottom:14px;">'+
+      '<div class="sm-card-hd" style="color:var(--blue)">🔧 Breakdown by Work Type</div>'+
+      '<div class="sm-card-body" style="overflow-x:auto;"><table class="sm-wt-table">'+
+        '<thead><tr><th>Work Type</th><th>Companies</th><th>Subcontractors</th><th>Certs</th><th>Work Value</th><th>Retention</th><th>Deduction</th><th>Net Payment</th></tr></thead>'+
+        '<tbody>'+wtHtml+'</tbody>'+
+        '<tfoot><tr><td style="font-weight:700">TOTAL</td>'+
+          '<td class="sm-wt-num">'+companies.size+'</td><td class="sm-wt-num">'+subs.size+'</td><td class="sm-wt-num">'+totalCerts+'</td>'+
+          '<td class="sm-wt-num">'+fmt(totalWork)+'</td><td class="sm-wt-amber">'+fmt(totalRet)+'</td>'+
+          '<td class="sm-wt-num" style="color:var(--red)">'+fmt(totalDed)+'</td><td class="sm-wt-net">'+fmt(totalNet)+'</td>'+
+        '</tr></tfoot>'+
+      '</table></div>'+
+    '</div>'+
+    /* Company + Status side by side */
     '<div class="sm-grid2">'+
-      '<div class="sm-card" style="grid-column:1/-1">'+
-        '<div class="sm-card-hd" style="color:var(--blue)">🔧 Breakdown by Work Type</div>'+
-        '<div class="sm-card-body"><table class="sm-wt-table">'+
-          '<thead><tr><th>Work Type</th><th>Companies</th><th>Subcontractors</th><th>Certs</th><th>Work Value</th><th>Retention</th><th>Deduction</th><th>Net Payment</th></tr></thead>'+
-          '<tbody>'+wtHtml+'</tbody>'+
-          '<tfoot><tr><td style="font-weight:700">TOTAL</td>'+
-            '<td class="sm-wt-num">'+companies.size+'</td><td class="sm-wt-num">'+subs.size+'</td><td class="sm-wt-num">'+totalCerts+'</td>'+
-            '<td class="sm-wt-num">'+fmt(totalWork)+'</td><td class="sm-wt-amber">'+fmt(totalRet)+'</td>'+
-            '<td class="sm-wt-num" style="color:var(--red)">'+fmt(totalDed)+'</td><td class="sm-wt-net">'+fmt(totalNet)+'</td>'+
-          '</tr></tfoot>'+
-        '</table></div>'+
-      '</div>'+
       '<div class="sm-card"><div class="sm-card-hd" style="color:var(--blue)">🏢 Breakdown by Company</div><div class="sm-card-body">'+coHtml+'</div></div>'+
       '<div class="sm-card"><div class="sm-card-hd" style="color:var(--violet)">📊 Certificate Status Distribution</div><div class="sm-card-body">'+stHtml+'</div></div>'+
     '</div>'+
