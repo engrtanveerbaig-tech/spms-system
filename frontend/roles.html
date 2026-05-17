@@ -6,47 +6,33 @@
 <title>Roles & Users — SPMS</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ── RESET & BASE ──────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#080c14;
-  --panel:#0c0f1c;
-  --card:#101628;
-  --border:rgba(255,255,255,.07);
-  --border2:rgba(255,255,255,.12);
-  --text:#e8eaf2;
-  --muted:#6b7490;
-  --accent:#f43f5e;
-  --accent2:#8b5cf6;
-  --gold:#f59e0b;
-  --green:#10b981;
-  --red:#ef4444;
-  --radius:14px;
-  --font:'Outfit',sans-serif;
-  --mono:'JetBrains Mono',monospace;
+  --bg:#080c14;--panel:#0c0f1c;--card:#101628;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --text:#e8eaf2;--muted:#6b7490;
+  --accent:#f43f5e;--accent2:#8b5cf6;--gold:#f59e0b;
+  --green:#10b981;--red:#ef4444;--radius:14px;
+  --font:'Outfit',sans-serif;--mono:'JetBrains Mono',monospace;
 }
 body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden;}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes scaleIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
 
-/* ── PAGE LAYOUT ───────────────────────────────────────── */
 .page{padding:32px 36px;max-width:1200px;animation:fadeUp .35s ease;}
 
-/* ── HEADER ────────────────────────────────────────────── */
+/* HEADER */
 .page-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;gap:16px;flex-wrap:wrap;}
-.page-title-group{ color: white;}
 .page-eyebrow{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
 .page-title{font-size:26px;font-weight:700;background:linear-gradient(135deg,#fff 40%,rgba(255,255,255,.45));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;}
 .page-subtitle{font-size:13px;color:var(--muted);margin-top:5px;}
 .header-actions{display:flex;gap:10px;align-items:center;}
 
-/* ── BUTTONS ───────────────────────────────────────────── */
+/* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border:none;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:all .18s;white-space:nowrap;}
-.btn svg{flex-shrink:0;}
 .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 20px rgba(244,63,94,.25);}
-.btn-primary:hover{opacity:.88;transform:translateY(-1px);box-shadow:0 6px 24px rgba(244,63,94,.35);}
+.btn-primary:hover{opacity:.88;transform:translateY(-1px);}
 .btn-ghost{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--border);}
 .btn-ghost:hover{background:rgba(255,255,255,.09);color:var(--text);border-color:var(--border2);}
 .btn-danger{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2);}
@@ -54,91 +40,75 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .btn-sm{padding:6px 12px;font-size:12px;border-radius:8px;}
 .btn-icon{padding:8px;border-radius:9px;}
 
-/* ── STAT CARDS ────────────────────────────────────────── */
+/* STATS */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:26px;}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;position:relative;overflow:hidden;}
 .stat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--clr1,.1),var(--clr2,.04));opacity:.5;pointer-events:none;}
-.stat-card .s-label{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
-.stat-card .s-val{font-size:28px;font-weight:700;line-height:1;color:var(--text);}
-.stat-card .s-sub{font-size:11px;color:var(--muted);margin-top:5px;}
-.stat-card .s-icon{position:absolute;right:16px;top:16px;width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);}
-.stat-card .s-icon svg{width:16px;height:16px;}
+.s-label{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.s-val{font-size:28px;font-weight:700;line-height:1;color:var(--text);}
+.s-sub{font-size:11px;color:var(--muted);margin-top:5px;}
+.s-icon{position:absolute;right:16px;top:16px;width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);}
+.s-icon svg{width:16px;height:16px;}
 
-/* ── SEARCH / FILTER BAR ───────────────────────────────── */
+/* TOOLBAR — uses unique class to avoid clash with parent app.js */
 .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
-.search-wrap{position:relative;flex:1;min-width:200px;}
-.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--muted);pointer-events:none;}
-.search-wrap input{width:100%;padding:9px 14px 9px 36px;background:var(--card);border:1px solid var(--border);border-radius:10px;font-family:var(--font);font-size:13px;color:var(--text);outline:none;transition:.2s;}
-.search-wrap input:focus{border-color:rgba(244,63,94,.35);}
-.search-wrap input::placeholder{color:var(--muted);}
-.filter-select{padding:9px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;font-family:var(--font);font-size:13px;color:var(--text);outline:none;cursor:pointer;appearance:none;padding-right:28px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7490' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
+.r-search-wrap{position:relative;flex:1;min-width:200px;}
+.r-search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--muted);pointer-events:none;}
+.r-search-wrap input{width:100%;padding:9px 14px 9px 36px;background:var(--card);border:1px solid var(--border);border-radius:10px;font-family:var(--font);font-size:13px;color:var(--text);outline:none;transition:.2s;}
+.r-search-wrap input:focus{border-color:rgba(244,63,94,.35);}
+.r-search-wrap input::placeholder{color:var(--muted);}
+.r-filter-sel{padding:9px 28px 9px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;font-family:var(--font);font-size:13px;color:var(--text);outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7490' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
 
-/* ── USERS TABLE ───────────────────────────────────────── */
+/* TABLE */
 .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
 .users-table{width:100%;border-collapse:collapse;}
 .users-table thead tr{background:rgba(255,255,255,.03);}
 .users-table th{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:13px 18px;text-align:left;border-bottom:1px solid var(--border);}
-.users-table tbody tr{border-bottom:1px solid var(--border);transition:background .15s;cursor:default;}
+.users-table tbody tr{border-bottom:1px solid var(--border);transition:background .15s;}
 .users-table tbody tr:last-child{border-bottom:none;}
 .users-table tbody tr:hover{background:rgba(255,255,255,.025);}
 .users-table td{padding:14px 18px;font-size:13px;color:var(--text);vertical-align:middle;}
-
-/* User avatar cell */
 .user-cell{display:flex;align-items:center;gap:12px;}
 .avatar{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:600;flex-shrink:0;}
 .user-name{font-weight:600;font-size:13px;}
 .user-email{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:1px;}
 
-/* Role badge */
+/* ROLE BADGES */
 .role-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;}
 .role-badge .dot{width:5px;height:5px;border-radius:50%;}
-.role-admin{background:rgba(244,63,94,.12);color:#f87171;border:1px solid rgba(244,63,94,.2);}
-.role-admin .dot{background:#f43f5e;}
-.role-manager{background:rgba(139,92,246,.12);color:#a78bfa;border:1px solid rgba(139,92,246,.2);}
-.role-manager .dot{background:#8b5cf6;}
-.role-finance{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.2);}
-.role-finance .dot{background:#f59e0b;}
-.role-engineer{background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.2);}
-.role-engineer .dot{background:#10b981;}
-.role-contract_department{background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.2);}
-.role-contract_department .dot{background:#3b82f6;}
-.role-viewer{background:rgba(107,116,144,.12);color:var(--muted);border:1px solid rgba(107,116,144,.2);}
-.role-viewer .dot{background:var(--muted);}
+.role-admin{background:rgba(244,63,94,.12);color:#f87171;border:1px solid rgba(244,63,94,.2);}.role-admin .dot{background:#f43f5e;}
+.role-manager{background:rgba(139,92,246,.12);color:#a78bfa;border:1px solid rgba(139,92,246,.2);}.role-manager .dot{background:#8b5cf6;}
+.role-finance{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.2);}.role-finance .dot{background:#f59e0b;}
+.role-engineer{background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.2);}.role-engineer .dot{background:#10b981;}
+.role-contract_department{background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.2);}.role-contract_department .dot{background:#3b82f6;}
+.role-viewer{background:rgba(107,116,144,.12);color:var(--muted);border:1px solid rgba(107,116,144,.2);}.role-viewer .dot{background:var(--muted);}
 
-/* Status pill */
+/* STATUS */
 .status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;}
 .status-pill .dot{width:6px;height:6px;border-radius:50%;}
-.s-active .dot{background:var(--green);box-shadow:0 0 6px var(--green);}
-.s-active{color:var(--green);}
-.s-inactive .dot{background:var(--muted);}
-.s-inactive{color:var(--muted);}
+.s-active{color:var(--green);}.s-active .dot{background:var(--green);box-shadow:0 0 6px var(--green);}
+.s-inactive{color:var(--muted);}.s-inactive .dot{background:var(--muted);}
 
-/* Password field in table */
+/* PASSWORD CELL */
 .pw-cell{display:flex;align-items:center;gap:6px;}
 .pw-mask{font-family:var(--mono);font-size:13px;letter-spacing:.05em;color:var(--muted);}
 .pw-text{font-family:var(--mono);font-size:12px;color:var(--text);display:none;background:rgba(244,63,94,.08);padding:2px 6px;border-radius:5px;border:1px solid rgba(244,63,94,.15);}
 .pw-eye{background:none;border:none;color:var(--muted);cursor:pointer;padding:3px;display:flex;align-items:center;border-radius:5px;transition:.15s;}
 .pw-eye:hover{color:var(--text);background:rgba(255,255,255,.06);}
 .pw-eye svg{width:13px;height:13px;}
-
-/* Actions */
 .actions-cell{display:flex;gap:6px;align-items:center;}
-
-/* Empty state */
 .empty-state{padding:60px 24px;text-align:center;}
 .empty-state svg{width:40px;height:40px;color:rgba(255,255,255,.1);margin-bottom:14px;}
 .empty-state p{font-size:13px;color:var(--muted);}
 
-/* ── MODAL ─────────────────────────────────────────────── */
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(12px);display:none;justify-content:center;align-items:flex-start;padding:6vh 16px;z-index:9000;overflow-y:auto;}
-.modal-backdrop.open{display:flex;}
-.modal{background:#0e1220;border:1px solid var(--border2);border-radius:20px;width:100%;max-width:500px;padding:28px;box-shadow:0 40px 100px rgba(0,0,0,.7);animation:scaleIn .2s ease;margin:auto;}
-.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
-.modal-title{font-size:17px;font-weight:700;background:linear-gradient(135deg,#fff,rgba(255,255,255,.6));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.modal-close{background:rgba(255,255,255,.06);border:none;color:var(--muted);width:30px;height:30px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:.15s;}
-.modal-close:hover{background:rgba(255,255,255,.1);color:var(--text);}
-
-/* Form */
+/* MODALS — all prefixed r- to avoid parent page CSS conflicts */
+.r-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(12px);display:none;justify-content:center;align-items:flex-start;padding:6vh 16px;z-index:9000;overflow-y:auto;}
+.r-backdrop.open{display:flex;}
+.r-modal{background:#0e1220;border:1px solid var(--border2);border-radius:20px;width:100%;max-width:500px;padding:28px;box-shadow:0 40px 100px rgba(0,0,0,.7);animation:scaleIn .2s ease;margin:auto;}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.modal-ttl{font-size:17px;font-weight:700;background:linear-gradient(135deg,#fff,rgba(255,255,255,.6));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.modal-x{background:rgba(255,255,255,.06);border:none;color:var(--muted);width:30px;height:30px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:.15s;}
+.modal-x:hover{background:rgba(255,255,255,.1);color:var(--text);}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .form-grid .full{grid-column:1/-1;}
 .field{display:flex;flex-direction:column;gap:6px;}
@@ -147,592 +117,459 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .field input:focus,.field select:focus{border-color:rgba(244,63,94,.4);background:rgba(244,63,94,.04);}
 .field input::placeholder{color:var(--muted);}
 .field select option{background:#0e1220;}
-.pw-input-wrap{position:relative;}
-.pw-input-wrap input{width:100%;padding-right:40px;}
-.pw-toggle{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;display:flex;padding:3px;}
-.pw-toggle:hover{color:var(--text);}
-.pw-toggle svg{width:14px;height:14px;}
-.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:18px;border-top:1px solid var(--border);}
+.pw-wrap{position:relative;}
+.pw-wrap input{width:100%;padding-right:40px;}
+.pw-tog{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;display:flex;padding:3px;}
+.pw-tog:hover{color:var(--text);}
+.pw-tog svg{width:14px;height:14px;}
+.modal-ft{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:18px;border-top:1px solid var(--border);}
 
-/* ── TOAST ─────────────────────────────────────────────── */
-.toast-wrap{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:9999;}
-.toast{background:#0e1220;border:1px solid var(--border2);border-radius:12px;padding:12px 18px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px;box-shadow:0 16px 48px rgba(0,0,0,.6);animation:fadeUp .25s ease;min-width:240px;}
-.toast.success{border-color:rgba(16,185,129,.3);color:var(--green);}
-.toast.error{border-color:rgba(239,68,68,.3);color:var(--red);}
-.toast.info{border-color:rgba(139,92,246,.3);color:#a78bfa;}
-.toast svg{width:15px;height:15px;flex-shrink:0;}
-
-/* ── CONFIRM DIALOG ────────────────────────────────────── */
-.confirm-modal{max-width:380px;}
-.confirm-body{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:6px;}
-.confirm-name{font-weight:600;color:var(--text);}
-
-/* ── LOADING OVERLAY ───────────────────────────────────── */
+/* TOAST */
+.r-toast-wrap{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:99999;}
+.r-toast{background:#0e1220;border:1px solid var(--border2);border-radius:12px;padding:12px 18px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px;box-shadow:0 16px 48px rgba(0,0,0,.6);animation:fadeUp .25s ease;min-width:240px;}
+.r-toast.success{border-color:rgba(16,185,129,.3);color:var(--green);}
+.r-toast.error{border-color:rgba(239,68,68,.3);color:var(--red);}
+.r-toast.info{border-color:rgba(139,92,246,.3);color:#a78bfa;}
+.r-toast svg{width:15px;height:15px;flex-shrink:0;}
 .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.15);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
-
-/* Scrollbar */
-::-webkit-scrollbar{width:5px;height:5px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:99px;}
-
-/* Responsive */
-@media(max-width:680px){
-  .page{padding:20px 16px;}
-  .form-grid{grid-template-columns:1fr;}
-  .form-grid .full{grid-column:1;}
-  .users-table th:nth-child(4),
-  .users-table td:nth-child(4),
-  .users-table th:nth-child(5),
-  .users-table td:nth-child(5){display:none;}
-}
+::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:99px;}
+@media(max-width:680px){.page{padding:20px 16px;}.form-grid{grid-template-columns:1fr;}.form-grid .full{grid-column:1;}
+.users-table th:nth-child(4),.users-table td:nth-child(4),.users-table th:nth-child(5),.users-table td:nth-child(5){display:none;}}
 </style>
 </head>
 <body>
-
-<div class="page" id="rolesPage">
-
+<div class="page">
   <!-- Header -->
   <div class="page-header">
-    <div class="page-title-group">
+    <div>
       <div class="page-eyebrow">System Administration</div>
-      <div class="page-title">Roles & Users</div>
+      <div class="page-title">Roles &amp; Users</div>
       <div class="page-subtitle">Manage accounts, permissions, and access levels</div>
     </div>
     <div class="header-actions">
-      <button class="btn btn-ghost" onclick="refreshUsers()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-        Refresh
+      <button class="btn btn-ghost" onclick="R.refresh()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
       </button>
-      <button class="btn btn-primary" onclick="openCreateModal()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add User
+      <button class="btn btn-primary" onclick="R.openCreate()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add User
       </button>
     </div>
   </div>
 
   <!-- Stats -->
-  <div class="stats-row" id="statsRow">
+  <div class="stats-row">
     <div class="stat-card" style="--clr1:rgba(244,63,94);--clr2:rgba(244,63,94);">
       <div class="s-icon" style="color:#f43f5e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
-      <div class="s-label">Total Users</div>
-      <div class="s-val" id="statTotal">—</div>
-      <div class="s-sub">registered accounts</div>
+      <div class="s-label">Total Users</div><div class="s-val" id="r_tot">—</div><div class="s-sub">registered accounts</div>
     </div>
     <div class="stat-card" style="--clr1:rgba(16,185,129);--clr2:rgba(16,185,129);">
       <div class="s-icon" style="color:#10b981"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-      <div class="s-label">Active</div>
-      <div class="s-val" id="statActive">—</div>
-      <div class="s-sub">currently enabled</div>
+      <div class="s-label">Active</div><div class="s-val" id="r_act">—</div><div class="s-sub">currently enabled</div>
     </div>
     <div class="stat-card" style="--clr1:rgba(244,63,94);--clr2:rgba(139,92,246);">
       <div class="s-icon" style="color:#f43f5e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-      <div class="s-label">Admins</div>
-      <div class="s-val" id="statAdmins">—</div>
-      <div class="s-sub">full access</div>
+      <div class="s-label">Admins</div><div class="s-val" id="r_adm">—</div><div class="s-sub">full access</div>
     </div>
     <div class="stat-card" style="--clr1:rgba(139,92,246);--clr2:rgba(139,92,246);">
       <div class="s-icon" style="color:#8b5cf6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-      <div class="s-label">Roles</div>
-      <div class="s-val" id="statRoles">—</div>
-      <div class="s-sub">distinct roles</div>
+      <div class="s-label">Roles</div><div class="s-val" id="r_rol">—</div><div class="s-sub">distinct roles</div>
     </div>
   </div>
 
   <!-- Toolbar -->
   <div class="toolbar">
-    <div class="search-wrap">
+    <div class="r-search-wrap">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" id="searchInput" placeholder="Search by name, username, or email…" oninput="filterTable()">
+      <input type="text" id="r_q" placeholder="Search by name, username, or email…" oninput="R.filter()">
     </div>
-    <select class="filter-select" id="roleFilter" onchange="filterTable()">
+    <select class="r-filter-sel" id="r_rf" onchange="R.filter()">
       <option value="">All Roles</option>
-      <option value="admin">Admin</option>
-      <option value="manager">Manager</option>
-      <option value="finance">Finance</option>
-      <option value="engineer">Engineer</option>
-      <option value="contract_department">Contract Dept.</option>
-      <option value="viewer">Viewer</option>
+      <option value="admin">Admin</option><option value="manager">Manager</option>
+      <option value="finance">Finance</option><option value="engineer">Engineer</option>
+      <option value="contract_department">Contract Dept.</option><option value="viewer">Viewer</option>
     </select>
-    <select class="filter-select" id="statusFilter" onchange="filterTable()">
+    <select class="r-filter-sel" id="r_sf" onchange="R.filter()">
       <option value="">All Status</option>
-      <option value="1">Active</option>
-      <option value="0">Inactive</option>
+      <option value="1">Active</option><option value="0">Inactive</option>
     </select>
   </div>
 
   <!-- Table -->
   <div class="table-wrap">
     <table class="users-table">
-      <thead>
-        <tr>
-          <th>User</th>
-          <th>Role</th>
-          <th>Password</th>
-          <th>Status</th>
-          <th>Last Active</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="usersBody">
+      <thead><tr><th>User</th><th>Role</th><th>Password</th><th>Status</th><th>Last Active</th><th>Actions</th></tr></thead>
+      <tbody id="r_tbody">
         <tr><td colspan="6"><div class="empty-state"><div class="spinner" style="margin:0 auto 14px"></div><p>Loading users…</p></div></td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
-<!-- ── CREATE / EDIT MODAL ──────────────────────────────── -->
-<div class="modal-backdrop" id="userModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="modalTitle">Add New User</div>
-      <button class="modal-close" onclick="closeModal('userModal')">✕</button>
+<!-- CREATE/EDIT MODAL -->
+<div class="r-backdrop" id="r_mUser">
+  <div class="r-modal">
+    <div class="modal-hd">
+      <div class="modal-ttl" id="r_mttl">Add New User</div>
+      <button class="modal-x" onclick="R.closeM('r_mUser')">✕</button>
     </div>
     <div class="form-grid">
-      <div class="field full">
-        <label>Full Name</label>
-        <input type="text" id="f_name" placeholder="e.g. Ahmed Al-Rashidi">
-      </div>
-      <div class="field">
-        <label>Username</label>
-        <input type="text" id="f_username" placeholder="e.g. ahmed.r">
-      </div>
-      <div class="field">
-        <label>Email</label>
-        <input type="email" id="f_email" placeholder="email@company.com">
-      </div>
-      <div class="field">
-        <label>Role</label>
-        <select id="f_role">
+      <div class="field full"><label>Full Name</label><input type="text" id="r_fn" placeholder="e.g. Ahmed Al-Rashidi"></div>
+      <div class="field"><label>Username</label><input type="text" id="r_fu" placeholder="e.g. ahmed.r"></div>
+      <div class="field"><label>Email</label><input type="email" id="r_fe" placeholder="email@company.com"></div>
+      <div class="field"><label>Role</label>
+        <select id="r_fr">
           <option value="">— Select Role —</option>
-          <option value="admin">Admin</option>
-          <option value="manager">Manager</option>
-          <option value="finance">Finance</option>
-          <option value="engineer">Engineer</option>
-          <option value="contract_department">Contract Department</option>
-          <option value="viewer">Viewer</option>
+          <option value="admin">Admin</option><option value="manager">Manager</option>
+          <option value="finance">Finance</option><option value="engineer">Engineer</option>
+          <option value="contract_department">Contract Department</option><option value="viewer">Viewer</option>
         </select>
       </div>
-      <div class="field">
-        <label>Password</label>
-        <div class="pw-input-wrap">
-          <input type="password" id="f_password" placeholder="Min 8 characters">
-          <button type="button" class="pw-toggle" onclick="togglePwField('f_password',this)">
-            <svg id="f_password_eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      <div class="field"><label>Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="r_fp" placeholder="Min 8 characters">
+          <button type="button" class="pw-tog" onclick="R.togglePw('r_fp',this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
         </div>
       </div>
-      <div class="field">
-        <label>Phone <span style="color:var(--muted);font-weight:400">(optional)</span></label>
-        <input type="text" id="f_phone" placeholder="+966 5x xxx xxxx">
-      </div>
-      <div class="field full">
-        <label>Notes <span style="color:var(--muted);font-weight:400">(optional)</span></label>
-        <input type="text" id="f_notes" placeholder="Any extra context…">
-      </div>
-      <!-- Active toggle — shown in edit mode -->
-      <div class="field full" id="activeField" style="display:none;">
-        <label>Status</label>
-        <select id="f_active">
-          <option value="1">Active</option>
-          <option value="0">Inactive</option>
-        </select>
+      <div class="field"><label>Phone <span style="color:var(--muted);font-weight:400">(optional)</span></label><input type="text" id="r_fph" placeholder="+966 5x xxx xxxx"></div>
+      <div class="field full"><label>Notes <span style="color:var(--muted);font-weight:400">(optional)</span></label><input type="text" id="r_fno" placeholder="Any extra context…"></div>
+      <div class="field full" id="r_actFld" style="display:none;"><label>Status</label>
+        <select id="r_fa"><option value="1">Active</option><option value="0">Inactive</option></select>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('userModal')">Cancel</button>
-      <button class="btn btn-primary" id="saveBtn" onclick="saveUser()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        Save User
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="R.closeM('r_mUser')">Cancel</button>
+      <button class="btn btn-primary" id="r_saveBtn" onclick="R.save()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Save User
       </button>
     </div>
   </div>
 </div>
 
-<!-- ── RESET PASSWORD MODAL ─────────────────────────────── -->
-<div class="modal-backdrop" id="resetModal">
-  <div class="modal" style="max-width:400px;">
-    <div class="modal-header">
-      <div class="modal-title">Reset Password</div>
-      <button class="modal-close" onclick="closeModal('resetModal')">✕</button>
+<!-- RESET PASSWORD MODAL -->
+<div class="r-backdrop" id="r_mReset">
+  <div class="r-modal" style="max-width:400px;">
+    <div class="modal-hd">
+      <div class="modal-ttl">Reset Password</div>
+      <button class="modal-x" onclick="R.closeM('r_mReset')">✕</button>
     </div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.6;">
-      Resetting password for <span id="resetUserName" style="color:var(--text);font-weight:600;"></span>.
-    </div>
-    <div class="field" style="margin-bottom:14px;">
-      <label>New Password</label>
-      <div class="pw-input-wrap">
-        <input type="password" id="r_password" placeholder="Min 8 characters">
-        <button type="button" class="pw-toggle" onclick="togglePwField('r_password',this)">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.6;">Resetting password for <span id="r_rName" style="color:var(--text);font-weight:600;"></span>.</p>
+    <div class="field" style="margin-bottom:14px;"><label>New Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="r_rp" placeholder="Min 8 characters">
+        <button type="button" class="pw-tog" onclick="R.togglePw('r_rp',this)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('resetModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmResetPw()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-        Reset Password
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="R.closeM('r_mReset')">Cancel</button>
+      <button class="btn btn-primary" onclick="R.confirmReset()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Reset Password
       </button>
     </div>
   </div>
 </div>
 
-<!-- ── CONFIRM DELETE MODAL ─────────────────────────────── -->
-<div class="modal-backdrop" id="deleteModal">
-  <div class="modal confirm-modal">
-    <div class="modal-header">
-      <div class="modal-title" style="-webkit-text-fill-color:#ef4444;">Delete User</div>
-      <button class="modal-close" onclick="closeModal('deleteModal')">✕</button>
+<!-- DELETE MODAL -->
+<div class="r-backdrop" id="r_mDel">
+  <div class="r-modal" style="max-width:380px;">
+    <div class="modal-hd">
+      <div class="modal-ttl" style="-webkit-text-fill-color:#ef4444;">Delete User</div>
+      <button class="modal-x" onclick="R.closeM('r_mDel')">✕</button>
     </div>
-    <div class="confirm-body">
-      Are you sure you want to delete <span class="confirm-name" id="deleteUserName"></span>?
-      This action <strong style="color:var(--text)">cannot be undone</strong>.
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('deleteModal')">Cancel</button>
-      <button class="btn btn-danger" onclick="confirmDelete()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-        Delete
+    <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:6px;">
+      Are you sure you want to delete <strong id="r_dName" style="color:var(--text)"></strong>? This action <strong style="color:var(--text)">cannot be undone</strong>.
+    </p>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="R.closeM('r_mDel')">Cancel</button>
+      <button class="btn btn-danger" onclick="R.confirmDel()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>Delete
       </button>
     </div>
   </div>
 </div>
 
-<!-- Toast container -->
-<div class="toast-wrap" id="toastWrap"></div>
+<div class="r-toast-wrap" id="r_toasts"></div>
 
 <script>
-/* ============================================================
-   CONFIG — update BASE_URL to your API root
-   ============================================================ */
-const BASE_URL = (typeof API_BASE !== 'undefined') ? API_BASE : '';
-const API      = BASE_URL + '/api/users';
+/* ================================================================
+   roles.html — IIFE so NOTHING leaks into parent page scope.
+   All functions exposed on window.R only.
+   FIX 1: API hardcoded to Render backend (not GitHub Pages).
+   FIX 2: All IDs prefixed r_ — no clash with dashboard/app.js.
+   FIX 3: No reference to searchSuggest or any parent element.
+   FIX 4: Wrapped in IIFE — no let/const/function at global level.
+================================================================ */
+(function () {
 
-/* ── TOKEN ─────────────────────────────────────────────── */
-function getToken(){
-  return localStorage.getItem('token') || '';
-}
-function authHeaders(){
-  return { 'Content-Type':'application/json', 'Authorization':'Bearer '+getToken() };
-}
+  /* ── CONFIG ── */
+  /* IMPORTANT: This is your actual backend. Do NOT use window.location
+     or API_BASE — that resolves to GitHub Pages which has no /api/users */
+  var BACKEND = 'https://spms-backend-jxzn.onrender.com';
+  var API     = BACKEND + '/api/users';
 
-/* ── STATE ─────────────────────────────────────────────── */
-let allUsers   = [];
-let editingId  = null;
-let deletingId = null;
-let resetingId = null;
+  /* ── STATE ── */
+  var users   = [];
+  var editId  = null;
+  var delId   = null;
+  var resetId = null;
+  var pwVis   = {};
 
-/* ── AVATAR COLORS ─────────────────────────────────────── */
-const AVATAR_COLORS = [
-  ['#f43f5e','#8b5cf6'],['#f59e0b','#f43f5e'],['#10b981','#3b82f6'],
-  ['#8b5cf6','#3b82f6'],['#f97316','#f43f5e'],['#14b8a6','#8b5cf6'],
-];
-function avatarStyle(name,id){
-  const c = AVATAR_COLORS[(id||0) % AVATAR_COLORS.length];
-  return `background:linear-gradient(135deg,${c[0]},${c[1]});color:#fff;`;
-}
-function initials(name){
-  return (name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-}
+  /* ── HELPERS ── */
+  var COLORS = [
+    ['#f43f5e','#8b5cf6'],['#f59e0b','#f43f5e'],['#10b981','#3b82f6'],
+    ['#8b5cf6','#3b82f6'],['#f97316','#f43f5e'],['#14b8a6','#8b5cf6']
+  ];
+  var RLABELS = {admin:'Admin',manager:'Manager',finance:'Finance',engineer:'Engineer',contract_department:'Contract Dept.',viewer:'Viewer'};
 
-/* ── ROLE BADGE ────────────────────────────────────────── */
-const ROLE_LABELS = {
-  admin:'Admin', manager:'Manager', finance:'Finance',
-  engineer:'Engineer', contract_department:'Contract Dept.', viewer:'Viewer'
-};
-function roleBadge(role){
-  return `<span class="role-badge role-${role||'viewer'}"><span class="dot"></span>${ROLE_LABELS[role]||role}</span>`;
-}
-
-/* ── FETCH USERS ───────────────────────────────────────── */
-async function fetchUsers(){
-  try{
-    const res = await fetch(API, { headers: authHeaders() });
-    if(!res.ok) throw new Error('Failed to load');
-    return await res.json();
-  }catch(e){
-    toast('Could not load users: '+e.message,'error');
-    return [];
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function ago(dt){
+    var d=new Date(dt),diff=Date.now()-d;
+    if(isNaN(diff)||diff<0)return'Just now';
+    var s=Math.floor(diff/1000),m=Math.floor(s/60),h=Math.floor(m/60),dy=Math.floor(h/24);
+    if(s<60)return'Just now';if(m<60)return m+'m ago';if(h<24)return h+'h ago';
+    if(dy<30)return dy+'d ago';
+    return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
   }
-}
-
-async function refreshUsers(){
-  const tbody = document.getElementById('usersBody');
-  tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="spinner" style="margin:0 auto 14px"></div><p>Loading…</p></div></td></tr>`;
-  allUsers = await fetchUsers();
-  updateStats();
-  filterTable();
-}
-
-/* ── STATS ─────────────────────────────────────────────── */
-function updateStats(){
-  const active = allUsers.filter(u=>u.active==1).length;
-  const admins = allUsers.filter(u=>u.role==='admin').length;
-  const roles  = new Set(allUsers.map(u=>u.role)).size;
-  document.getElementById('statTotal').textContent  = allUsers.length;
-  document.getElementById('statActive').textContent = active;
-  document.getElementById('statAdmins').textContent = admins;
-  document.getElementById('statRoles').textContent  = roles;
-}
-
-/* ── FILTER / RENDER TABLE ─────────────────────────────── */
-function filterTable(){
-  const q      = document.getElementById('searchInput').value.toLowerCase().trim();
-  const role   = document.getElementById('roleFilter').value;
-  const status = document.getElementById('statusFilter').value;
-
-  const filtered = allUsers.filter(u=>{
-    const matchQ = !q || [u.name,u.username,u.email].some(v=>(v||'').toLowerCase().includes(q));
-    const matchR = !role   || u.role === role;
-    const matchS = status === '' || String(u.active) === status;
-    return matchQ && matchR && matchS;
-  });
-
-  renderTable(filtered);
-}
-
-function renderTable(users){
-  const tbody = document.getElementById('usersBody');
-  if(!users.length){
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <p>No users found</p></div></td></tr>`;
-    return;
+  function avStyle(id){ var c=COLORS[(id||0)%COLORS.length];return 'background:linear-gradient(135deg,'+c[0]+','+c[1]+');color:#fff;'; }
+  function inits(name){ return (name||'?').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2); }
+  function badge(role){
+    return '<span class="role-badge role-'+(role||'viewer')+'"><span class="dot"></span>'+(RLABELS[role]||role)+'</span>';
+  }
+  function get(id){ return document.getElementById(id); }
+  function toast(msg,type){
+    var wrap=get('r_toasts');if(!wrap)return;
+    var icons={success:'<polyline points="20 6 9 17 4 12"/>',error:'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',info:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'};
+    var el=document.createElement('div');
+    el.className='r-toast '+(type||'info');
+    el.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+(icons[type]||icons.info)+'</svg>'+esc(msg);
+    wrap.appendChild(el);
+    setTimeout(function(){el.remove();},3500);
   }
 
-  tbody.innerHTML = users.map(u=>{
-    const lastActive = u.last_active ? timeAgo(u.last_active) : 'Never';
-    const statusHtml = u.active==1
-      ? `<span class="status-pill s-active"><span class="dot"></span>Active</span>`
-      : `<span class="status-pill s-inactive"><span class="dot"></span>Inactive</span>`;
+  /* ── AUTH ── */
+  function headers(){ return {'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('token')||'')}; }
 
-    const pw = u.password || '';
-    const pwHtml = `
-      <div class="pw-cell">
-        <span class="pw-mask" id="pwmask_${u.id}">••••••••</span>
-        <span class="pw-text" id="pwtext_${u.id}">${escHtml(pw)}</span>
-        <button class="pw-eye" onclick="togglePwRow(${u.id})" title="Show / Hide">
-          <svg id="pweye_${u.id}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-          </svg>
-        </button>
-      </div>`;
-
-    return `<tr>
-      <td>
-        <div class="user-cell">
-          <div class="avatar" style="${avatarStyle(u.name,u.id)}">${initials(u.name)}</div>
-          <div>
-            <div class="user-name">${escHtml(u.name)}</div>
-            <div class="user-email">${escHtml(u.username||'')} · ${escHtml(u.email||'')}</div>
-          </div>
-        </div>
-      </td>
-      <td>${roleBadge(u.role)}</td>
-      <td>${pwHtml}</td>
-      <td>${statusHtml}</td>
-      <td style="font-size:12px;color:var(--muted);font-family:var(--mono);">${lastActive}</td>
-      <td>
-        <div class="actions-cell">
-          <button class="btn btn-ghost btn-sm btn-icon" onclick="openEditModal(${u.id})" title="Edit user">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button class="btn btn-ghost btn-sm btn-icon" onclick="openResetModal(${u.id})" title="Reset password" style="color:var(--gold);">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </button>
-          <button class="btn btn-danger btn-sm btn-icon" onclick="openDeleteModal(${u.id})" title="Delete user">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-          </button>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-/* ── TOGGLE PASSWORD VISIBILITY IN TABLE ───────────────── */
-let pwVisible = {};
-function togglePwRow(id){
-  pwVisible[id] = !pwVisible[id];
-  const mask = document.getElementById('pwmask_'+id);
-  const text = document.getElementById('pwtext_'+id);
-  const eye  = document.getElementById('pweye_'+id);
-  if(pwVisible[id]){
-    mask.style.display='none'; text.style.display='inline-block';
-    eye.innerHTML=`<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
-  }else{
-    mask.style.display='inline'; text.style.display='none';
-    eye.innerHTML=`<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
-  }
-}
-
-/* ── CREATE MODAL ──────────────────────────────────────── */
-function openCreateModal(){
-  editingId = null;
-  document.getElementById('modalTitle').textContent = 'Add New User';
-  document.getElementById('saveBtn').innerHTML=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Save User`;
-  ['f_name','f_username','f_email','f_password','f_phone','f_notes'].forEach(id=>{
-    document.getElementById(id).value='';
-  });
-  document.getElementById('f_role').value='';
-  document.getElementById('activeField').style.display='none';
-  document.getElementById('f_password').placeholder='Min 8 characters';
-  openModal('userModal');
-}
-
-/* ── EDIT MODAL ────────────────────────────────────────── */
-function openEditModal(id){
-  const u = allUsers.find(x=>x.id===id);
-  if(!u) return;
-  editingId = id;
-  document.getElementById('modalTitle').textContent = 'Edit User';
-  document.getElementById('saveBtn').innerHTML=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Update User`;
-  document.getElementById('f_name').value     = u.name     || '';
-  document.getElementById('f_username').value = u.username || '';
-  document.getElementById('f_email').value    = u.email    || '';
-  document.getElementById('f_password').value = '';
-  document.getElementById('f_password').placeholder = 'Leave blank to keep current';
-  document.getElementById('f_phone').value  = u.phone || '';
-  document.getElementById('f_notes').value  = u.notes || '';
-  document.getElementById('f_role').value   = u.role  || '';
-  document.getElementById('f_active').value = u.active==1 ? '1' : '0';
-  document.getElementById('activeField').style.display='flex';
-  openModal('userModal');
-}
-
-/* ── SAVE USER ─────────────────────────────────────────── */
-async function saveUser(){
-  const name     = document.getElementById('f_name').value.trim();
-  const username = document.getElementById('f_username').value.trim();
-  const email    = document.getElementById('f_email').value.trim();
-  const password = document.getElementById('f_password').value;
-  const role     = document.getElementById('f_role').value;
-  const phone    = document.getElementById('f_phone').value.trim();
-  const notes    = document.getElementById('f_notes').value.trim();
-  const active   = document.getElementById('f_active').value;
-
-  if(!name)     return toast('Name is required','error');
-  if(!username) return toast('Username is required','error');
-  if(!email || !email.includes('@')) return toast('Valid email is required','error');
-  if(!role)     return toast('Please select a role','error');
-
-  if(!editingId){
-    if(!password || password.length < 8) return toast('Password must be at least 8 characters','error');
-  } else {
-    if(password && password.length < 8) return toast('Password must be at least 8 characters','error');
+  /* ── API CALLS ── */
+  async function fetchUsers(){
+    try{
+      var res=await fetch(API,{headers:headers()});
+      if(res.status===401||res.status===403){toast('Session expired — please log in again','error');return[];}
+      if(!res.ok)throw new Error('HTTP '+res.status);
+      return await res.json();
+    }catch(e){
+      toast('Could not load users: '+e.message,'error');
+      return[];
+    }
   }
 
-  const body = { name, username, email, role, phone: phone||null, notes: notes||null };
-  if(password) body.password = password;
-  if(editingId) body.active = parseInt(active);
-
-  const btn = document.getElementById('saveBtn');
-  btn.disabled = true;
-  btn.innerHTML = `<div class="spinner" style="width:14px;height:14px;margin:0 4px;"></div> Saving…`;
-
-  try{
-    const url    = editingId ? `${API}/${editingId}` : API;
-    const method = editingId ? 'PATCH' : 'POST';
-    const res    = await fetch(url, { method, headers: authHeaders(), body: JSON.stringify(body) });
-    const data   = await res.json();
-    if(!res.ok) throw new Error(data.message || 'Error');
-    toast(editingId ? 'User updated successfully' : 'User created successfully', 'success');
-    closeModal('userModal');
-    refreshUsers();
-  }catch(e){
-    toast(e.message,'error');
-  }finally{
-    btn.disabled=false;
-    btn.innerHTML=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> ${editingId?'Update':'Save'} User`;
+  /* ── STATS ── */
+  function updateStats(){
+    var active=users.filter(function(u){return u.active==1;}).length;
+    var admins=users.filter(function(u){return u.role==='admin';}).length;
+    var roles=new Set(users.map(function(u){return u.role;})).size;
+    get('r_tot').textContent=users.length;
+    get('r_act').textContent=active;
+    get('r_adm').textContent=admins;
+    get('r_rol').textContent=roles;
   }
-}
 
-/* ── RESET PASSWORD ────────────────────────────────────── */
-function openResetModal(id){
-  const u = allUsers.find(x=>x.id===id);
-  if(!u) return;
-  resetingId = id;
-  document.getElementById('resetUserName').textContent = u.name;
-  document.getElementById('r_password').value = '';
-  openModal('resetModal');
-}
-async function confirmResetPw(){
-  const pw = document.getElementById('r_password').value;
-  if(!pw || pw.length < 8) return toast('Password must be at least 8 characters','error');
-  try{
-    const res  = await fetch(`${API}/${resetingId}`, { method:'PATCH', headers: authHeaders(), body: JSON.stringify({ password: pw }) });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.message||'Error');
-    toast('Password reset successfully','success');
-    closeModal('resetModal');
-    refreshUsers();
-  }catch(e){ toast(e.message,'error'); }
-}
+  /* ── RENDER ── */
+  function renderTable(list){
+    var tbody=get('r_tbody');
+    if(!list.length){
+      tbody.innerHTML='<tr><td colspan="6"><div class="empty-state">'
+        +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+        +'<p>No users found</p></div></td></tr>';
+      return;
+    }
+    tbody.innerHTML=list.map(function(u){
+      var la=u.last_active?ago(u.last_active):'Never';
+      var st=u.active==1
+        ?'<span class="status-pill s-active"><span class="dot"></span>Active</span>'
+        :'<span class="status-pill s-inactive"><span class="dot"></span>Inactive</span>';
+      var pw=esc(u.password||'');
+      var pwCell='<div class="pw-cell">'
+        +'<span class="pw-mask" id="r_pm'+u.id+'">\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022</span>'
+        +'<span class="pw-text" id="r_pt'+u.id+'">'+pw+'</span>'
+        +'<button class="pw-eye" onclick="R.togglePwRow('+u.id+')" title="Show/Hide">'
+        +'<svg id="r_pe'+u.id+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+        +'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
+        +'</svg></button></div>';
+      return '<tr>'
+        +'<td><div class="user-cell">'
+        +'<div class="avatar" style="'+avStyle(u.id)+'">'+inits(u.name)+'</div>'
+        +'<div><div class="user-name">'+esc(u.name)+'</div>'
+        +'<div class="user-email">'+esc(u.username||'')+'&nbsp;&middot;&nbsp;'+esc(u.email||'')+'</div></div>'
+        +'</div></td>'
+        +'<td>'+badge(u.role)+'</td>'
+        +'<td>'+pwCell+'</td>'
+        +'<td>'+st+'</td>'
+        +'<td style="font-size:12px;color:var(--muted);font-family:var(--mono);">'+la+'</td>'
+        +'<td><div class="actions-cell">'
+        +'<button class="btn btn-ghost btn-sm btn-icon" onclick="R.openEdit('+u.id+')" title="Edit">'
+        +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+        +'<button class="btn btn-ghost btn-sm btn-icon" onclick="R.openReset('+u.id+')" title="Reset password" style="color:var(--gold);">'
+        +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>'
+        +'<button class="btn btn-danger btn-sm btn-icon" onclick="R.openDel('+u.id+')" title="Delete">'
+        +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>'
+        +'</div></td></tr>';
+    }).join('');
+  }
 
-/* ── DELETE ────────────────────────────────────────────── */
-function openDeleteModal(id){
-  const u = allUsers.find(x=>x.id===id);
-  if(!u) return;
-  deletingId = id;
-  document.getElementById('deleteUserName').textContent = u.name;
-  openModal('deleteModal');
-}
-async function confirmDelete(){
-  try{
-    const res  = await fetch(`${API}/${deletingId}`, { method:'DELETE', headers: authHeaders() });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.message||'Error');
-    toast('User deleted','info');
-    closeModal('deleteModal');
-    refreshUsers();
-  }catch(e){ toast(e.message,'error'); }
-}
+  /* ── PUBLIC API exposed as window.R ── */
+  window.R = {
 
-/* ── MODAL HELPERS ─────────────────────────────────────── */
-function openModal(id){ document.getElementById(id).classList.add('open'); }
-function closeModal(id){ document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-backdrop').forEach(m=>{
-  m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
-});
+    refresh: async function(){
+      get('r_tbody').innerHTML='<tr><td colspan="6"><div class="empty-state">'
+        +'<div class="spinner" style="margin:0 auto 14px"></div><p>Loading\u2026</p></div></td></tr>';
+      users=await fetchUsers();
+      updateStats();
+      this.filter();
+    },
 
-/* ── PW TOGGLE IN FORMS ────────────────────────────────── */
-function togglePwField(inputId, btn){
-  const inp = document.getElementById(inputId);
-  const showing = inp.type==='text';
-  inp.type = showing ? 'password' : 'text';
-  btn.querySelector('svg').innerHTML = showing
-    ? `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`
-    : `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
-}
+    filter: function(){
+      var q=(get('r_q').value||'').toLowerCase().trim();
+      var rf=get('r_rf').value;
+      var sf=get('r_sf').value;
+      var f=users.filter(function(u){
+        var mQ=!q||[u.name,u.username,u.email].some(function(v){return (v||'').toLowerCase().includes(q);});
+        var mR=!rf||u.role===rf;
+        var mS=sf===''||String(u.active)===sf;
+        return mQ&&mR&&mS;
+      });
+      renderTable(f);
+    },
 
-/* ── TOAST ─────────────────────────────────────────────── */
-function toast(msg, type='info'){
-  const icons = {
-    success:`<polyline points="20 6 9 17 4 12"/>`,
-    error:`<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>`,
-    info:`<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>`
+    togglePwRow: function(id){
+      pwVis[id]=!pwVis[id];
+      var mask=get('r_pm'+id),text=get('r_pt'+id),eye=get('r_pe'+id);
+      if(!mask||!text||!eye)return;
+      if(pwVis[id]){
+        mask.style.display='none';text.style.display='inline-block';
+        eye.innerHTML='<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+      }else{
+        mask.style.display='inline';text.style.display='none';
+        eye.innerHTML='<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+      }
+    },
+
+    togglePw: function(inputId,btn){
+      var inp=get(inputId);
+      inp.type=inp.type==='text'?'password':'text';
+      btn.querySelector('svg').innerHTML=inp.type==='password'
+        ?'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
+        :'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    },
+
+    openCreate: function(){
+      editId=null;
+      get('r_mttl').textContent='Add New User';
+      get('r_saveBtn').innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Save User';
+      ['r_fn','r_fu','r_fe','r_fp','r_fph','r_fno'].forEach(function(id){get(id).value='';});
+      get('r_fr').value='';
+      get('r_fp').type='password';
+      get('r_fp').placeholder='Min 8 characters';
+      get('r_actFld').style.display='none';
+      this.openM('r_mUser');
+    },
+
+    openEdit: function(id){
+      var u=users.find(function(x){return x.id===id;});if(!u)return;
+      editId=id;
+      get('r_mttl').textContent='Edit User';
+      get('r_saveBtn').innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Update User';
+      get('r_fn').value=u.name||'';get('r_fu').value=u.username||'';get('r_fe').value=u.email||'';
+      get('r_fp').value='';get('r_fp').type='password';get('r_fp').placeholder='Leave blank to keep current';
+      get('r_fph').value=u.phone||'';get('r_fno').value=u.notes||'';get('r_fr').value=u.role||'';
+      get('r_fa').value=u.active==1?'1':'0';get('r_actFld').style.display='flex';
+      this.openM('r_mUser');
+    },
+
+    save: async function(){
+      var name=get('r_fn').value.trim(),username=get('r_fu').value.trim(),email=get('r_fe').value.trim();
+      var password=get('r_fp').value,role=get('r_fr').value;
+      var phone=get('r_fph').value.trim(),notes=get('r_fno').value.trim(),active=get('r_fa').value;
+      if(!name)return toast('Name is required','error');
+      if(!username)return toast('Username is required','error');
+      if(!email||!email.includes('@'))return toast('Valid email is required','error');
+      if(!role)return toast('Please select a role','error');
+      if(!editId&&(!password||password.length<8))return toast('Password must be at least 8 characters','error');
+      if(editId&&password&&password.length<8)return toast('Password must be at least 8 characters','error');
+      var body={name:name,username:username,email:email,role:role,phone:phone||null,notes:notes||null};
+      if(password)body.password=password;
+      if(editId)body.active=parseInt(active);
+      var btn=get('r_saveBtn');
+      btn.disabled=true;
+      btn.innerHTML='<div class="spinner" style="width:14px;height:14px;display:inline-block;margin:0 4px;"></div> Saving\u2026';
+      try{
+        var url=editId?(API+'/'+editId):API,method=editId?'PATCH':'POST';
+        var res=await fetch(url,{method:method,headers:headers(),body:JSON.stringify(body)});
+        var data=await res.json();
+        if(!res.ok)throw new Error(data.message||'Error');
+        toast(editId?'User updated successfully':'User created successfully','success');
+        this.closeM('r_mUser');
+        this.refresh();
+      }catch(e){toast(e.message,'error');}
+      finally{
+        btn.disabled=false;
+        btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> '+(editId?'Update':'Save')+' User';
+      }
+    },
+
+    openReset: function(id){
+      var u=users.find(function(x){return x.id===id;});if(!u)return;
+      resetId=id;get('r_rName').textContent=u.name;
+      get('r_rp').value='';get('r_rp').type='password';
+      this.openM('r_mReset');
+    },
+
+    confirmReset: async function(){
+      var pw=get('r_rp').value;
+      if(!pw||pw.length<8)return toast('Password must be at least 8 characters','error');
+      try{
+        var res=await fetch(API+'/'+resetId,{method:'PATCH',headers:headers(),body:JSON.stringify({password:pw})});
+        var data=await res.json();
+        if(!res.ok)throw new Error(data.message||'Error');
+        toast('Password reset successfully','success');
+        this.closeM('r_mReset');this.refresh();
+      }catch(e){toast(e.message,'error');}
+    },
+
+    openDel: function(id){
+      var u=users.find(function(x){return x.id===id;});if(!u)return;
+      delId=id;get('r_dName').textContent=u.name;this.openM('r_mDel');
+    },
+
+    confirmDel: async function(){
+      try{
+        var res=await fetch(API+'/'+delId,{method:'DELETE',headers:headers()});
+        var data=await res.json();
+        if(!res.ok)throw new Error(data.message||'Error');
+        toast('User deleted','info');this.closeM('r_mDel');this.refresh();
+      }catch(e){toast(e.message,'error');}
+    },
+
+    openM: function(id){var el=get(id);if(el)el.classList.add('open');},
+    closeM: function(id){var el=get(id);if(el)el.classList.remove('open');}
   };
-  const el = document.createElement('div');
-  el.className=`toast ${type}`;
-  el.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${icons[type]||icons.info}</svg>${escHtml(msg)}`;
-  document.getElementById('toastWrap').appendChild(el);
-  setTimeout(()=>el.remove(), 3500);
-}
 
-/* ── UTILS ─────────────────────────────────────────────── */
-function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function timeAgo(dt){
-  const d = new Date(dt), now = Date.now(), diff = now - d;
-  if(isNaN(diff)||diff<0) return 'Just now';
-  const s=Math.floor(diff/1000),m=Math.floor(s/60),h=Math.floor(m/60),days=Math.floor(h/24);
-  if(s<60) return 'Just now';
-  if(m<60)  return m+'m ago';
-  if(h<24)  return h+'h ago';
-  if(days<30) return days+'d ago';
-  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-}
+  /* close on backdrop click */
+  document.querySelectorAll('.r-backdrop').forEach(function(m){
+    m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});
+  });
 
-/* ── INIT ──────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', refreshUsers);
+  /* close on Escape */
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape')document.querySelectorAll('.r-backdrop.open').forEach(function(m){m.classList.remove('open');});
+  });
+
+  /* ── INIT ── */
+  window.R.refresh();
+
+})();
 </script>
 </body>
 </html>
