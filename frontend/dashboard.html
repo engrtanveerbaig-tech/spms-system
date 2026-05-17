@@ -50,6 +50,15 @@ thead th{background:var(--bg3)!important;color:var(--t3)!important;}
 .live-dot{color:var(--green2);background:var(--green3);border-color:rgba(0,214,143,.2);}
 .live-dot::before{content:"";width:5px;height:5px;border-radius:50%;animation:pulse 1.4s infinite;background:var(--green);box-shadow:0 0 5px var(--green);}
 
+/* ROLE BADGE in topbar */
+.role-indicator{display:inline-flex;align-items:center;gap:5px;font-size:8px;font-family:var(--mono);border:1px solid;border-radius:20px;padding:4px 9px;letter-spacing:.08em;text-transform:uppercase;}
+.role-indicator.admin{background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.3);color:#f87171;}
+.role-indicator.manager{background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.3);color:#a78bfa;}
+.role-indicator.finance{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3);color:#fbbf24;}
+.role-indicator.engineer{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.3);color:#34d399;}
+.role-indicator.contract_department{background:rgba(77,121,255,.1);border-color:rgba(77,121,255,.3);color:#60a5fa;}
+.role-indicator.viewer{background:rgba(107,116,144,.1);border-color:rgba(107,116,144,.3);color:#8892b0;}
+
 /* SIMPLE MODE */
 body.simple-mode{
   --bg:#ffffff;--bg2:#ffffff;--bg3:#f5f5f5;--bg4:#ebebeb;
@@ -406,6 +415,10 @@ tbody tr{transition:.12s;cursor:pointer;}
 .decision-loading.show{display:flex;}
 .decision-loading::before{content:"";width:14px;height:14px;border:2px solid var(--bdr2);border-top-color:var(--amber);border-radius:50%;animation:spin .6s linear infinite;}
 
+/* READ-ONLY NOTICE */
+.readonly-notice{background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:8px 12px;margin-bottom:10px;display:flex;align-items:center;gap:8px;font-size:9px;font-family:var(--mono);color:var(--t3);}
+.readonly-notice span{font-size:13px;}
+
 /* OVERLAYS / MODALS */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(5px);z-index:800;display:none;}
 .overlay.open{display:flex;align-items:center;justify-content:center;animation:fadeIn .2s ease;}
@@ -527,6 +540,8 @@ tbody tr{transition:.12s;cursor:pointer;}
       </div>
       <div class="topbar-right">
         <div class="live-dot">LIVE</div>
+        <!-- Role badge — auto-set from token, never editable here -->
+        <div class="role-indicator" id="roleIndicator">USER</div>
         <div class="layout-selector" title="Dashboard Layout">
           <button class="layout-btn" data-layout="top" onclick="setLayout('top')" title="Horizontal">≡ <span>Horizontal</span></button>
           <button class="layout-btn" data-layout="left" onclick="setLayout('left')" title="Left Sidebar">◧ <span>Left Panel</span></button>
@@ -810,13 +825,19 @@ tbody tr{transition:.12s;cursor:pointer;}
         <div class="sopt" data-sk="status" onclick="setSidebarKpi('status')">Status only</div>
       </div>
     </div>
-    <div class="settings-sec-hd">Manager Role</div>
-    <div class="style-group" style="margin-bottom:8px;">
-      <div class="style-lbl">My Role</div>
-      <div class="style-opts" id="roleOpts">
-        <div class="sopt active" data-role="user" onclick="setRole('user')">User</div>
-        <div class="sopt" data-role="manager" onclick="setRole('manager')">Manager</div>
-        <div class="sopt" data-role="admin" onclick="setRole('admin')">Admin</div>
+    <!-- ROLE SECTION: only shown to admin -->
+    <div id="adminRoleSection" style="display:none;">
+      <div class="settings-sec-hd">Debug — My Role (Admin only)</div>
+      <div class="style-group" style="margin-bottom:8px;">
+        <div class="style-lbl">Override role for testing</div>
+        <div class="style-opts" id="roleOpts">
+          <div class="sopt active" data-role="user" onclick="setRoleOverride('user')">User</div>
+          <div class="sopt" data-role="manager" onclick="setRoleOverride('manager')">Manager</div>
+          <div class="sopt" data-role="admin" onclick="setRoleOverride('admin')">Admin</div>
+          <div class="sopt" data-role="engineer" onclick="setRoleOverride('engineer')">Engineer</div>
+          <div class="sopt" data-role="finance" onclick="setRoleOverride('finance')">Finance</div>
+          <div class="sopt" data-role="contract_department" onclick="setRoleOverride('contract_department')">Contract Dept</div>
+        </div>
       </div>
     </div>
     <div class="settings-sec-hd">Dashboard Sections</div>
@@ -985,12 +1006,67 @@ tbody tr{transition:.12s;cursor:pointer;}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
 /* ================================================================
-   SPMS FINANCIAL DASHBOARD v9 — Zero linter errors
-   Fix: @page CSS rules are never embedded inside JS template literals.
-        They are built with string concatenation and injected via
-        document.getElementById('pageRule').textContent = ...
-        All counter(), quotes, semicolons are safe from the linter.
+   SPMS FINANCIAL DASHBOARD v10
+   KEY FIX: Role is ALWAYS read from localStorage("role") which is
+   set by login.html from the backend response.
+   The "Manager Role" setting in the UI is REMOVED for non-admins.
+   Role permissions:
+     admin            → full access + can override role for debug
+     manager          → can approve/reject/hold submitted certs
+     finance          → view only (read-only notice shown)
+     engineer         → view only (read-only notice shown)
+     contract_department → view only (read-only notice shown)
+     viewer           → view only (read-only notice shown)
 ================================================================ */
+
+/* ── ROLE DETECTION — reads from localStorage, never from UI ── */
+var _ACTUAL_ROLE = (localStorage.getItem("role") || "viewer").toLowerCase();
+var _ROLE_OVERRIDE = null; /* only admin can set this for debug */
+
+function getEffectiveRole(){
+  /* Admin can temporarily override for testing */
+  if(_ACTUAL_ROLE === "admin" && _ROLE_OVERRIDE) return _ROLE_OVERRIDE;
+  return _ACTUAL_ROLE;
+}
+
+/* Roles that can make decisions on submitted certificates */
+var DECISION_ROLES = ["admin","manager"];
+/* Roles that are fully read-only on certificates */
+var READONLY_ROLES = ["engineer","viewer","contract_department","finance"];
+
+function canMakeDecision(){
+  return DECISION_ROLES.indexOf(getEffectiveRole()) >= 0;
+}
+function isReadOnly(){
+  return READONLY_ROLES.indexOf(getEffectiveRole()) >= 0;
+}
+
+/* ── ROLE INDICATOR ── */
+function updateRoleIndicator(){
+  var role = getEffectiveRole();
+  var el = document.getElementById("roleIndicator");
+  if(!el) return;
+  el.className = "role-indicator " + role;
+  var labels = {
+    admin:"🛡 Admin",
+    manager:"👔 Manager",
+    finance:"💹 Finance",
+    engineer:"⚙️ Engineer",
+    contract_department:"📋 Contracts",
+    viewer:"👁 Viewer"
+  };
+  el.textContent = labels[role] || role.toUpperCase();
+}
+
+/* ── ADMIN-ONLY: role override for debug ── */
+function setRoleOverride(v){
+  if(_ACTUAL_ROLE !== "admin") return;
+  _ROLE_OVERRIDE = v;
+  document.querySelectorAll("[data-role]").forEach(function(el){el.classList.toggle("active",el.dataset.role===v);});
+  updateRoleIndicator();
+  if(_currentDetailId) openRowDetail(_currentDetailId);
+  toast("Role view overridden to: "+v+" (admin debug)","i");
+}
 
 /* ── FALLBACK DATA ── */
 var FALLBACK_DATA = [
@@ -1025,7 +1101,7 @@ var DEFAULT_STYLE = {
   theme:"dark",layout:"left",density:"normal",rowH:"compact",accent:"amber",
   accentHex:"#b86e00",accentHexDark:"#f5a623",
   tblFontSz:10,kpiFontSz:16,kpiStyle:"card",kpiFmt:"abbr",zebra:"off",radius:"normal",
-  fontEn:"syne",fontAr:"tajawal",gridLines:"rows",sidebarKpi:"both",customCss:"",role:"user"
+  fontEn:"syne",fontAr:"tajawal",gridLines:"rows",sidebarKpi:"both",customCss:""
 };
 
 /* ── STATE ── */
@@ -1051,15 +1127,20 @@ var SECTION_LABELS={filter:"Filter Bar",kpi:"KPI Cards",status:"Status Row",mini
 /* ── AUTO-SAVE ── */
 function autoSave(){
   var cfg={activeCols:_activeCols,widgetVis:_widgetVis,sectionVis:_sectionVis,style:_styleConfig,widgetSizes:getWidgetSizes(),pageSize:_pageSize,rowNum:_rowNum,layout:_layout,notifications:_notifications};
-  try{ localStorage.setItem("spms_v9",JSON.stringify(cfg)); } catch(e){}
+  try{ localStorage.setItem("spms_v10",JSON.stringify(cfg)); } catch(e){}
 }
 function loadConfig(){
   try{
-    var c=JSON.parse(localStorage.getItem("spms_v9")||"{}");
+    var c=JSON.parse(localStorage.getItem("spms_v10")||"{}");
     if(c.activeCols)_activeCols=c.activeCols;
     if(c.widgetVis)_widgetVis=Object.assign({},_widgetVis,c.widgetVis);
     if(c.sectionVis)_sectionVis=Object.assign({},_sectionVis,c.sectionVis);
-    if(c.style)_styleConfig=Object.assign({},DEFAULT_STYLE,c.style);
+    if(c.style){
+      /* Never restore a saved role override into _ACTUAL_ROLE */
+      var s=Object.assign({},DEFAULT_STYLE,c.style);
+      delete s.role; /* role comes from token only */
+      _styleConfig=s;
+    }
     if(c.pageSize)_pageSize=c.pageSize;
     if(c.rowNum)_rowNum=c.rowNum;
     if(c.layout)_layout=c.layout;
@@ -1126,18 +1207,16 @@ function timeAgo(iso){
   if(s<86400)return Math.floor(s/3600)+"h ago";return Math.floor(s/86400)+"d ago";
 }
 
-/* ── ROLE ── */
-function setRole(v){
-  _styleConfig.role=v;
-  document.querySelectorAll("[data-role]").forEach(function(el){el.classList.toggle("active",el.dataset.role===v);});
-  autoSave();
-  if(_currentDetailId)openRowDetail(_currentDetailId);
-}
-function isManager(){return _styleConfig.role==="manager"||_styleConfig.role==="admin";}
-
 /* ── AUTH + INIT ── */
 async function init(){
-  loadConfig();applyThemeImmediate();
+  loadConfig();
+  applyThemeImmediate();
+  updateRoleIndicator();
+
+  /* Show admin role debug section only for admins */
+  var adminSection=document.getElementById("adminRoleSection");
+  if(adminSection) adminSection.style.display = (_ACTUAL_ROLE==="admin") ? "block" : "none";
+
   try{
     var token=localStorage.getItem("token");
     var liveData=null;
@@ -1153,7 +1232,8 @@ async function init(){
     buildFilterOptions();applyFilters();renderAll();drawCharts();
     buildColModal();buildWidgetModal();applyStyleConfig();
     renderNotifPanel();updateNotifBadge();
-    if(!_notifications.length){
+    /* Only add submit notifications if manager/admin — they need to act on them */
+    if(!_notifications.length && canMakeDecision()){
       _data.filter(function(r){return r.status==="Submitted";}).forEach(function(r){
         addNotification("submit","Certificate #"+r.certificate_no+" Submitted","Submitted by "+(r.submitted_by||"User")+" · Sub: "+r.subcontractor_name+" · "+r.company_name,r.id);
       });
@@ -1304,7 +1384,6 @@ function filterDrop(fk,search){
 function selectAll(fk){
   var list=document.getElementById("mslist-"+fk);
   Array.from(list.querySelectorAll(".ms-item")).forEach(function(item){
-    var t=item.querySelector(".ms-item-text");if(!t)return;
     var v=item.dataset.val||"";
     if(!_filters[fk].includes(v))_filters[fk].push(v);
     item.classList.add("selected");
@@ -1460,7 +1539,8 @@ function renderTable(){
   document.getElementById("tblBody").innerHTML=pageRows.map(function(r,i){
     var absIdx=start+i+1;
     var isSubmitted=(r.status||"")==="Submitted";
-    var rowStyle=isManager()&&isSubmitted?' style="border-left:3px solid var(--cyan)"':"";
+    /* Highlight submitted rows only for decision-makers */
+    var rowStyle=canMakeDecision()&&isSubmitted?' style="border-left:3px solid var(--cyan)"':"";
     var cells=effCols.map(function(ck){
       if(ck==="__rn")return'<td class="td-rn">'+absIdx+"</td>";
       var col=ALL_COLUMNS.find(function(c){return c.key===ck;})||{};
@@ -1488,7 +1568,7 @@ function statusPill(st){
   var x=m[st]||["",""];return'<span class="spill '+x[0]+'">'+x[1]+" "+escHtml(st||"—")+"</span>";
 }
 
-/* ── ROW DETAIL + MANAGER DECISION ── */
+/* ── ROW DETAIL — Role-based decision panel ── */
 function openRowDetail(id){
   _currentDetailId=id;
   var r=_data.find(function(x){return x.id===id;});if(!r)return;
@@ -1498,9 +1578,11 @@ function openRowDetail(id){
   var thisNet=parseFloat(r.net_payment||0);
   var sharePct=totalWork>0?((thisNet/totalWork)*100).toFixed(1):0;
   var isSubmitted=(r.status||"")==="Submitted";
-  var showDecision=isManager()&&isSubmitted;
-  var managerHtml=showDecision
-    ?'<div class="manager-decision-bar">'
+
+  /* ── Decision bar: only for manager/admin, only on Submitted certs ── */
+  var actionHtml="";
+  if(canMakeDecision() && isSubmitted){
+    actionHtml='<div class="manager-decision-bar">'
       +'<div style="display:flex;flex-direction:column;gap:2px;flex:1">'
         +'<span class="mdb-label">📋 Manager Action Required</span>'
         +'<span class="mdb-text">Submitted by <b>'+(r.submitted_by||"User")+"</b> — Choose a decision below</span>"
@@ -1509,9 +1591,16 @@ function openRowDetail(id){
       +'<button class="decision-btn dbn-approve" onclick="makeDecision('+id+',\'Approved\')">✓ Approve</button>'
       +'<button class="decision-btn dbn-reject" onclick="makeDecision('+id+',\'Rejected\')">✕ Reject</button>'
       +'<button class="decision-btn dbn-hold" onclick="makeDecision('+id+',\'Under Review\')">⏸ Hold</button>'
-      +"</div>"
-    :"";
-  document.getElementById("spBody").innerHTML=managerHtml
+      +"</div>";
+  } else if(canMakeDecision() && !isSubmitted){
+    /* manager sees status but no action buttons if not submitted */
+    actionHtml="";
+  } else if(isReadOnly()){
+    /* read-only roles see a gentle notice */
+    actionHtml='<div class="readonly-notice"><span>🔒</span> You have view-only access. Contact your manager to take action on this certificate.</div>';
+  }
+
+  document.getElementById("spBody").innerHTML=actionHtml
     +'<div class="stat-grid">'
       +'<div class="stat-box"><div class="stat-box-lbl">Net Payment</div><div class="stat-box-val" style="color:var(--green)">'+fmtFull(r.net_payment||0)+"</div></div>"
       +'<div class="stat-box"><div class="stat-box-lbl">Work Value</div><div class="stat-box-val">'+fmtFull(r.work_value||0)+"</div></div>"
@@ -1529,7 +1618,10 @@ function openRowDetail(id){
   document.getElementById("slideOv").classList.add("open");
   document.getElementById("slidePanel").classList.add("open");
 }
+
 async function makeDecision(id,newStatus){
+  /* Guard: only decision-makers can call this */
+  if(!canMakeDecision()){toast("Access denied — insufficient role","e");return;}
   var decisionLoading=document.getElementById("decisionLoading");
   if(decisionLoading)decisionLoading.classList.add("show");
   document.querySelectorAll(".decision-btn").forEach(function(b){b.disabled=true;});
@@ -1550,7 +1642,7 @@ async function makeDecision(id,newStatus){
     if(idx>=0)_data[idx]=Object.assign({},_data[idx],{status:newStatus});
     var actionMap={Approved:"approve",Rejected:"reject","Under Review":"hold"};
     var labelMap={Approved:"Approved ✓",Rejected:"Rejected ✕","Under Review":"Put on Hold ⏸"};
-    addNotification(actionMap[newStatus]||"approve","Certificate #"+r.certificate_no+" — "+(labelMap[newStatus]||newStatus),"Decision by Manager · Sub: "+r.subcontractor_name+" · "+r.company_name,id);
+    addNotification(actionMap[newStatus]||"approve","Certificate #"+r.certificate_no+" — "+(labelMap[newStatus]||newStatus),"Decision by "+(getEffectiveRole())+" · Sub: "+r.subcontractor_name+" · "+r.company_name,id);
     toast("Certificate #"+r.certificate_no+" marked as "+newStatus,newStatus==="Rejected"?"e":"s");
     applyFilters();renderAll();drawCharts();
     setTimeout(function(){openRowDetail(id);},100);
@@ -1571,22 +1663,16 @@ function destroyChart(id){if(_charts[id]){_charts[id].destroy();delete _charts[i
 function drawCharts(){
   var d=_filtered,cc=getChartColors();
   var TC={backgroundColor:cc.tooltip.bg,borderColor:cc.tooltip.border,borderWidth:1,bodyColor:cc.tooltip.body,titleColor:cc.tooltip.title,padding:9,cornerRadius:7,displayColors:false};
-  /* trend */
   var ctx1=document.getElementById("cTrend");
   if(ctx1){destroyChart("trend");var sorted=d.slice().sort(function(a,b){return parseFloat(b.net_payment||0)-parseFloat(a.net_payment||0);}).slice(0,20);var g2c=ctx1.getContext("2d");var gN=g2c.createLinearGradient(0,0,0,180);gN.addColorStop(0,"rgba(0,214,143,.35)");gN.addColorStop(1,"rgba(0,214,143,.01)");var gR=g2c.createLinearGradient(0,0,0,180);gR.addColorStop(0,"rgba(245,166,35,.3)");gR.addColorStop(1,"rgba(245,166,35,.01)");_charts.trend=new Chart(ctx1,{type:"line",data:{labels:sorted.map(function(_,i){return i+1;}),datasets:[{label:"Net",data:sorted.map(function(r){return r.net_payment||0;}),borderColor:"#00d68f",backgroundColor:gN,fill:true,tension:.4,borderWidth:1.5,pointRadius:2},{label:"Retention",data:sorted.map(function(r){return r.retention_amount||0;}),borderColor:"#f5a623",backgroundColor:gR,fill:true,tension:.4,borderWidth:1.5,pointRadius:2},{label:"Deduction",data:sorted.map(function(r){return r.deduction||0;}),borderColor:"#ff4d6d",backgroundColor:"rgba(255,77,109,.1)",fill:true,tension:.4,borderWidth:1.5,pointRadius:2}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},plugins:{legend:{display:false},tooltip:TC},scales:{x:{display:false},y:{display:false}}}});}
-  /* donut */
   var ctx2=document.getElementById("cDonut");
   if(ctx2){destroyChart("donut");var g={};d.forEach(function(r){var t=r.work_type||"Other";g[t]=(g[t]||0)+(parseFloat(r.net_payment)||0);});_charts.donut=new Chart(ctx2,{type:"doughnut",data:{labels:Object.keys(g),datasets:[{data:Object.values(g),backgroundColor:PAL.map(function(c){return c+"55";}),borderColor:PAL,borderWidth:1.5,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:"72%",plugins:{legend:{position:"right",labels:{color:cc.tick,font:{size:8},boxWidth:8,padding:6}},tooltip:TC}}});}
-  /* status donut */
   var ctx3=document.getElementById("cStatus");
   if(ctx3){destroyChart("statusc");var sk=["Approved","Under Review","Pending","Rejected","Submitted","Forwarded to Finance","On Site","Released"];var sc=["#00d68f","#f5a623","#9d6fff","#ff4d6d","#00c8e0","#4d79ff","#ff8c42","#00f5a0"];_charts.statusc=new Chart(ctx3,{type:"doughnut",data:{labels:sk,datasets:[{data:sk.map(function(k){return d.filter(function(r){return (r.status||"")===k;}).length;}),backgroundColor:sc.map(function(c){return c+"40";}),borderColor:sc,borderWidth:1.5,hoverOffset:3}]},options:{responsive:true,maintainAspectRatio:false,cutout:"70%",plugins:{legend:{display:false},tooltip:TC}}});}
-  /* bar */
   var ctx4=document.getElementById("cBar");
   if(ctx4){destroyChart("bar");var g4={};d.forEach(function(r){var n=r.subcontractor_name||"Unknown";g4[n]=(g4[n]||0)+(parseFloat(r.net_payment)||0);});var top4=Object.entries(g4).sort(function(a,b){return b[1]-a[1];}).slice(0,8);_charts.bar=new Chart(ctx4,{type:"bar",data:{labels:top4.map(function(e){return e[0].length>12?e[0].slice(0,12)+"…":e[0];}),datasets:[{data:top4.map(function(e){return e[1];}),backgroundColor:PAL.map(function(c){return c+"55";}),borderColor:PAL,borderWidth:1.5,borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:TC},scales:{x:{ticks:{color:cc.tick,font:{size:8},maxRotation:35},grid:{display:false}},y:{ticks:{color:cc.tick,font:{size:8}},grid:{color:cc.grid}}}}});}
-  /* retention */
   var ctx5=document.getElementById("cRet");
   if(ctx5){destroyChart("retention");var g5={};d.forEach(function(r){var n=r.subcontractor_name||"Unknown";if(!g5[n])g5[n]={ret:0,ded:0};g5[n].ret+=parseFloat(r.retention_amount||0);g5[n].ded+=parseFloat(r.deduction||0);});var top5=Object.entries(g5).sort(function(a,b){return b[1].ret-a[1].ret;}).slice(0,10);_charts.retention=new Chart(ctx5,{type:"bar",data:{labels:top5.map(function(e){return e[0].length>10?e[0].slice(0,10)+"…":e[0];}),datasets:[{label:"Retention",data:top5.map(function(e){return e[1].ret;}),backgroundColor:"rgba(245,166,35,.55)",borderColor:"#f5a623",borderWidth:1,borderRadius:4},{label:"Deduction",data:top5.map(function(e){return e[1].ded;}),backgroundColor:"rgba(255,77,109,.5)",borderColor:"#ff4d6d",borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:cc.tick,font:{size:8},boxWidth:8}},tooltip:TC},scales:{x:{display:false},y:{ticks:{color:cc.tick,font:{size:8}},grid:{color:cc.grid}}}}});}
-  /* breakdown */
   var ctx6=document.getElementById("cBreak");
   if(ctx6){destroyChart("breakdown");var g6={};d.forEach(function(r){var n=r.subcontractor_name||"Unknown";if(!g6[n])g6[n]={net:0,ret:0,adv:0};g6[n].net+=parseFloat(r.net_payment||0);g6[n].ret+=parseFloat(r.retention_amount||0);g6[n].adv+=parseFloat(r.advance_deduction||0);});var top6=Object.entries(g6).sort(function(a,b){return b[1].net-a[1].net;}).slice(0,8);_charts.breakdown=new Chart(ctx6,{type:"bar",data:{labels:top6.map(function(e){return e[0].length>10?e[0].slice(0,10)+"…":e[0];}),datasets:[{label:"Net",data:top6.map(function(e){return e[1].net;}),backgroundColor:"rgba(0,214,143,.5)",borderColor:"#00d68f",borderWidth:1,borderRadius:3},{label:"Retention",data:top6.map(function(e){return e[1].ret;}),backgroundColor:"rgba(157,111,255,.45)",borderColor:"#9d6fff",borderWidth:1,borderRadius:3},{label:"Advance",data:top6.map(function(e){return e[1].adv;}),backgroundColor:"rgba(77,121,255,.4)",borderColor:"#4d79ff",borderWidth:1,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:cc.tick,font:{size:8},boxWidth:8}},tooltip:TC},scales:{x:{display:false},y:{ticks:{color:cc.tick,font:{size:8}},grid:{color:cc.grid}}}}});}
 }
@@ -1740,8 +1826,8 @@ function applyStyleConfig(){
   var optMap={kpiStyleOpts:"ks",kpiFmtOpts:"kf",zebraOpts:"z",radiusOpts:"rd",densityOpts:"density",rowHOpts:"rh",gridOpts:"grid",fontEnOpts:"fen",fontArOpts:"far",sideKpiOpts:"sk"};
   var valMap={kpiStyleOpts:sc.kpiStyle||"card",kpiFmtOpts:sc.kpiFmt||"abbr",zebraOpts:sc.zebra||"off",radiusOpts:sc.radius||"normal",densityOpts:sc.density||"normal",rowHOpts:sc.rowH||"compact",gridOpts:sc.gridLines||"rows",fontEnOpts:sc.fontEn||"syne",fontArOpts:sc.fontAr||"tajawal",sideKpiOpts:sc.sidebarKpi||"both"};
   Object.keys(optMap).forEach(function(id){var el=document.getElementById(id);if(!el)return;var attr=optMap[id];var val=valMap[id];el.querySelectorAll(".sopt").forEach(function(s){s.classList.toggle("active",s.dataset[attr]===val);});});
-  var role=sc.role||"user";document.querySelectorAll("[data-role]").forEach(function(el){el.classList.toggle("active",el.dataset.role===role);});
   setLayout(_layout);
+  updateRoleIndicator();
 }
 
 /* ── CSV ── */
@@ -1757,20 +1843,13 @@ function downloadCSV(){
   a.download="SPMS_Export.csv";a.click();toast("CSV downloaded","s");
 }
 
-/* ────────────────────────────────────────────────────────────────
-   PRINT REPORT
-   KEY FIX: The @page CSS rule is NEVER placed inside a JS template
-   literal. It is built with plain string concatenation into a var,
-   then injected via element.textContent = pageCSS.
-   This eliminates ALL 193 VS Code linter errors.
-──────────────────────────────────────────────────────────────── */
+/* ── PRINT REPORT ── */
 function printReport(){
   var d=_filtered;
   var titleAr=document.getElementById("rptTitleAr").value;
   var titleEn=document.getElementById("rptTitleEn").value;
   var company=document.getElementById("rptCompany").value;
   var prepBy=document.getElementById("rptPrepBy").value;
-  /* Strip double-quotes from footer strings to keep CSS content:"" valid */
   var footL=(document.getElementById("rptFootL").value).replace(/"/g,"'");
   var footR=(document.getElementById("rptFootR").value).replace(/"/g,"'");
   var footNote=(document.getElementById("rptNote").value).replace(/"/g,"'");
@@ -1781,16 +1860,13 @@ function printReport(){
   var pageNum=document.getElementById("rptPageNum").checked;
   var zebraRpt=document.getElementById("rptZebra").checked;
   var now=new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
-
   var effCols=_activeCols.slice();
   if(_rowNum==="first")effCols=["__rn"].concat(effCols);
   else if(_rowNum==="last")effCols=effCols.concat(["__rn"]);
-
   var hdr=effCols.map(function(k){
     if(k==="__rn")return"<th>#</th>";
     return"<th>"+(ALL_COLUMNS.find(function(c){return c.key===k;})||{label:k}).label+"</th>";
   }).join("");
-
   var rowsHtml=d.map(function(r,i){
     var tds=effCols.map(function(k){
       if(k==="__rn")return'<td class="rn">'+(i+1)+"</td>";
@@ -1803,7 +1879,6 @@ function printReport(){
     }).join("");
     return"<tr"+(zebraRpt&&i%2===0?' class="z"':"")+">"+tds+"</tr>";
   }).join("");
-
   var kpiHtml="";
   if(showKPIs){
     var kpiItems=[["Work Value",sumF(d,"work_value")],["Net Payment",sumF(d,"net_payment")],["Retention",sumF(d,"retention_amount")],["Deductions",sumF(d,"deduction")],["VAT",sumF(d,"vat_amount")],["Certs",d.length]];
@@ -1812,12 +1887,6 @@ function printReport(){
   var logoHtml=logo
     ?'<img src="'+escHtml(logo)+'" style="height:36px;object-fit:contain;flex-shrink:0" alt="Logo" onerror="this.style.display=\'none\'">'
     :'<div class="sp">SP</div>';
-
-  /* ── Build @page rule safely using string concatenation.
-        No template literals, no counter() inside backticks. ── */
-  var centerContent=footNote+(pageNum?" | Page "+"counter(page)"+" of "+"counter(pages)":"");
-  /* The above still has counter() as a string — we need it as raw CSS.
-     Build the entire @page block as a string: */
   var pageCSS="@page{"
     +"size:A4 "+orient+";"
     +"margin:10mm 8mm 14mm 8mm;"
@@ -1826,7 +1895,6 @@ function printReport(){
     +"\";font-family:Syne,Arial,sans-serif;font-size:7pt;color:#aaa;}"
     +"@bottom-right{content:\""+footR+"\";font-family:Syne,Arial,sans-serif;font-size:7pt;color:#888;}"
     +"}";
-
   var basePrintCSS=[
     "*{box-sizing:border-box;margin:0;padding:0;}",
     "body{font-family:Syne,Tajawal,Arial,sans-serif;font-size:8.5pt;color:#1a1a2e;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;}",
@@ -1849,10 +1917,8 @@ function printReport(){
     "tr.z td{background:#f7f9fd;}",
     "tr{page-break-inside:avoid;}"
   ].join("");
-
   var w=window.open("","_blank");
   if(!w){toast("Popup blocked — allow popups","e");return;}
-  /* Write print window using document.write with string parts — no template literals ── */
   var headContent="<!DOCTYPE html><html><head>"
     +"<meta charset=\"UTF-8\">"
     +"<title>"+escHtml(titleEn)+"</title>"
@@ -1879,7 +1945,6 @@ function printReport(){
     +"window.onload=function(){setTimeout(function(){window.print();},700);};"
     +"<\/script>"
     +"</body></html>";
-
   w.document.write(headContent);
   w.document.close();
   toast("Print window opened","s");
