@@ -5,6 +5,8 @@
    Matches dashboard status workflow:
    Submitted → Under Review → Approved → Forwarded to Finance → Released
    Also: On Site, Pending, Rejected
+   INSULATION: special formula — advance 25% of work, VAT on afterAdvance,
+               deduction/refund/withdrawn applied AFTER VAT
    ============================================================ */
 
 function showTableSkeleton() {
@@ -54,17 +56,21 @@ const originalData = window.originalData;
       document.getElementById(id)?.addEventListener("input", calculate);
     });
 
+    document.getElementById("work_type_form")?.addEventListener("change", function () {
+      loadSubcontractors();
+      calculate();
+    });
+
     /* Default cert date to today */
     const certDateEl = document.getElementById("cert_date");
     if (certDateEl && !certDateEl.value)
       certDateEl.value = new Date().toISOString().slice(0, 10);
 
-    /* New cert: status field locked to Submitted (read-only hint) */
+    /* New cert: status field locked to Submitted */
     syncStatusFieldMode(false);
 
     document.getElementById("saveBtn")?.addEventListener("click", addPayment);
     document.getElementById("subcontractor_form")?.addEventListener("change", onSubcontractorChange);
-    document.getElementById("work_type_form")?.addEventListener("change", loadSubcontractors);
     document.getElementById("date_from")?.addEventListener("change", applyFilter);
     document.getElementById("date_to")?.addEventListener("change", applyFilter);
 
@@ -81,27 +87,25 @@ const originalData = window.originalData;
   }
 
   /* ── STATUS FIELD MODE ───────────────────────────── */
-  /* isEditMode=false → show "Submitted (auto)" label and lock field
-     isEditMode=true  → enable dropdown for manager/admin to change */
   function syncStatusFieldMode(isEditMode) {
-    const sel   = document.getElementById("cert_status");
-    const hint  = document.getElementById("cert_status_hint");
+    const sel  = document.getElementById("cert_status");
+    const hint = document.getElementById("cert_status_hint");
     if (!sel) return;
 
     if (isEditMode) {
-      sel.disabled    = false;
+      sel.disabled      = false;
       sel.style.opacity = "1";
       sel.style.cursor  = "pointer";
       if (hint) hint.style.display = "none";
     } else {
-      /* New certificate — always Submitted */
-      sel.value       = "Submitted";
-      sel.disabled    = true;
+      sel.value         = "Submitted";
+      sel.disabled      = true;
       sel.style.opacity = "0.6";
       sel.style.cursor  = "not-allowed";
       if (hint) hint.style.display = "block";
     }
   }
+  window.syncStatusFieldMode = syncStatusFieldMode;
 
   /* ── LOAD SUBS BY WORK TYPE ──────────────────────── */
   async function loadSubcontractors() {
@@ -138,24 +142,45 @@ const originalData = window.originalData;
     const withdrawn = +(document.getElementById("withdrawn")?.value) || 0;
     const deduction = +(document.getElementById("deduction")?.value) || 0;
     const refund    = +(document.getElementById("refund")?.value)    || 0;
-    const after     = work - withdrawn - deduction + refund;
 
-    const retPct = window.currentRetention || 10;
-    let vatPct   = Number(window.currentVat); if (isNaN(vatPct)) vatPct = 0;
+    const workType = document.getElementById("work_type_form")?.value || "";
+    const retPct   = window.currentRetention || 10;
+    let   vatPct   = Number(window.currentVat); if (isNaN(vatPct)) vatPct = 0;
 
     let advDeduction = 0, vatAmt = 0, retAmt = 0, netAmt = 0;
-    const hasAdv = window.currentAdvance && window.currentAdvance > 0 && after > 0;
 
-    if (hasAdv) {
-      advDeduction = Math.min(after * 0.25, window.currentAdvance);
-      const afterAdv = after - advDeduction;
-      vatAmt = afterAdv * (vatPct / 100);
-      retAmt = after    * (retPct / 100);
-      netAmt = afterAdv + vatAmt - retAmt;
+    if (workType === "Insulation") {
+      /* ── INSULATION FORMULA ─────────────────────────────
+         1. advance      = work × 25%
+         2. afterAdvance = work − advance
+         3. vat          = afterAdvance × vatRate
+         4. retention    = work × retentionRate (on original work)
+         5. afterVat     = afterAdvance + vat
+         6. net          = afterVat − deduction + refund − withdrawn − retention
+      ──────────────────────────────────────────────────── */
+      advDeduction   = work * 0.25;
+      const afterAdv = work - advDeduction;
+      vatAmt         = afterAdv * (vatPct / 100);
+      retAmt         = work     * (retPct / 100);
+      const afterVat = afterAdv + vatAmt;
+      netAmt         = afterVat - deduction + refund - withdrawn - retAmt;
+
     } else {
-      vatAmt = after * (vatPct / 100);
-      retAmt = after * (retPct / 100);
-      netAmt = after + vatAmt - retAmt;
+      /* ── ALL OTHER WORK TYPES — original logic ────────── */
+      const after  = work - withdrawn - deduction + refund;
+      const hasAdv = window.currentAdvance && window.currentAdvance > 0 && after > 0;
+
+      if (hasAdv) {
+        advDeduction      = Math.min(after * 0.25, window.currentAdvance);
+        const afterAdv    = after - advDeduction;
+        vatAmt            = afterAdv * (vatPct / 100);
+        retAmt            = after    * (retPct / 100);
+        netAmt            = afterAdv + vatAmt - retAmt;
+      } else {
+        vatAmt = after * (vatPct / 100);
+        retAmt = after * (retPct / 100);
+        netAmt = after + vatAmt - retAmt;
+      }
     }
 
     const sv = (id, v) => { const el = document.getElementById(id); if (el) el.value = v.toFixed(2); };
@@ -171,40 +196,47 @@ const originalData = window.originalData;
     const withdrawn = +(document.getElementById("withdrawn")?.value) || 0;
     const deduction = +(document.getElementById("deduction")?.value) || 0;
     const refund    = +(document.getElementById("refund")?.value)    || 0;
-    const after     = work - withdrawn - deduction + refund;
 
-    let advDeduction = 0;
-    if (window.originalAdvance && window.originalAdvance > 0 && after > 0) {
-      advDeduction = Math.min(after * 0.25, window.currentAdvance);
-    }
+    const workType = document.getElementById("work_type_form")?.value || "";
+    let   vatPct   = Number(window.currentVat); if (isNaN(vatPct)) vatPct = 0;
+    let   retPct   = window.currentRetention || 10;
 
-    let vatPct = Number(window.currentVat); if (isNaN(vatPct)) vatPct = 0;
-    let retPct = window.currentRetention || 10;
-    let vatAmt = 0, retAmt = 0, netAmt = 0;
-    const hasAdv = window.currentAdvance && window.currentAdvance > 0 && after > 0;
+    let advDeduction = 0, vatAmt = 0, retAmt = 0, netAmt = 0, afterField = 0;
 
-    if (hasAdv) {
-      const afterAdv = after - advDeduction;
-      vatAmt = afterAdv * (vatPct / 100);
-      retAmt = after    * (retPct / 100);
-      netAmt = afterAdv + vatAmt - retAmt;
+    if (workType === "Insulation") {
+      /* ── INSULATION FORMULA ── */
+      advDeduction   = work * 0.25;
+      const afterAdv = work - advDeduction;
+      vatAmt         = afterAdv * (vatPct / 100);
+      retAmt         = work     * (retPct / 100);
+      const afterVat = afterAdv + vatAmt;
+      netAmt         = afterVat - deduction + refund - withdrawn - retAmt;
+      afterField     = afterAdv; /* after_deduction field = work minus advance */
+
     } else {
-      vatAmt = after * (vatPct / 100);
-      retAmt = after * (retPct / 100);
-      netAmt = after + vatAmt - retAmt;
+      /* ── ALL OTHER WORK TYPES — original logic ── */
+      afterField       = work - withdrawn - deduction + refund;
+      const hasAdv     = window.currentAdvance && window.currentAdvance > 0 && afterField > 0;
+
+      if (hasAdv) {
+        advDeduction      = Math.min(afterField * 0.25, window.currentAdvance);
+        const afterAdv    = afterField - advDeduction;
+        vatAmt            = afterAdv   * (vatPct / 100);
+        retAmt            = afterField * (retPct / 100);
+        netAmt            = afterAdv + vatAmt - retAmt;
+      } else {
+        vatAmt = afterField * (vatPct / 100);
+        retAmt = afterField * (retPct / 100);
+        netAmt = afterField + vatAmt - retAmt;
+      }
     }
 
     const subcontractorId = document.getElementById("subcontractor_form")?.value;
     if (!subcontractorId) { alert("Please select subcontractor ❌"); return; }
 
-    /* ════════════════════════════════════════════════
-       STATUS LOGIC:
-       - New certificate  → always "Submitted"
-       - Edit (editId)    → use the selected status from dropdown
-       This ensures new IPCs enter the workflow at "Submitted"
-       and move through: Under Review → Approved →
-       Forwarded to Finance → Released
-    ════════════════════════════════════════════════ */
+    /* STATUS LOGIC:
+       - New certificate → always "Submitted"
+       - Edit (editId)   → use the selected status from dropdown */
     const statusValue = editId
       ? (document.getElementById("cert_status")?.value || "Submitted")
       : "Submitted";
@@ -215,19 +247,19 @@ const originalData = window.originalData;
       project_name:      document.getElementById("project_form")?.value      || "",
       project_id:        1,
       contract_number:   document.getElementById("contract_number")?.value   || "",
-      work_type:         document.getElementById("work_type_form")?.value     || "",
+      work_type:         workType,
       work_value:        work,
       work_withdrawn:    withdrawn,
       deduction,
       refund,
-      after_deduction:   after,
+      after_deduction:   afterField,
       vat_amount:        vatAmt,
       retention_amount:  retAmt,
       advance_deduction: advDeduction,
       net_payment:       netAmt,
       cert_date:         document.getElementById("cert_date")?.value || new Date().toISOString().slice(0, 10),
       status:            statusValue,
-      cert_status:       statusValue,   /* send both field names for backend compatibility */
+      cert_status:       statusValue,
       comment:           document.getElementById("cert_comment")?.value?.trim() || "",
       submitted_at:      editId ? undefined : new Date().toISOString()
     };
@@ -269,7 +301,6 @@ const originalData = window.originalData;
     const dateEl = document.getElementById("cert_date");
     if (dateEl) dateEl.value = new Date().toISOString().slice(0, 10);
 
-    /* Return status field to locked "Submitted" for next new entry */
     syncStatusFieldMode(false);
 
     if (!wasEdit) {
@@ -342,7 +373,6 @@ const originalData = window.originalData;
 
     if (!allEmpty) {
       data = originalData.filter(p => {
-        /* Use cert_status if present, fall back to status */
         const pStatus = p.cert_status || p.status || "";
         const pDate   = (p.cert_date || p.created_at || "").slice(0, 10);
         return (
@@ -397,7 +427,6 @@ const originalData = window.originalData;
       const createdDate = p.created_at ? new Date(p.created_at).toLocaleDateString() : "—";
       const netColor    = p.net_payment < 0 ? "#ef4444" : "#10b981";
 
-      /* Use cert_status (new field) with fallback to status (old field) */
       const displayStatus = p.cert_status || p.status || "Submitted";
 
       const commentIcon = p.comment
@@ -458,7 +487,6 @@ const originalData = window.originalData;
     const saveBtn = document.getElementById("saveBtn");
     if (saveBtn) saveBtn.innerText = "Update Certificate";
 
-    /* In edit mode — allow status change (manager/admin workflow) */
     syncStatusFieldMode(true);
 
     const wtEl = document.getElementById("work_type_form");
@@ -475,7 +503,6 @@ const originalData = window.originalData;
       sv("refund",         p.refund);
       sv("certificate_no", p.certificate_no);
       sv("cert_date",      (p.cert_date || "").slice(0, 10) || new Date().toISOString().slice(0, 10));
-      /* Populate status — use cert_status field, fall back to status */
       sv("cert_status",    p.cert_status || p.status || "Submitted");
       sv("cert_comment",   p.comment || "");
 
@@ -572,7 +599,6 @@ const originalData = window.originalData;
       if (cur && vals.includes(cur)) sel.value = cur;
     });
 
-    /* Status filter — always show full workflow options */
     const fStatus = document.getElementById("f_status");
     if (fStatus) {
       const curSt = fStatus.value;
@@ -604,7 +630,6 @@ const originalData = window.originalData;
       sel.innerHTML = '<option value="">All</option>' + vals.map(v => `<option value="${v}">${v}</option>`).join("");
       if (saved[f.id] && vals.includes(saved[f.id])) sel.value = saved[f.id];
     });
-    /* Keep full status list */
     const fSt = document.getElementById("f_status");
     if (fSt && saved["f_status"]) fSt.value = saved["f_status"];
   }

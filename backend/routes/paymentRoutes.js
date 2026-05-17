@@ -23,7 +23,7 @@ router.post("/add", async (req, res) => {
             refund = 0,
             certificate_no,
             cert_date,
-            status = "Approved",
+            status = "Submitted",
             comment = ""
         } = req.body;
 
@@ -50,24 +50,49 @@ router.post("/add", async (req, res) => {
         const vatPercent       = Number(sub.vat_percent)       || 0;
         let   advanceRemaining = Number(sub.advance_remaining) || 0;
 
-        const after = work - withdrawn - ded + ref;
-
+        let after_deduction = 0;
         let advance_deduction = 0;
         let vat       = 0;
         let retention = 0;
         let net       = 0;
 
-        if (after > 0 && advanceRemaining > 0) {
-            advance_deduction  = Math.min(after * 0.25, advanceRemaining);
-            const afterAdvance = after - advance_deduction;
-            vat       = afterAdvance * (vatPercent       / 100);
-            retention = after        * (retentionPercent / 100);
-            net       = afterAdvance + vat - retention;
+        if (work_type === "Insulation") {
+            /* ── INSULATION FORMULA ─────────────────────────────
+               1. advance      = work × 25%
+               2. afterAdvance = work − advance
+               3. vat          = afterAdvance × vatRate
+               4. retention    = work × retentionRate (on original work)
+               5. afterVat     = afterAdvance + vat
+               6. net          = afterVat − deduction + refund − withdrawn − retention
+            ──────────────────────────────────────────────────── */
+            advance_deduction = work * 0.25;
+            const afterAdv    = work - advance_deduction;
+            vat               = afterAdv * (vatPercent / 100);
+            retention         = work     * (retentionPercent / 100);
+            const afterVat    = afterAdv + vat;
+            net               = afterVat - ded + ref - withdrawn - retention;
+            after_deduction   = afterAdv;
+
+            /* Update advance_remaining for Insulation */
             advanceRemaining = Math.max(advanceRemaining - advance_deduction, 0);
+
         } else {
-            vat       = after * (vatPercent       / 100);
-            retention = after * (retentionPercent / 100);
-            net       = after + vat - retention;
+            /* ── ALL OTHER WORK TYPES — original logic ── */
+            const after = work - withdrawn - ded + ref;
+            after_deduction = after;
+
+            if (after > 0 && advanceRemaining > 0) {
+                advance_deduction  = Math.min(after * 0.25, advanceRemaining);
+                const afterAdvance = after - advance_deduction;
+                vat       = afterAdvance * (vatPercent       / 100);
+                retention = after        * (retentionPercent / 100);
+                net       = afterAdvance + vat - retention;
+                advanceRemaining = Math.max(advanceRemaining - advance_deduction, 0);
+            } else {
+                vat       = after * (vatPercent       / 100);
+                retention = after * (retentionPercent / 100);
+                net       = after + vat - retention;
+            }
         }
 
         const sql = `
@@ -104,7 +129,7 @@ router.post("/add", async (req, res) => {
             withdrawn,
             ded,
             ref,
-            after,
+            after_deduction,
             vat,
             retention,
             advance_deduction,
@@ -122,7 +147,7 @@ router.post("/add", async (req, res) => {
         await conn.commit();
 
         res.json({
-            message:          "Saved ✅ Certificate #" + certNo,
+            message:           "Saved ✅ Certificate #" + certNo,
             advance_remaining: advanceRemaining
         });
 
@@ -203,12 +228,13 @@ router.put("/update/:id", async (req, res) => {
     try {
         const {
             subcontractor_id,
+            work_type,
             work_value,
             work_withdrawn = 0,
             deduction      = 0,
             refund         = 0,
             cert_date,
-            status  = "Approved",
+            status  = "Submitted",
             comment = ""
         } = req.body;
 
@@ -227,10 +253,30 @@ router.put("/update/:id", async (req, res) => {
         const retentionPercent = Number(sub[0].retention_percent) || 10;
         const vatPercent       = Number(sub[0].vat_percent)       || 0;
 
-        const after     = work - withdrawn - ded + ref;
-        const vat       = after * (vatPercent       / 100);
-        const retention = after * (retentionPercent / 100);
-        const net       = after + vat - retention;
+        let after_deduction   = 0;
+        let advance_deduction = 0;
+        let vat               = 0;
+        let retention         = 0;
+        let net               = 0;
+
+        if (work_type === "Insulation") {
+            /* ── INSULATION FORMULA ── */
+            advance_deduction = work * 0.25;
+            const afterAdv    = work - advance_deduction;
+            vat               = afterAdv * (vatPercent / 100);
+            retention         = work     * (retentionPercent / 100);
+            const afterVat    = afterAdv + vat;
+            net               = afterVat - ded + ref - withdrawn - retention;
+            after_deduction   = afterAdv;
+
+        } else {
+            /* ── ALL OTHER WORK TYPES — original logic ── */
+            const after = work - withdrawn - ded + ref;
+            after_deduction = after;
+            vat             = after * (vatPercent       / 100);
+            retention       = after * (retentionPercent / 100);
+            net             = after + vat - retention;
+        }
 
         await db.query(`
             UPDATE payment_certificates SET
@@ -241,13 +287,14 @@ router.put("/update/:id", async (req, res) => {
                 after_deduction  = ?,
                 vat_amount       = ?,
                 retention_amount = ?,
+                advance_deduction = ?,
                 net_payment      = ?,
                 cert_date        = ?,
                 status           = ?,
                 comment          = ?
             WHERE id = ?
-        `, [work, withdrawn, ded, ref, after, vat, retention, net,
-            cert_date || null, status, comment,
+        `, [work, withdrawn, ded, ref, after_deduction, vat, retention,
+            advance_deduction, net, cert_date || null, status, comment,
             req.params.id]);
 
         res.send("Updated ✅");
@@ -265,7 +312,11 @@ router.put("/update/:id", async (req, res) => {
 router.patch("/:id/status", async (req, res) => {
     try {
         const { cert_status } = req.body;
-        const validStatuses = ["Approved", "Under Review", "On Site", "Pending", "Rejected"];
+        const validStatuses = [
+            "Submitted", "Under Review", "Approved",
+            "Forwarded to Finance", "Released",
+            "On Site", "Pending", "Rejected"
+        ];
 
         if (!validStatuses.includes(cert_status)) {
             return res.status(400).json({ message: "Invalid status value" });
