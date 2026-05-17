@@ -1,12 +1,8 @@
 /* ============================================================
-   SPMS v2 — payment.js
-   Status workflow: new certificates always saved as "Submitted"
-   Edit mode preserves/changes existing status
-   Matches dashboard status workflow:
-   Submitted → Under Review → Approved → Forwarded to Finance → Released
-   Also: On Site, Pending, Rejected
-   INSULATION: special formula — advance 25% of work, VAT on afterAdvance,
-               deduction/refund/withdrawn applied AFTER VAT
+   SPMS v2 — payment.js  (updated)
+   CHANGES:
+   1. Status field unlocks only when a comment is typed
+   2. Table filters = multi-select with search, fully cascading
    ============================================================ */
 
 function showTableSkeleton() {
@@ -29,16 +25,15 @@ const originalData = window.originalData;
 
   let editId = null;
 
-  /* ── STATUS CONFIG — matches dashboard full workflow ── */
   const STATUS_CFG = {
-    "Submitted":              { color: "#06b6d4", bg: "rgba(6,182,212,.13)",    icon: "◉"  },
-    "Under Review":           { color: "#f59e0b", bg: "rgba(245,158,11,.13)",   icon: "⏳" },
-    "Approved":               { color: "#10b981", bg: "rgba(16,185,129,.13)",   icon: "✓"  },
-    "Forwarded to Finance":   { color: "#3b82f6", bg: "rgba(59,130,246,.13)",   icon: "📤" },
-    "Released":               { color: "#34d399", bg: "rgba(52,211,153,.13)",   icon: "💚" },
-    "On Site":                { color: "#3b82f6", bg: "rgba(59,130,246,.13)",   icon: "📍" },
-    "Pending":                { color: "#8b5cf6", bg: "rgba(139,92,246,.13)",   icon: "◷"  },
-    "Rejected":               { color: "#ef4444", bg: "rgba(239,68,68,.13)",    icon: "✕"  }
+    "Submitted":            { color: "#06b6d4", bg: "rgba(6,182,212,.13)",   icon: "◉"  },
+    "Under Review":         { color: "#f59e0b", bg: "rgba(245,158,11,.13)",  icon: "⏳" },
+    "Approved":             { color: "#10b981", bg: "rgba(16,185,129,.13)",  icon: "✓"  },
+    "Forwarded to Finance": { color: "#3b82f6", bg: "rgba(59,130,246,.13)",  icon: "📤" },
+    "Released":             { color: "#34d399", bg: "rgba(52,211,153,.13)",  icon: "💚" },
+    "On Site":              { color: "#3b82f6", bg: "rgba(59,130,246,.13)",  icon: "📍" },
+    "Pending":              { color: "#8b5cf6", bg: "rgba(139,92,246,.13)",  icon: "◷"  },
+    "Rejected":             { color: "#ef4444", bg: "rgba(239,68,68,.13)",   icon: "✕"  }
   };
 
   function statusBadge(s) {
@@ -50,13 +45,345 @@ const originalData = window.originalData;
     return Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
-  /* ── SEARCHABLE DROPDOWN WIDGET ─────────────────────
-     Replaces the native <select id="subcontractor_form">
-     with a click-to-open panel that has a search box.
-     The hidden <input id="subcontractor_form"> still holds
-     the selected id so all existing code keeps working.
-  ──────────────────────────────────────────────────── */
-  let _subOptions = []; /* [{id, label}] full list */
+  /* ═══════════════════════════════════════════════════════
+     MULTI-SELECT FILTER SYSTEM
+     Each filter = a dropdown panel with search + checkboxes.
+     All filters are fully cascading (interdependent).
+  ═══════════════════════════════════════════════════════ */
+
+  /* State: map of filterId → Set of selected values */
+  const filterState = {};
+
+  /* Filter definitions — order matters for cascade */
+  const FILTER_DEFS = [
+    { id: "f_scid",      key: "subcontractor_id",  label: "SC ID"         },
+    { id: "f_project",   key: "project_name",       label: "Project"       },
+    { id: "f_contract",  key: "contract_number",    label: "Contract"      },
+    { id: "f_company",   key: "company_name",       label: "Company"       },
+    { id: "f_sub",       key: "subcontractor_name", label: "Subcontractor" },
+    { id: "f_work",      key: "work_type",          label: "Work Type"     },
+    { id: "f_cert",      key: "certificate_no",     label: "Cert #"        },
+    { id: "f_workval",   key: "work_value",         label: "Work Value"    },
+    { id: "f_withdrawn", key: "work_withdrawn",     label: "Withdrawn"     },
+    { id: "f_deduction", key: "deduction",          label: "Deduction"     },
+    { id: "f_refund",    key: "refund",             label: "Refund"        },
+    { id: "f_after",     key: "after_deduction",    label: "After(-)"      },
+    { id: "f_vat",       key: "vat_amount",         label: "VAT"           },
+    { id: "f_retention", key: "retention_amount",   label: "Retention"     },
+    { id: "f_advance",   key: "advance_deduction",  label: "Advance"       },
+    { id: "f_net",       key: "net_payment",        label: "Net"           },
+    { id: "f_date",      key: "created_at_date",    label: "Entry Date"    },
+    { id: "f_status",    key: "cert_status",        label: "Status"        }
+  ];
+
+  FILTER_DEFS.forEach(f => { filterState[f.id] = new Set(); });
+
+  /* Build the multi-select UI inside each <th> that has a filter placeholder */
+  function buildMultiSelectFilters() {
+    FILTER_DEFS.forEach(def => {
+      const th = document.querySelector(`th [data-filter="${def.id}"]`);
+      if (!th) return; /* placeholder not present — skip */
+      th.innerHTML = buildMsfHtml(def.id, def.label);
+      attachMsfEvents(def.id);
+    });
+  }
+
+  function buildMsfHtml(id, label) {
+    return `
+      <div class="msf-wrap" id="msf_${id}">
+        <button type="button" class="msf-trigger" data-id="${id}">
+          <span class="msf-label" id="msf_lbl_${id}">All</span>
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="msf-panel" id="msf_panel_${id}">
+          <div class="msf-search-row">
+            <input type="text" class="msf-search" id="msf_q_${id}" placeholder="Search…" autocomplete="off">
+          </div>
+          <div class="msf-actions">
+            <button type="button" class="msf-act" onclick="msfSelectAll('${id}')">All</button>
+            <button type="button" class="msf-act" onclick="msfClear('${id}')">None</button>
+          </div>
+          <ul class="msf-list" id="msf_list_${id}"></ul>
+        </div>
+      </div>`;
+  }
+
+  function attachMsfEvents(id) {
+    const trigger = document.querySelector(`#msf_${id} .msf-trigger`);
+    const panel   = document.getElementById(`msf_panel_${id}`);
+    const search  = document.getElementById(`msf_q_${id}`);
+
+    trigger?.addEventListener("click", e => {
+      e.stopPropagation();
+      /* Close all other open panels */
+      document.querySelectorAll(".msf-panel.msf-open").forEach(p => {
+        if (p !== panel) p.classList.remove("msf-open");
+      });
+      panel.classList.toggle("msf-open");
+      if (panel.classList.contains("msf-open")) {
+        search?.focus();
+        renderMsfList(id, "");
+      }
+    });
+
+    search?.addEventListener("input", () => renderMsfList(id, search.value));
+    search?.addEventListener("click", e => e.stopPropagation());
+    panel?.addEventListener("click", e => e.stopPropagation());
+  }
+
+  /* Close panels on outside click */
+  document.addEventListener("click", () => {
+    document.querySelectorAll(".msf-panel.msf-open").forEach(p => p.classList.remove("msf-open"));
+  });
+
+  function renderMsfList(id, query) {
+    const list = document.getElementById(`msf_list_${id}`);
+    if (!list) return;
+    const def = FILTER_DEFS.find(d => d.id === id);
+    if (!def) return;
+
+    /* Get values available in currently filtered data (cascade) */
+    const available = getAvailableValues(id, def.key);
+    const q         = query.trim().toLowerCase();
+    const filtered  = q ? available.filter(v => String(v).toLowerCase().includes(q)) : available;
+
+    const selected  = filterState[id];
+
+    list.innerHTML = filtered.map(v => {
+      const checked = selected.has(String(v)) ? "checked" : "";
+      const valStr  = String(v);
+      return `<li class="msf-item">
+        <label>
+          <input type="checkbox" value="${valStr}" ${checked}
+            onchange="msfToggle('${id}','${valStr.replace(/'/g, "\\'")}',this.checked)">
+          <span>${valStr || "—"}</span>
+        </label>
+      </li>`;
+    }).join("") || `<li class="msf-empty">No options</li>`;
+  }
+
+  /* Which values are possible given ALL OTHER active filters */
+  function getAvailableValues(excludeId, key) {
+    const base = applyFiltersExcept(excludeId);
+    const vals  = [...new Set(base.map(p => {
+      if (key === "created_at_date") return (p.created_at || "").slice(0, 10);
+      if (key === "cert_status") return p.cert_status || p.status || "Submitted";
+      return p[key];
+    }).filter(v => v !== null && v !== undefined && v !== ""))];
+    return vals.sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
+  }
+
+  function applyFiltersExcept(excludeId) {
+    const dFrom = document.getElementById("date_from")?.value || "";
+    const dTo   = document.getElementById("date_to")?.value   || "";
+
+    return originalData.filter(p => {
+      const pStatus = p.cert_status || p.status || "";
+      const pDate   = (p.cert_date || p.created_at || "").slice(0, 10);
+      const pEntryD = (p.created_at || "").slice(0, 10);
+
+      for (const def of FILTER_DEFS) {
+        if (def.id === excludeId) continue;
+        const sel = filterState[def.id];
+        if (!sel || sel.size === 0) continue;
+
+        let val;
+        if (def.key === "created_at_date") val = pEntryD;
+        else if (def.key === "cert_status") val = pStatus;
+        else val = String(p[def.key] ?? "");
+
+        if (!sel.has(String(val))) return false;
+      }
+
+      if (dFrom && pDate < dFrom) return false;
+      if (dTo   && pDate > dTo)   return false;
+      return true;
+    });
+  }
+
+  function getFilteredData() {
+    const dFrom = document.getElementById("date_from")?.value || "";
+    const dTo   = document.getElementById("date_to")?.value   || "";
+
+    return originalData.filter(p => {
+      const pStatus = p.cert_status || p.status || "";
+      const pDate   = (p.cert_date || p.created_at || "").slice(0, 10);
+      const pEntryD = (p.created_at || "").slice(0, 10);
+
+      for (const def of FILTER_DEFS) {
+        const sel = filterState[def.id];
+        if (!sel || sel.size === 0) continue;
+
+        let val;
+        if (def.key === "created_at_date") val = pEntryD;
+        else if (def.key === "cert_status") val = pStatus;
+        else val = String(p[def.key] ?? "");
+
+        if (!sel.has(String(val))) return false;
+      }
+
+      if (dFrom && pDate < dFrom) return false;
+      if (dTo   && pDate > dTo)   return false;
+      return true;
+    });
+  }
+
+  /* Exposed helpers called from inline HTML */
+  window.msfToggle = function(id, val, checked) {
+    if (checked) filterState[id].add(String(val));
+    else         filterState[id].delete(String(val));
+    updateMsfLabel(id);
+    applyFilter();
+    /* Re-render sibling panels that are open so their options cascade */
+    FILTER_DEFS.forEach(def => {
+      if (def.id !== id && document.getElementById(`msf_panel_${def.id}`)?.classList.contains("msf-open")) {
+        const q = document.getElementById(`msf_q_${def.id}`)?.value || "";
+        renderMsfList(def.id, q);
+      }
+    });
+  };
+
+  window.msfSelectAll = function(id) {
+    const def = FILTER_DEFS.find(d => d.id === id);
+    if (!def) return;
+    const available = getAvailableValues(id, def.key);
+    available.forEach(v => filterState[id].add(String(v)));
+    updateMsfLabel(id);
+    renderMsfList(id, document.getElementById(`msf_q_${id}`)?.value || "");
+    applyFilter();
+  };
+
+  window.msfClear = function(id) {
+    filterState[id].clear();
+    updateMsfLabel(id);
+    renderMsfList(id, document.getElementById(`msf_q_${id}`)?.value || "");
+    applyFilter();
+  };
+
+  function updateMsfLabel(id) {
+    const lbl = document.getElementById(`msf_lbl_${id}`);
+    if (!lbl) return;
+    const sel = filterState[id];
+    if (sel.size === 0)       lbl.textContent = "All";
+    else if (sel.size === 1)  lbl.textContent = [...sel][0];
+    else                      lbl.textContent = `${sel.size} selected`;
+    lbl.style.color = sel.size > 0 ? "var(--violet, #7c3aed)" : "";
+  }
+
+  window.applyFilter = function () {
+    const filtered = getFilteredData();
+    renderTable(filtered);
+  };
+
+  /* Inject multi-select CSS once */
+  (function injectMsfCss() {
+    if (document.getElementById("msf-style")) return;
+    const style = document.createElement("style");
+    style.id    = "msf-style";
+    style.textContent = `
+.msf-wrap{position:relative;width:100%;}
+.msf-trigger{
+  display:flex;align-items:center;justify-content:space-between;gap:4px;
+  width:100%;box-sizing:border-box;padding:3px 7px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+  border-radius:5px;color:var(--text2,#94a3b8);
+  font-size:10px;font-family:var(--mono,'JetBrains Mono',monospace);
+  cursor:pointer;white-space:nowrap;overflow:hidden;
+  transition:border-color .15s;min-height:26px;
+}
+.msf-trigger:hover{border-color:rgba(255,255,255,.22);}
+.msf-panel{
+  display:none;position:absolute;top:calc(100% + 3px);left:0;
+  min-width:200px;max-width:280px;
+  z-index:99999;
+  background:var(--card,#1a2035);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:7px;box-shadow:0 8px 28px rgba(0,0,0,.55);overflow:hidden;
+}
+.msf-panel.msf-open{display:block;}
+.msf-search-row{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.07);}
+.msf-search{
+  width:100%;box-sizing:border-box;padding:4px 8px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:4px;color:var(--text,#e2e8f0);font-size:11px;
+  font-family:var(--sans,'Outfit',sans-serif);outline:none;
+}
+.msf-search:focus{border-color:var(--violet,#7c3aed);}
+.msf-actions{display:flex;gap:4px;padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.07);}
+.msf-act{
+  flex:1;padding:3px 0;font-size:10px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:4px;color:var(--text3,#4a5270);cursor:pointer;
+  font-family:var(--mono,'JetBrains Mono',monospace);
+  transition:background .1s,color .1s;
+}
+.msf-act:hover{background:rgba(124,58,237,.15);color:var(--violet,#7c3aed);}
+.msf-list{list-style:none;margin:0;padding:4px 0;max-height:200px;overflow-y:auto;}
+.msf-list::-webkit-scrollbar{width:4px;}
+.msf-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:2px;}
+.msf-item label{
+  display:flex;align-items:center;gap:7px;
+  padding:5px 10px;cursor:pointer;
+  font-size:11px;color:var(--text2,#94a3b8);
+  transition:background .1s,color .1s;
+}
+.msf-item label:hover{background:rgba(255,255,255,.05);color:var(--text,#e2e8f0);}
+.msf-item input[type=checkbox]{accent-color:var(--violet,#7c3aed);flex-shrink:0;}
+.msf-empty{padding:10px;text-align:center;font-size:11px;color:var(--text3,#4a5270);font-style:italic;}
+    `;
+    document.head.appendChild(style);
+  })();
+
+  /* ════════════════════════════════════════════════════════
+     COMMENT-DRIVEN STATUS UNLOCK
+     - No comment → status locked to "Submitted"
+     - Comment typed → status dropdown enabled
+  ════════════════════════════════════════════════════════ */
+
+  function onCommentInput() {
+    if (editId) return; /* In edit mode, status is always free */
+    const comment = (document.getElementById("cert_comment")?.value || "").trim();
+    syncStatusFieldMode(false, comment.length > 0);
+  }
+
+  /* ── STATUS FIELD MODE (updated) ── */
+  function syncStatusFieldMode(isEditMode, commentPresent) {
+    const sel   = document.getElementById("cert_status");
+    const hint  = document.getElementById("cert_status_hint");
+    const badge = document.getElementById("status_edit_badge");
+
+    if (!sel) return;
+
+    if (isEditMode) {
+      /* Edit mode: always fully editable */
+      sel.disabled      = false;
+      sel.style.opacity = "1";
+      sel.style.cursor  = "pointer";
+      if (hint)  hint.style.display  = "none";
+      if (badge) badge.style.display = "inline";
+    } else if (commentPresent) {
+      /* New cert with comment: user can choose status */
+      sel.disabled      = false;
+      sel.style.opacity = "1";
+      sel.style.cursor  = "pointer";
+      if (hint)  hint.style.display  = "none";
+      if (badge) badge.style.display = "none";
+    } else {
+      /* New cert, no comment: locked to Submitted */
+      sel.value         = "Submitted";
+      sel.disabled      = true;
+      sel.style.opacity = "0.6";
+      sel.style.cursor  = "not-allowed";
+      if (hint)  hint.style.display  = "block";
+      if (badge) badge.style.display = "none";
+    }
+  }
+  window.syncStatusFieldMode = syncStatusFieldMode;
+
+  /* ════════════════════════════════════════════════════════
+     SEARCHABLE SUBCONTRACTOR DROPDOWN (unchanged)
+  ════════════════════════════════════════════════════════ */
+  let _subOptions = [];
 
   function buildSearchableDropdown() {
     const wrapper = document.getElementById("sub_search_wrapper");
@@ -79,51 +406,31 @@ const originalData = window.originalData;
     const search  = document.getElementById("ssd_search");
     const list    = document.getElementById("ssd_list");
 
-    /* Toggle open/close */
     trigger.addEventListener("click", (e) => {
       e.stopPropagation();
       const isOpen = panel.classList.toggle("ssd-open");
-      if (isOpen) {
-        search.value = "";
-        renderSsdList("");
-        setTimeout(() => search.focus(), 50);
-      }
+      if (isOpen) { search.value = ""; renderSsdList(""); setTimeout(() => search.focus(), 50); }
     });
     trigger.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); trigger.click(); }
     });
-
-    /* Search filtering */
     search.addEventListener("input", () => renderSsdList(search.value));
     search.addEventListener("click", (e) => e.stopPropagation());
-
-    /* Close on outside click */
     document.addEventListener("click", () => panel.classList.remove("ssd-open"));
 
     function renderSsdList(query) {
       const q = query.trim().toLowerCase();
-      const filtered = q
-        ? _subOptions.filter(o => o.label.toLowerCase().includes(q))
-        : _subOptions;
-
+      const filtered = q ? _subOptions.filter(o => o.label.toLowerCase().includes(q)) : _subOptions;
       list.innerHTML = "";
-      if (!filtered.length) {
-        list.innerHTML = `<li class="ssd-empty">No results</li>`;
-        return;
-      }
+      if (!filtered.length) { list.innerHTML = `<li class="ssd-empty">No results</li>`; return; }
       filtered.forEach(o => {
         const li = document.createElement("li");
         li.className = "ssd-item";
         li.dataset.id = o.id;
-        /* Highlight matching text */
         if (q) {
           const idx = o.label.toLowerCase().indexOf(q);
-          li.innerHTML = o.label.slice(0, idx) +
-            `<mark>${o.label.slice(idx, idx + q.length)}</mark>` +
-            o.label.slice(idx + q.length);
-        } else {
-          li.textContent = o.label;
-        }
+          li.innerHTML = o.label.slice(0, idx) + `<mark>${o.label.slice(idx, idx + q.length)}</mark>` + o.label.slice(idx + q.length);
+        } else { li.textContent = o.label; }
         const hidden = document.getElementById("subcontractor_form");
         if (hidden && String(hidden.value) === String(o.id)) li.classList.add("ssd-selected");
         li.addEventListener("click", (e) => {
@@ -134,7 +441,7 @@ const originalData = window.originalData;
         list.appendChild(li);
       });
     }
-    window._renderSsdList = renderSsdList; /* expose for re-render after load */
+    window._renderSsdList = renderSsdList;
   }
 
   function selectSsdOption(id, label) {
@@ -145,30 +452,19 @@ const originalData = window.originalData;
   }
 
   function setSsdOptions(options, selectedId) {
-    /* options = [{id, label}] */
     _subOptions = options;
-    const list    = document.getElementById("ssd_list");
     const panel   = document.getElementById("ssd_panel");
     const display = document.getElementById("ssd_label");
-
-    if (!list) return;
-    if (!panel?.classList.contains("ssd-open") && window._renderSsdList) {
-      window._renderSsdList("");
-    }
-
+    if (!panel?.classList.contains("ssd-open") && window._renderSsdList) window._renderSsdList("");
     if (selectedId) {
       const found = options.find(o => String(o.id) === String(selectedId));
-      if (found && display) {
-        display.textContent = found.label;
-        display.classList.remove("ssd-placeholder");
-      }
-    } else if (display) {
-      display.textContent = "Select Subcontractor";
-      display.classList.add("ssd-placeholder");
-    }
+      if (found && display) { display.textContent = found.label; display.classList.remove("ssd-placeholder"); }
+    } else if (display) { display.textContent = "Select Subcontractor"; display.classList.add("ssd-placeholder"); }
   }
 
-  /* ── INIT ─────────────────────────────────────────── */
+  /* ════════════════════════════════════════════════════════
+     INIT
+  ════════════════════════════════════════════════════════ */
   function initPaymentPage() {
     ["work", "withdrawn", "deduction", "refund"].forEach(id => {
       document.getElementById(id)?.addEventListener("input", calculate);
@@ -179,13 +475,14 @@ const originalData = window.originalData;
       calculate();
     });
 
-    /* Default cert date to today */
+    /* Comment drives status unlock */
+    document.getElementById("cert_comment")?.addEventListener("input", onCommentInput);
+
     const certDateEl = document.getElementById("cert_date");
     if (certDateEl && !certDateEl.value)
       certDateEl.value = new Date().toISOString().slice(0, 10);
 
-    /* New cert: status field locked to Submitted */
-    syncStatusFieldMode(false);
+    syncStatusFieldMode(false, false);
 
     document.getElementById("saveBtn")?.addEventListener("click", addPayment);
     document.getElementById("subcontractor_form")?.addEventListener("change", onSubcontractorChange);
@@ -206,100 +503,59 @@ const originalData = window.originalData;
     initExportButton();
   }
 
-  /* ── STATUS FIELD MODE ───────────────────────────── */
-  function syncStatusFieldMode(isEditMode) {
-    const sel  = document.getElementById("cert_status");
-    const hint = document.getElementById("cert_status_hint");
-    if (!sel) return;
-
-    if (isEditMode) {
-      sel.disabled      = false;
-      sel.style.opacity = "1";
-      sel.style.cursor  = "pointer";
-      if (hint) hint.style.display = "none";
-    } else {
-      sel.value         = "Submitted";
-      sel.disabled      = true;
-      sel.style.opacity = "0.6";
-      sel.style.cursor  = "not-allowed";
-      if (hint) hint.style.display = "block";
-    }
-  }
-  window.syncStatusFieldMode = syncStatusFieldMode;
-
-  /* ── LOAD SUBS BY WORK TYPE ──────────────────────── */
+  /* ════════════════════════════════════════════════════════
+     LOAD SUBS
+  ════════════════════════════════════════════════════════ */
   async function loadSubcontractors() {
     const work_type = document.getElementById("work_type_form")?.value;
     const hidden    = document.getElementById("subcontractor_form");
     const display   = document.getElementById("ssd_label");
-
     if (!work_type) {
       _subOptions = [];
       if (display) { display.textContent = "Select Work Type First"; display.classList.add("ssd-placeholder"); }
       if (hidden)  hidden.value = "";
       return;
     }
-
     const res = await fetch(`${window.API}/api/subcontractors/by-type/${work_type}`, {
       headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
     });
     if (!res.ok) { console.error("Sub API error:", await res.text()); return; }
     const data = await res.json();
     if (!Array.isArray(data)) { console.error("Invalid sub response:", data); return; }
-
-    const options = data.map(s => ({
-      id:    s.id,
-      label: `${s.name} (${s.project}) — ${s.company_name}`
-    }));
-
+    const options = data.map(s => ({ id: s.id, label: `${s.name} (${s.project}) — ${s.company_name}` }));
     setSsdOptions(options, null);
-
-    /* Auto-select first option */
-    if (options.length > 0) {
-      selectSsdOption(options[0].id, options[0].label);
-    }
+    if (options.length > 0) selectSsdOption(options[0].id, options[0].label);
   }
 
-  /* ── CALCULATE ───────────────────────────────────── */
+  /* ════════════════════════════════════════════════════════
+     CALCULATE (unchanged logic)
+  ════════════════════════════════════════════════════════ */
   function calculate() {
     const work      = +(document.getElementById("work")?.value)      || 0;
     const withdrawn = +(document.getElementById("withdrawn")?.value) || 0;
     const deduction = +(document.getElementById("deduction")?.value) || 0;
     const refund    = +(document.getElementById("refund")?.value)    || 0;
-
-    const workType = document.getElementById("work_type_form")?.value || "";
-    const retPct   = window.currentRetention || 10;
-    let   vatPct   = Number(window.currentVat); if (isNaN(vatPct)) vatPct = 0;
-
+    const workType  = document.getElementById("work_type_form")?.value || "";
+    const retPct    = window.currentRetention || 10;
+    let   vatPct    = Number(window.currentVat); if (isNaN(vatPct)) vatPct = 0;
     let advDeduction = 0, vatAmt = 0, retAmt = 0, netAmt = 0;
 
     if (workType === "Insulation") {
-      /* ── INSULATION FORMULA ─────────────────────────────
-         1. advance      = work × 25%
-         2. afterAdvance = work − advance
-         3. vat          = afterAdvance × vatRate
-         4. retention    = work × retentionRate (on original work)
-         5. afterVat     = afterAdvance + vat
-         6. net          = afterVat − deduction + refund − withdrawn − retention
-      ──────────────────────────────────────────────────── */
       advDeduction   = work * 0.25;
       const afterAdv = work - advDeduction;
       vatAmt         = afterAdv * (vatPct / 100);
       retAmt         = work     * (retPct / 100);
       const afterVat = afterAdv + vatAmt;
       netAmt         = afterVat - deduction + refund - withdrawn - retAmt;
-
     } else {
-      /* ── ALL OTHER WORK TYPES — original logic ────────── */
       const after  = work - withdrawn - deduction + refund;
       const hasAdv = window.currentAdvance && window.currentAdvance > 0 && after > 0;
-
       if (hasAdv) {
-        advDeduction      = Math.min(after * 0.25, window.currentAdvance);
-        const afterAdv    = after - advDeduction;
-        vatAmt            = afterAdv * (vatPct / 100);
-        retAmt            = after    * (retPct / 100);
-        netAmt            = afterAdv + vatAmt - retAmt;
+        advDeduction   = Math.min(after * 0.25, window.currentAdvance);
+        const afterAdv = after - advDeduction;
+        vatAmt         = afterAdv * (vatPct / 100);
+        retAmt         = after    * (retPct / 100);
+        netAmt         = afterAdv + vatAmt - retAmt;
       } else {
         vatAmt = after * (vatPct / 100);
         retAmt = after * (retPct / 100);
@@ -308,46 +564,39 @@ const originalData = window.originalData;
     }
 
     const sv = (id, v) => { const el = document.getElementById(id); if (el) el.value = v.toFixed(2); };
-    sv("vat",               vatAmt);
-    sv("retention",         retAmt);
-    sv("net",               netAmt);
-    sv("advance_deduction", advDeduction);
+    sv("vat", vatAmt); sv("retention", retAmt); sv("net", netAmt); sv("advance_deduction", advDeduction);
   }
 
-  /* ── ADD / UPDATE ────────────────────────────────── */
+  /* ════════════════════════════════════════════════════════
+     ADD / UPDATE
+  ════════════════════════════════════════════════════════ */
   async function addPayment() {
     const work      = +(document.getElementById("work")?.value)      || 0;
     const withdrawn = +(document.getElementById("withdrawn")?.value) || 0;
     const deduction = +(document.getElementById("deduction")?.value) || 0;
     const refund    = +(document.getElementById("refund")?.value)    || 0;
-
-    const workType = document.getElementById("work_type_form")?.value || "";
-    let   vatPct   = Number(window.currentVat); if (isNaN(vatPct)) vatPct = 0;
-    let   retPct   = window.currentRetention || 10;
-
+    const workType  = document.getElementById("work_type_form")?.value || "";
+    let   vatPct    = Number(window.currentVat); if (isNaN(vatPct)) vatPct = 0;
+    let   retPct    = window.currentRetention || 10;
     let advDeduction = 0, vatAmt = 0, retAmt = 0, netAmt = 0, afterField = 0;
 
     if (workType === "Insulation") {
-      /* ── INSULATION FORMULA ── */
       advDeduction   = work * 0.25;
       const afterAdv = work - advDeduction;
       vatAmt         = afterAdv * (vatPct / 100);
       retAmt         = work     * (retPct / 100);
       const afterVat = afterAdv + vatAmt;
       netAmt         = afterVat - deduction + refund - withdrawn - retAmt;
-      afterField     = afterAdv; /* after_deduction field = work minus advance */
-
+      afterField     = afterAdv;
     } else {
-      /* ── ALL OTHER WORK TYPES — original logic ── */
       afterField       = work - withdrawn - deduction + refund;
       const hasAdv     = window.currentAdvance && window.currentAdvance > 0 && afterField > 0;
-
       if (hasAdv) {
-        advDeduction      = Math.min(afterField * 0.25, window.currentAdvance);
-        const afterAdv    = afterField - advDeduction;
-        vatAmt            = afterAdv   * (vatPct / 100);
-        retAmt            = afterField * (retPct / 100);
-        netAmt            = afterAdv + vatAmt - retAmt;
+        advDeduction   = Math.min(afterField * 0.25, window.currentAdvance);
+        const afterAdv = afterField - advDeduction;
+        vatAmt         = afterAdv   * (vatPct / 100);
+        retAmt         = afterField * (retPct / 100);
+        netAmt         = afterAdv + vatAmt - retAmt;
       } else {
         vatAmt = afterField * (vatPct / 100);
         retAmt = afterField * (retPct / 100);
@@ -358,9 +607,6 @@ const originalData = window.originalData;
     const subcontractorId = document.getElementById("subcontractor_form")?.value;
     if (!subcontractorId) { alert("Please select subcontractor ❌"); return; }
 
-    /* STATUS LOGIC:
-       - New certificate → always "Submitted"
-       - Edit (editId)   → use the selected status from dropdown */
     const statusValue = editId
       ? (document.getElementById("cert_status")?.value || "Submitted")
       : "Submitted";
@@ -401,7 +647,6 @@ const originalData = window.originalData;
     });
 
     if (saveBtn) { saveBtn.disabled = false; saveBtn.innerText = editId ? "Update Certificate" : "Save Payment Certificate"; }
-
     if (!res.ok) { alert("Save failed ❌"); return; }
 
     const msgEl = document.getElementById("msg");
@@ -414,10 +659,8 @@ const originalData = window.originalData;
     const currentSub = document.getElementById("subcontractor_form")?.value;
     const wasEdit    = !!editId;
     editId           = null;
-
     if (saveBtn) saveBtn.innerText = "Save Payment Certificate";
 
-    /* Reset form */
     ["work", "withdrawn", "deduction", "refund", "cert_comment",
      "vat", "retention", "net", "advance_deduction"].forEach(id => {
       const el = document.getElementById(id); if (el) el.value = "";
@@ -425,7 +668,7 @@ const originalData = window.originalData;
     const dateEl = document.getElementById("cert_date");
     if (dateEl) dateEl.value = new Date().toISOString().slice(0, 10);
 
-    syncStatusFieldMode(false);
+    syncStatusFieldMode(false, false);
 
     if (!wasEdit) {
       await loadSubcontractors();
@@ -440,7 +683,9 @@ const originalData = window.originalData;
     await loadFullData();
   }
 
-  /* ── LOAD FULL DATA ──────────────────────────────── */
+  /* ════════════════════════════════════════════════════════
+     LOAD FULL DATA
+  ════════════════════════════════════════════════════════ */
   async function loadFullData() {
     const res = await fetch(`${window.API}/api/payments/all-full`, {
       headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
@@ -453,91 +698,19 @@ const originalData = window.originalData;
     originalData.push(...data);
     originalData.sort((a, b) => Number(a.certificate_no) - Number(b.certificate_no));
 
-    populateFilters(originalData);
+    /* Rebuild multi-select filter lists */
+    FILTER_DEFS.forEach(def => renderMsfList(def.id, ""));
     loadBulkOptions();
-    renderTable(originalData);
+    renderTable(getFilteredData());
   }
 
-  /* ── BULK OPTIONS ────────────────────────────────── */
-  function loadBulkOptions() {
-    const companies     = [...new Set(originalData.map(p => p.company_name))];
-    const companySelect = document.getElementById("bulk_company");
-    const subSelect     = document.getElementById("bulk_sub");
-    if (!companySelect || !subSelect) return;
-
-    companySelect.innerHTML = "<option value=''>Select Company</option>";
-    companies.forEach(c => { companySelect.innerHTML += `<option>${c}</option>`; });
-
-    companySelect.onchange = function () {
-      const co     = this.value;
-      const unique = [...new Set(originalData.filter(p => p.company_name === co).map(p => p.subcontractor_name))];
-      subSelect.innerHTML = "<option value=''>Select Subcontractor</option>";
-      unique.forEach(s => { subSelect.innerHTML += `<option>${s}</option>`; });
-
-      subSelect.onchange = function () {
-        const su      = subSelect.value;
-        const works   = [...new Set(originalData.filter(p => p.company_name === co && p.subcontractor_name === su).map(p => p.work_type))];
-        const workSel = document.getElementById("bulk_work");
-        if (!workSel) return;
-        workSel.innerHTML = "<option value=''>Select Work Type</option>";
-        works.forEach(w => { workSel.innerHTML += `<option>${w}</option>`; });
-      };
-    };
-  }
-
-  /* ── APPLY FILTER ────────────────────────────────── */
-  window.applyFilter = function () {
-    const f     = id => document.getElementById(id)?.value || "";
-    const dFrom = f("date_from");
-    const dTo   = f("date_to");
-
-    const allEmpty = [
-      "f_scid", "f_project", "f_contract", "f_company", "f_sub", "f_work", "f_cert",
-      "f_workval", "f_withdrawn", "f_deduction", "f_refund",
-      "f_after", "f_vat", "f_retention", "f_advance", "f_net", "f_date", "f_status"
-    ].every(id => !document.getElementById(id)?.value) && !dFrom && !dTo;
-
-    let data = originalData;
-
-    if (!allEmpty) {
-      data = originalData.filter(p => {
-        const pStatus = p.cert_status || p.status || "";
-        const pDate   = (p.cert_date || p.created_at || "").slice(0, 10);
-        return (
-          (!f("f_scid")      || p.subcontractor_id   == f("f_scid"))  &&
-          (!f("f_project")   || p.project_name        == f("f_project")) &&
-          (!f("f_contract")  || p.contract_number      == f("f_contract")) &&
-          (!f("f_company")   || p.company_name         == f("f_company")) &&
-          (!f("f_sub")       || p.subcontractor_name   == f("f_sub"))   &&
-          (!f("f_work")      || p.work_type            == f("f_work"))   &&
-          (!f("f_cert")      || p.certificate_no       == f("f_cert"))  &&
-          (!f("f_workval")   || p.work_value           == f("f_workval")) &&
-          (!f("f_withdrawn") || p.work_withdrawn       == f("f_withdrawn")) &&
-          (!f("f_deduction") || p.deduction            == f("f_deduction")) &&
-          (!f("f_refund")    || p.refund               == f("f_refund")) &&
-          (!f("f_after")     || p.after_deduction      == f("f_after")) &&
-          (!f("f_vat")       || p.vat_amount           == f("f_vat"))   &&
-          (!f("f_retention") || p.retention_amount     == f("f_retention")) &&
-          (!f("f_advance")   || p.advance_deduction    == f("f_advance")) &&
-          (!f("f_net")       || p.net_payment          == f("f_net"))   &&
-          (!f("f_status")    || pStatus                == f("f_status")) &&
-          (!f("f_date")      || (p.created_at || "").slice(0, 10) === f("f_date")) &&
-          (!dFrom || pDate >= dFrom) &&
-          (!dTo   || pDate <= dTo)
-        );
-      });
-    }
-
-    if (!allEmpty) updateDependentFilters(data); else populateFilters(originalData);
-    renderTable(data);
-  };
-
-  /* ── RENDER TABLE ────────────────────────────────── */
+  /* ════════════════════════════════════════════════════════
+     RENDER TABLE
+  ════════════════════════════════════════════════════════ */
   function renderTable(data) {
     const table = document.getElementById("table");
     if (!table) return;
     table.innerHTML = "";
-
     let t = { work: 0, wd: 0, ded: 0, ref: 0, after: 0, vat: 0, ret: 0, adv: 0, net: 0 };
 
     data.forEach(p => {
@@ -554,9 +727,7 @@ const originalData = window.originalData;
       const certDate    = p.cert_date  ? new Date(p.cert_date).toLocaleDateString()  : "—";
       const createdDate = p.created_at ? new Date(p.created_at).toLocaleDateString() : "—";
       const netColor    = p.net_payment < 0 ? "#ef4444" : "#10b981";
-
       const displayStatus = p.cert_status || p.status || "Submitted";
-
       const commentIcon = p.comment
         ? `<span title="${(p.comment || "").replace(/"/g, "&quot;")}" style="cursor:help;color:#f59e0b;font-size:13px">💬</span>&nbsp;`
         : "";
@@ -606,15 +777,15 @@ const originalData = window.originalData;
     setT("t_net",       fmt(t.net));
   }
 
-  /* ── EDIT ────────────────────────────────────────── */
+  /* ════════════════════════════════════════════════════════
+     EDIT
+  ════════════════════════════════════════════════════════ */
   window.editPayment = function (id) {
     const p = originalData.find(x => x.id === id);
     if (!p) return;
     editId = id;
-
     const saveBtn = document.getElementById("saveBtn");
     if (saveBtn) saveBtn.innerText = "Update Certificate";
-
     syncStatusFieldMode(true);
 
     const wtEl = document.getElementById("work_type_form");
@@ -625,7 +796,6 @@ const originalData = window.originalData;
       if (subEl) {
         subEl.value = p.subcontractor_id;
         await onSubcontractorChange();
-        /* Restore searchable dropdown label */
         const found = _subOptions.find(o => String(o.id) === String(p.subcontractor_id));
         if (found) selectSsdOption(found.id, found.label);
         else {
@@ -633,7 +803,6 @@ const originalData = window.originalData;
           if (display) { display.textContent = p.subcontractor_name || ""; display.classList.remove("ssd-placeholder"); }
         }
       }
-
       const sv = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ""; };
       sv("work",           p.work_value);
       sv("withdrawn",      p.work_withdrawn);
@@ -643,54 +812,50 @@ const originalData = window.originalData;
       sv("cert_date",      (p.cert_date || "").slice(0, 10) || new Date().toISOString().slice(0, 10));
       sv("cert_status",    p.cert_status || p.status || "Submitted");
       sv("cert_comment",   p.comment || "");
-
       calculate();
       document.querySelector(".pay-sec")?.scrollIntoView({ behavior: "smooth" });
     }, 400);
   };
 
-  /* ── DELETE ──────────────────────────────────────── */
+  /* ════════════════════════════════════════════════════════
+     DELETE
+  ════════════════════════════════════════════════════════ */
   window.deletePayment = async function (id) {
     const p = originalData.find(x => x.id === id);
     if (!confirm(`Delete certificate #${p?.certificate_no || id}?`)) return;
-
     const res = await fetch(`${window.API}/api/payments/delete/${id}`, {
       method: "DELETE",
       headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
     });
     if (!res.ok) { alert("Delete failed ❌"); return; }
-
     const idx = originalData.findIndex(x => x.id === id);
     if (idx !== -1) originalData.splice(idx, 1);
-    renderTable(originalData);
+    renderTable(getFilteredData());
   };
 
-  /* ── ON SUB CHANGE ───────────────────────────────── */
+  /* ════════════════════════════════════════════════════════
+     ON SUB CHANGE
+  ════════════════════════════════════════════════════════ */
   async function onSubcontractorChange() {
     const id = document.getElementById("subcontractor_form")?.value;
     if (!id) return;
-
     const res = await fetch(`${window.API}/api/subcontractors/${id}`, {
       headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
     });
     if (!res.ok) { console.error("Sub details error:", await res.text()); return; }
     const d = await res.json();
-
     window.currentRetention = Number(d.retention_percent || 10);
     window.currentVat       = Number(d.vat_percent); if (isNaN(window.currentVat)) window.currentVat = 0;
     const advAmt            = Number(d.advance_amount || 0);
     const advRem            = Number(d.advance_remaining ?? advAmt ?? 0);
     window.originalAdvance  = advAmt;
     window.currentAdvance   = advRem;
-
     const sv = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
     sv("advance_remaining",         (advRem || 0).toFixed(2));
     sv("retention_percent_display", (window.currentRetention || 0) + "%");
     sv("contract_number",            d.contract_no || "");
-
     window.selectedProject = d.project || "";
     sv("project_form", window.selectedProject);
-
     const workType = document.getElementById("work_type_form")?.value;
     if (workType) {
       const certs   = originalData.filter(p =>
@@ -701,86 +866,44 @@ const originalData = window.originalData;
       const maxCert = certs.reduce((mx, p) => Math.max(mx, Number(p.certificate_no) || 0), 0);
       sv("certificate_no", maxCert + 1);
     }
-
     calculate();
   }
 
-  /* ── POPULATE FILTERS ────────────────────────────── */
-  function populateFilters(data) {
-    const map = [
-      { id: "f_scid",      key: "subcontractor_id"   },
-      { id: "f_project",   key: "project_name"        },
-      { id: "f_contract",  key: "contract_number"     },
-      { id: "f_company",   key: "company_name"        },
-      { id: "f_sub",       key: "subcontractor_name"  },
-      { id: "f_work",      key: "work_type"           },
-      { id: "f_cert",      key: "certificate_no"      },
-      { id: "f_workval",   key: "work_value"          },
-      { id: "f_withdrawn", key: "work_withdrawn"      },
-      { id: "f_deduction", key: "deduction"           },
-      { id: "f_refund",    key: "refund"              },
-      { id: "f_after",     key: "after_deduction"     },
-      { id: "f_vat",       key: "vat_amount"          },
-      { id: "f_retention", key: "retention_amount"    },
-      { id: "f_advance",   key: "advance_deduction"   },
-      { id: "f_net",       key: "net_payment"         },
-      { id: "f_date",      key: "created_at"          }
-    ];
-    map.forEach(f => {
-      const sel = document.getElementById(f.id);
-      if (!sel) return;
-      const cur  = sel.value;
-      const vals = [...new Set(data.map(x =>
-        f.key === "created_at" ? (x[f.key] || "").slice(0, 10) : x[f.key]
-      ).filter(v => v !== null && v !== undefined && v !== ""))].sort();
-      sel.innerHTML = '<option value="">All</option>' + vals.map(v => `<option value="${v}">${v}</option>`).join("");
-      if (cur && vals.includes(cur)) sel.value = cur;
-    });
-
-    const fStatus = document.getElementById("f_status");
-    if (fStatus) {
-      const curSt = fStatus.value;
-      const allStatuses = [
-        "Submitted", "Under Review", "Approved",
-        "Forwarded to Finance", "Released",
-        "On Site", "Pending", "Rejected"
-      ];
-      fStatus.innerHTML = '<option value="">All</option>' +
-        allStatuses.map(s => `<option value="${s}">${s}</option>`).join("");
-      if (curSt) fStatus.value = curSt;
-    }
+  /* ════════════════════════════════════════════════════════
+     BULK OPTIONS
+  ════════════════════════════════════════════════════════ */
+  function loadBulkOptions() {
+    const companies     = [...new Set(originalData.map(p => p.company_name))];
+    const companySelect = document.getElementById("bulk_company");
+    const subSelect     = document.getElementById("bulk_sub");
+    if (!companySelect || !subSelect) return;
+    companySelect.innerHTML = "<option value=''>Select Company</option>";
+    companies.forEach(c => { companySelect.innerHTML += `<option>${c}</option>`; });
+    companySelect.onchange = function () {
+      const co     = this.value;
+      const unique = [...new Set(originalData.filter(p => p.company_name === co).map(p => p.subcontractor_name))];
+      subSelect.innerHTML = "<option value=''>Select Subcontractor</option>";
+      unique.forEach(s => { subSelect.innerHTML += `<option>${s}</option>`; });
+      subSelect.onchange = function () {
+        const su    = subSelect.value;
+        const works = [...new Set(originalData.filter(p => p.company_name === co && p.subcontractor_name === su).map(p => p.work_type))];
+        const workSel = document.getElementById("bulk_work");
+        if (!workSel) return;
+        workSel.innerHTML = "<option value=''>Select Work Type</option>";
+        works.forEach(w => { workSel.innerHTML += `<option>${w}</option>`; });
+      };
+    };
   }
 
-  function updateDependentFilters(filteredData) {
-    const saved = {};
-    ["f_company", "f_sub", "f_work", "f_contract", "f_cert", "f_status"].forEach(id => {
-      saved[id] = document.getElementById(id)?.value;
-    });
-    [
-      { id: "f_company",  key: "company_name"        },
-      { id: "f_sub",      key: "subcontractor_name"  },
-      { id: "f_work",     key: "work_type"           },
-      { id: "f_contract", key: "contract_number"     },
-      { id: "f_cert",     key: "certificate_no"      }
-    ].forEach(f => {
-      const sel = document.getElementById(f.id); if (!sel) return;
-      const vals = [...new Set(filteredData.map(x => x[f.key]).filter(v => v))];
-      sel.innerHTML = '<option value="">All</option>' + vals.map(v => `<option value="${v}">${v}</option>`).join("");
-      if (saved[f.id] && vals.includes(saved[f.id])) sel.value = saved[f.id];
-    });
-    const fSt = document.getElementById("f_status");
-    if (fSt && saved["f_status"]) fSt.value = saved["f_status"];
-  }
-
-  /* ── BULK DELETE ─────────────────────────────────── */
+  /* ════════════════════════════════════════════════════════
+     BULK DELETE
+  ════════════════════════════════════════════════════════ */
   window.bulkDelete = async function () {
     const subName = document.getElementById("bulk_sub")?.value;
     const work    = document.getElementById("bulk_work")?.value;
     const from    = +document.getElementById("from_cert")?.value;
     const to      = +document.getElementById("to_cert")?.value;
-
     if (!subName || !work || !from || !to) { alert("Fill all fields"); return; }
-
     const record = originalData.find(p =>
       p.subcontractor_name === subName &&
       p.work_type          === work &&
@@ -788,7 +911,6 @@ const originalData = window.originalData;
     );
     if (!record) { alert("No matching data found"); return; }
     if (!confirm(`Delete certificates ${from} → ${to}?`)) return;
-
     const res = await fetch(`${window.API}/api/payments/bulk-delete`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}` },
@@ -804,7 +926,9 @@ const originalData = window.originalData;
     await loadFullData();
   };
 
-  /* ── PRINT ───────────────────────────────────────── */
+  /* ════════════════════════════════════════════════════════
+     PRINT
+  ════════════════════════════════════════════════════════ */
   window.printPayment = function (id) {
     const p = originalData.find(x => x.id === id);
     if (!p) return;
@@ -825,31 +949,16 @@ const originalData = window.originalData;
     setTimeout(() => win.print(), 300);
   };
 
-  /* ── EXPORT ──────────────────────────────────────── */
+  /* ════════════════════════════════════════════════════════
+     EXPORT
+  ════════════════════════════════════════════════════════ */
   function getFilteredDataForExport() {
-    const f   = id => document.getElementById(id)?.value || "";
-    const dF  = f("date_from"), dT = f("date_to");
-    return originalData.filter(p => {
-      const pDate   = (p.cert_date || p.created_at || "").slice(0, 10);
-      const pStatus = p.cert_status || p.status || "";
-      return (
-        (!f("f_scid")     || p.subcontractor_id   == f("f_scid"))  &&
-        (!f("f_project")  || p.project_name        == f("f_project")) &&
-        (!f("f_contract") || p.contract_number      == f("f_contract")) &&
-        (!f("f_company")  || p.company_name         == f("f_company")) &&
-        (!f("f_sub")      || p.subcontractor_name   == f("f_sub"))   &&
-        (!f("f_work")     || p.work_type            == f("f_work"))   &&
-        (!f("f_cert")     || p.certificate_no       == f("f_cert"))  &&
-        (!f("f_status")   || pStatus                == f("f_status")) &&
-        (!dF || pDate >= dF) && (!dT || pDate <= dT)
-      );
-    });
+    return getFilteredData();
   }
 
   function initExportButton() {
     const btn = document.getElementById("exportBtn");
     if (!btn) return;
-
     const STATUS_CFG_LOCAL = STATUS_CFG;
 
     btn.onclick = function () {
@@ -895,21 +1004,14 @@ const originalData = window.originalData;
           t.ret   += +p.retention_amount || 0; t.adv += +p.advance_deduction || 0;
           t.net   += +p.net_payment || 0;
         });
-
         html += `<div class="page">
-          <h1>📊 Payment Certificate Report</h1>
+          <h1>Payment Certificate Report</h1>
           <h3>Project: ${first.project_name}</h3>
           <div style="font-size:12px;line-height:1.7;margin-bottom:6px">
             <b>Subcontractor:</b> <span style="color:#d35400">${first.subcontractor_name}</span>
             &nbsp;|&nbsp;<b>Work:</b> ${first.work_type}<br>
             <b>Company:</b> ${first.company_name || "—"} &nbsp;|&nbsp;<b>Contract:</b> ${first.contract_number || "—"}<br>
-            <b>Phone:</b> ${first.phone || "—"} &nbsp;|&nbsp;<b>Email:</b> ${first.email || "—"}<br>
-            <b>VAT No:</b> ${first.vat_number || "—"} &nbsp;|&nbsp;<b>CR:</b> ${first.cr_number || "—"}
           </div>
-          <p style="font-size:12px;margin:4px 0">
-            <b>Initial Advance:</b> ${Number(first.initial_advance || 0).toFixed(2)}
-            &nbsp;|&nbsp;<b>Remaining:</b> ${Number(first.advance_remaining || 0).toFixed(2)}
-          </p>
           <h4>Summary</h4>
           <table><tr><th>Total Work</th><th>Withdrawn</th><th>Deduction</th><th>Refund</th><th>After</th><th>VAT</th><th>Retention</th><th>Net</th></tr>
           <tr><td>${fmt(t.work)}</td><td>${fmt(t.wd)}</td><td>${fmt(t.ded)}</td><td>${fmt(t.ref)}</td><td>${fmt(t.after)}</td><td>${fmt(t.vat)}</td><td>${fmt(t.ret)}</td><td>${fmt(t.net)}</td></tr></table>
@@ -930,7 +1032,7 @@ const originalData = window.originalData;
             }).join("")}
             <tr class="tot"><td>TOTAL</td><td>${fmt(t.work)}</td><td>${fmt(t.wd)}</td><td>${fmt(t.ded)}</td><td>${fmt(t.ref)}</td><td>${fmt(t.after)}</td><td>${fmt(t.vat)}</td><td>${fmt(t.ret)}</td><td>${fmt(t.adv)}</td><td>${fmt(t.net)}</td><td colspan="3"></td></tr>
           </table>
-          <p style="margin-top:10px;font-size:10px;color:#888">Prepared by: Eng. Tanveer Ahmad &nbsp;·&nbsp; SPMS v2.0 &nbsp;·&nbsp; ${new Date().toLocaleDateString()}</p>
+          <p style="margin-top:10px;font-size:10px;color:#888">SPMS v2.0 &nbsp;·&nbsp; ${new Date().toLocaleDateString()}</p>
         </div>`;
       });
 
@@ -941,9 +1043,12 @@ const originalData = window.originalData;
     };
   }
 
-  /* ── GLOBALS ─────────────────────────────────────── */
+  /* ════════════════════════════════════════════════════════
+     GLOBALS
+  ════════════════════════════════════════════════════════ */
   window.initPaymentPage   = initPaymentPage;
   window.applyGlobalFilter = function (fd) { renderTable(fd); };
   window.renderTable       = renderTable;
+  window.buildMultiSelectFilters = buildMultiSelectFilters;
 
 })();
