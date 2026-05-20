@@ -1,723 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23080c14'/><rect x='8' y='8' width='84' height='84' rx='18' fill='url(%23g)'/><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%231565c0'/><stop offset='100%25' stop-color='%230d47a1'/></linearGradient></defs><text x='50' y='68' font-family='monospace' font-weight='900' font-size='52' text-anchor='middle' fill='%23ffffff'>SP</text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23080c14'/><rect x='8' y='8' width='84' height='84' rx='18' fill='url(%23g)'/><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%23f59e0b'/><stop offset='100%25' stop-color='%23f97316'/></linearGradient></defs><text x='50' y='68' font-family='monospace' font-weight='900' font-size='52' text-anchor='middle' fill='%23080c14'>SP</text></svg>">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SPMS System</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script>if (!localStorage.getItem('role')) window.location.href = 'login.html';</script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>if (!localStorage.getItem("role")) window.location.href = "login.html";</script>
 <link rel="stylesheet" href="css/style.css">
-
 <style>
-/* =====================================================
-   SPMS index.html — Tree Sidebar + Main Shell
-   All page content loads into #mainContent via loadPage()
-   ===================================================== */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{display:flex;height:100vh;overflow:hidden;}
 
-:root {
-  /* Sidebar */
-  --sb-bg:       #1a2535;
-  --sb-hover:    #243044;
-  --sb-active-bg:rgba(33,150,243,.13);
-  --sb-active-bd:#2196f3;
-  --sb-text:     #c5d4e8;
-  --sb-dim:      #6a85a0;
-  --sb-border:   rgba(255,255,255,.06);
-  --sb-w:        252px;
-  --sb-w-c:      52px;   /* collapsed */
+/* ── SIDEBAR ── */
+.sidebar{display:flex;flex-direction:column;align-items:center;padding:14px 0;flex-shrink:0;position:relative;z-index:100;}
+.sidebar-logo{width:38px;height:38px;background:linear-gradient(135deg,#f43f5e,#8b5cf6);border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;box-shadow:0 0 20px rgba(244,63,94,.28);margin-bottom:22px;}
+.sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1;width:100%;padding:0 11px;align-items:center;}
+.sidebar-bottom{display:flex;flex-direction:column;align-items:center;gap:4px;padding:0 11px 10px;}
+.nav-sep{width:28px;height:1px;background:rgba(255,255,255,.06);margin:4px 0;}
+.brand-vert{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#2e3450;writing-mode:vertical-rl;transform:rotate(180deg);margin-bottom:4px;}
 
-  /* Main area */
-  --bg:   #f3f6fa;
-  --bg2:  #ffffff;
-  --bdr:  #dde4ee;
-  --bdr2: #c5d0df;
-  --t1:   #1a2332;
-  --t2:   #3d5166;
-  --t3:   #7a8fa3;
-  --accent:#1565c0;
-  --accent2:#1976d2;
-  --accent-light:#e3f0ff;
+/* Nav item tooltip */
+.nav-item{position:relative;}
+.nav-item[data-tip]::after{
+  content:attr(data-tip);
+  position:absolute;left:calc(100% + 12px);top:50%;transform:translateY(-50%);
+  background:#0d1220;border:1px solid rgba(255,255,255,.1);
+  color:#8a95b0;font-family:'JetBrains Mono',monospace;font-size:10px;
+  padding:4px 10px;border-radius:6px;white-space:nowrap;
+  pointer-events:none;opacity:0;transition:opacity .15s;z-index:999;
+}
+.nav-item[data-tip]:hover::after{opacity:1;}
 
-  --font:'IBM Plex Sans',sans-serif;
-  --mono:'IBM Plex Mono',monospace;
-  --r:6px;
-  --sh:0 1px 4px rgba(0,0,0,.08);
-  --sh2:0 3px 14px rgba(0,0,0,.13);
-}
+/* Role dot */
+.nav-item[data-page="roles"] .role-dot{position:absolute;top:-2px;right:-2px;width:7px;height:7px;background:#f59e0b;border-radius:50%;border:1.5px solid var(--panel,#0c0e17);display:none;}
+.nav-item[data-page="roles"].admin-visible .role-dot{display:block;}
+.nav-item[data-page="roles"]{position:relative;}
 
-/* Light mode (default) */
-body {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
-  background: var(--bg);
-  font-family: var(--font);
-  color: var(--t1);
-  transition: background .25s, color .25s;
-}
+/* ── CONTENT ── */
+.content{flex:1;height:100vh;overflow-y:auto;min-width:0;}
+#mainContent{min-height:100%;}
 
-/* ── Dark mode override ───────────────── */
-body.dark {
-  --bg:   #0f1318;
-  --bg2:  #171d25;
-  --bdr:  #2a3545;
-  --bdr2: #344055;
-  --t1:   #e8edf5;
-  --t2:   #9aafc4;
-  --t3:   #5a7090;
-}
-body.dark .sidebar { --sb-bg:#111820; --sb-hover:#1a2535; }
-
-/* =====================================================
-   SIDEBAR
-   ===================================================== */
-.sidebar {
-  width: var(--sb-w);
-  background: var(--sb-bg);
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  height: 100vh;
-  overflow: hidden;
-  transition: width .22s ease;
-  z-index: 200;
-  position: relative;
-}
-.sidebar.collapsed { width: var(--sb-w-c); }
-
-/* Brand */
-.sb-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 13px 13px;
-  border-bottom: 1px solid var(--sb-border);
-  flex-shrink: 0;
-  min-height: 52px;
-  overflow: hidden;
-}
-.sb-logo {
-  width: 28px; height: 28px;
-  background: var(--accent2);
-  border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 11px; color: #fff;
-  flex-shrink: 0; letter-spacing: .02em;
-  box-shadow: 0 2px 6px rgba(21,101,192,.35);
-}
-.sb-brand-text { overflow: hidden; white-space: nowrap; }
-.sb-brand-name { font-size: 13px; font-weight: 600; color: #fff; letter-spacing: .01em; }
-.sb-brand-sub  { font-size: 9.5px; color: var(--sb-dim); margin-top: 1px; font-family: var(--mono); }
-
-/* Collapse toggle */
-.sb-toggle {
-  position: absolute;
-  top: 14px; right: -11px;
-  width: 22px; height: 22px;
-  background: var(--sb-bg);
-  border: 1px solid var(--sb-border);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  color: var(--sb-dim); font-size: 9px;
-  z-index: 300; transition: all .15s;
-}
-.sb-toggle:hover { background: var(--sb-hover); color: #fff; }
-.sidebar.collapsed .sb-toggle { transform: rotate(180deg); }
-
-/* Sidebar search */
-.sb-search {
-  padding: 9px 11px;
-  border-bottom: 1px solid var(--sb-border);
-  flex-shrink: 0;
-  position: relative;
-}
-.sb-search-ico {
-  position: absolute; left: 20px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--sb-dim); font-size: 12px;
-  pointer-events: none;
-}
-.sb-search input {
-  width: 100%; background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.09);
-  border-radius: 5px; padding: 6px 10px 6px 28px;
-  font-size: 11.5px; color: var(--sb-text);
-  font-family: var(--font); outline: none; transition: .15s;
-}
-.sb-search input:focus { border-color: rgba(33,150,243,.5); background: rgba(255,255,255,.1); }
-.sb-search input::placeholder { color: var(--sb-dim); }
-.sidebar.collapsed .sb-search { display: none; }
-
-/* Nav scroll area */
-.sb-nav { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 5px 0; }
-.sb-nav::-webkit-scrollbar { width: 3px; }
-.sb-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 3px; }
-
-/* Group label */
-.sb-group {
-  font-size: 9px; letter-spacing: .13em; text-transform: uppercase;
-  color: var(--sb-dim); padding: 11px 14px 3px;
-  font-family: var(--mono); white-space: nowrap; overflow: hidden;
-}
-.sidebar.collapsed .sb-group { display: none; }
-
-/* Nav item */
-.sb-item {
-  display: flex; align-items: center; gap: 9px;
-  padding: 7px 12px;
-  color: var(--sb-text); font-size: 12px;
-  cursor: pointer; transition: all .12s;
-  white-space: nowrap; overflow: hidden;
-  border-left: 3px solid transparent;
-  user-select: none; position: relative;
-}
-.sb-item:hover { background: var(--sb-hover); color: #fff; }
-.sb-item.active {
-  background: var(--sb-active-bg);
-  color: #64b5f6;
-  border-left-color: var(--sb-active-bd);
-  font-weight: 500;
-}
-.sb-item .ico { width: 16px; height: 16px; flex-shrink: 0; font-size: 14px; text-align: center; }
-.sb-item .lbl { flex: 1; overflow: hidden; text-overflow: ellipsis; }
-.sb-item .arr { font-size: 9px; color: var(--sb-dim); transition: transform .18s; flex-shrink: 0; }
-.sb-item.open .arr { transform: rotate(90deg); }
-.sidebar.collapsed .lbl,
-.sidebar.collapsed .arr,
-.sidebar.collapsed .sb-badge { display: none; }
-.sidebar.collapsed .sb-item { padding: 8px; justify-content: center; border-left-color: transparent !important; }
-.sidebar.collapsed .sb-item.active { background: rgba(33,150,243,.18); border-radius: 5px; margin: 0 4px; }
-
-/* Badge */
-.sb-badge {
-  font-size: 9px; font-family: var(--mono);
-  border-radius: 10px; padding: 1px 6px; min-width: 18px;
-  text-align: center; flex-shrink: 0; color: #fff;
-}
-.sb-badge.blue   { background: #1565c0; }
-.sb-badge.amber  { background: #d97706; }
-.sb-badge.green  { background: #059669; }
-.sb-badge.red    { background: #dc2626; }
-
-/* Tree children */
-.sb-children {
-  overflow: hidden; max-height: 0;
-  transition: max-height .22s ease;
-  background: rgba(0,0,0,.18);
-}
-.sb-children.open { max-height: 600px; }
-.sidebar.collapsed .sb-children { display: none; }
-
-.sb-child {
-  display: flex; align-items: center; gap: 7px;
-  padding: 6px 12px 6px 35px;
-  color: var(--sb-dim); font-size: 11.5px;
-  cursor: pointer; transition: .12s;
-  white-space: nowrap; position: relative;
-}
-.sb-child::before {
-  content: '';
-  position: absolute; left: 26px; top: 50%;
-  width: 5px; height: 1px;
-  background: rgba(255,255,255,.15);
-}
-.sb-child:hover { color: var(--sb-text); background: rgba(255,255,255,.04); }
-.sb-child.active { color: #64b5f6; font-weight: 500; }
-.sb-child .cdot {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: rgba(255,255,255,.2); flex-shrink: 0;
-}
-.sb-child.active .cdot { background: #64b5f6; }
-.sb-child .csub {
-  margin-left: auto; font-size: 9.5px;
-  font-family: var(--mono); color: var(--sb-dim);
-}
-
-/* Tooltip when collapsed */
-.sb-tip {
-  position: absolute; left: calc(100% + 11px); top: 50%;
-  transform: translateY(-50%);
-  background: #1a2535; border: 1px solid rgba(255,255,255,.12);
-  color: var(--sb-text); font-size: 11px;
-  padding: 4px 10px; border-radius: 5px;
-  white-space: nowrap; pointer-events: none;
-  opacity: 0; transition: opacity .12s; z-index: 9999;
-}
-.sidebar.collapsed .sb-item:hover .sb-tip { opacity: 1; }
-
-/* Bottom area */
-.sb-bottom {
-  border-top: 1px solid var(--sb-border);
-  padding: 5px 0; flex-shrink: 0;
-}
-
-/* =====================================================
-   MAIN SHELL
-   ===================================================== */
-.shell {
-  flex: 1; display: flex; flex-direction: column;
-  height: 100vh; overflow: hidden; min-width: 0;
-}
-
-/* Top bar */
-.topbar {
-  background: var(--bg2);
-  border-bottom: 1px solid var(--bdr);
-  padding: 0 20px; height: 52px;
-  display: flex; align-items: center;
-  justify-content: space-between; gap: 12px;
-  flex-shrink: 0; z-index: 100;
-}
-.tb-left { display: flex; align-items: center; gap: 10px; }
-.tb-breadcrumb {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 12px; color: var(--t3);
-}
-.tb-breadcrumb b { color: var(--t2); font-weight: 500; }
-.tb-breadcrumb i { font-style: normal; color: #c0ccd8; font-size: 10px; }
-.tb-right { display: flex; align-items: center; gap: 7px; flex-wrap: nowrap; }
-
-/* Active filter label */
-.active-filter-lbl {
-  display: none; align-items: center; gap: 7px;
-  background: var(--accent-light); border: 1px solid #90c5f0;
-  border-radius: 20px; padding: 3px 11px;
-  font-size: 11px; color: var(--accent);
-}
-.active-filter-lbl.show { display: inline-flex; }
-.afl-x {
-  background: none; border: none; cursor: pointer;
-  color: var(--accent); font-size: 14px; line-height: 1;
-  margin-left: 3px;
-}
-
-/* Toolbar buttons */
-.tbtn {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 11px; border: 1px solid var(--bdr2);
-  border-radius: var(--r); background: var(--bg2);
-  color: var(--t2); font-size: 11.5px;
-  font-family: var(--font); cursor: pointer;
-  transition: .13s; white-space: nowrap;
-}
-.tbtn svg { width: 13px; height: 13px; stroke-width: 2; }
-.tbtn:hover { background: var(--bg); border-color: var(--accent); color: var(--accent); }
-.tbtn.primary {
-  background: var(--accent); border-color: var(--accent); color: #fff;
-}
-.tbtn.primary:hover { background: var(--accent2); }
-.tbtn.icon-only { padding: 5px 8px; }
-
-/* Live pill */
-.live-pill {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 9.5px; font-family: var(--mono);
-  padding: 3px 9px; border-radius: 20px;
-  border: 1px solid #b6dfc5; background: #edf9f2; color: #1b7a4a;
-}
-.lpulse {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #1b7a4a; animation: lpulse 1.6s infinite;
-}
-@keyframes lpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
-
-/* Role badge */
-.role-badge {
-  font-size: 10px; font-family: var(--mono);
-  border: 1px solid; border-radius: 20px;
-  padding: 3px 9px; letter-spacing: .05em;
-  text-transform: uppercase;
-}
-.role-badge.admin    { background:#fff0f0;border-color:#f5c5c5;color:#c0392b; }
-.role-badge.manager  { background:#f0f4ff;border-color:#c5d0f5;color:#1565c0; }
-.role-badge.finance  { background:#fffbf0;border-color:#f5e5c5;color:#b45309; }
-.role-badge.engineer { background:#f0fff8;border-color:#b6e8d0;color:#1b7a4a; }
-.role-badge.viewer   { background:#f5f7fa;border-color:#c8d2df;color:#7a8fa3; }
-.role-badge.contract_department { background:#f0f4ff;border-color:#c5d0f5;color:#1565c0; }
-
-/* Notification bell */
-.notif-btn { position: relative; }
-.notif-badge {
-  position: absolute; top: -4px; right: -4px;
-  background: #c0392b; color: #fff;
-  border-radius: 10px; font-size: 8.5px; font-family: var(--mono);
-  padding: 1px 5px; min-width: 16px; text-align: center;
-  display: none; border: 2px solid var(--bg2);
-  pointer-events: none;
-}
-.notif-badge.show { display: block; }
-.tb-sep { width: 1px; height: 20px; background: var(--bdr); flex-shrink: 0; }
-
-/* =====================================================
-   CONTENT AREA  — pages load here
-   ===================================================== */
-.content {
-  flex: 1; height: calc(100vh - 52px);
-  overflow-y: auto; overflow-x: hidden;
-  min-width: 0;
-}
-#mainContent { min-height: 100%; }
-
-/* Initial loading spinner */
-@keyframes spin { to { transform: rotate(360deg); } }
-.init-spin {
-  display: flex; align-items: center; justify-content: center;
-  height: 100%; flex-direction: column; gap: 12px;
-}
-.init-spin-ring {
-  width: 36px; height: 36px;
-  border: 2px solid rgba(21,101,192,.2);
-  border-top-color: #1565c0;
-  border-radius: 50%;
-  animation: spin .8s linear infinite;
-}
-.init-spin-lbl {
-  font-size: 10px; letter-spacing: .14em;
-  color: var(--t3); font-family: var(--mono);
-  text-transform: uppercase;
-}
-
-/* =====================================================
-   SEARCH MODAL (global)
-   ===================================================== */
-.search-modal {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.5);
-  backdrop-filter: blur(10px);
-  display: none; justify-content: center;
-  align-items: flex-start; padding-top: 12vh;
-  z-index: 9999;
-}
-.search-modal.open { display: flex; }
-.search-box {
-  width: 540px; max-width: 92vw;
-  background: var(--sb-bg);
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: 14px; padding: 18px;
-  box-shadow: 0 28px 70px rgba(0,0,0,.5);
-  animation: sbIn .16s ease;
-}
-@keyframes sbIn{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
-.search-type-row {
-  display: flex; gap: 6px;
-  background: rgba(0,0,0,.25);
-  border-radius: 8px; padding: 4px; margin-bottom: 13px;
-}
-.stt-btn {
-  flex: 1; padding: 6px; border: none;
-  border-radius: 6px; font-family: var(--font);
-  font-size: 12px; font-weight: 500;
-  cursor: pointer; background: transparent;
-  color: var(--sb-dim); transition: .14s;
-}
-.stt-btn.active {
-  background: linear-gradient(135deg,#1565c0,#1976d2);
-  color: #fff;
-}
-.si-wrap { position: relative; }
-.si-ico {
-  position: absolute; left: 12px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--sb-dim); font-size: 13px;
-  pointer-events: none;
-}
-.search-box input[type=text] {
-  width: 100%; padding: 11px 13px 11px 38px;
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: 9px; font-family: var(--font);
-  font-size: 13px; color: #e8eaf2; outline: none;
-  transition: .18s;
-}
-.search-box input[type=text]:focus { border-color: rgba(33,150,243,.5); }
-.search-box input[type=text]::placeholder { color: var(--sb-dim); }
-#popupSuggestions {
-  margin-top: 7px; background: rgba(0,0,0,.3);
-  border: 1px solid rgba(255,255,255,.07);
-  border-radius: 9px; overflow: hidden;
-  max-height: 210px; overflow-y: auto;
-}
-#popupSuggestions div {
-  padding: 10px 14px; font-size: 13px;
-  color: #8892aa;
-  border-bottom: 1px solid rgba(255,255,255,.05);
-  cursor: pointer; transition: .12s;
-}
-#popupSuggestions div:last-child { border-bottom: none; }
-#popupSuggestions div:hover { background: rgba(33,150,243,.1); color: #e8eaf2; }
-.highlight {
-  background: rgba(33,150,243,.25); color: #90caf9;
-  padding: 1px 4px; border-radius: 4px; font-weight: 600;
-}
-.search-footer {
-  display: flex; justify-content: flex-end;
-  margin-top: 13px; gap: 8px;
-}
-.search-footer button {
-  padding: 8px 18px; border: none;
-  border-radius: 8px; font-family: var(--font);
-  font-size: 12px; font-weight: 500;
-  cursor: pointer; transition: .14s;
-}
-.sf-cancel {
-  background: rgba(255,255,255,.07);
-  color: #8892aa;
-  border: 1px solid rgba(255,255,255,.1) !important;
-}
-.sf-search {
-  background: linear-gradient(135deg,#1565c0,#1976d2);
-  color: #fff;
-}
-.search-footer button:hover { opacity: .85; transform: translateY(-1px); }
+/* ── SEARCH MODAL ── */
+.search-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(12px);display:none;justify-content:center;align-items:flex-start;padding-top:13vh;z-index:9999;}
+.search-box{width:540px;max-width:92vw;background:#101420;border:1px solid rgba(255,255,255,.11);border-radius:18px;padding:18px;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:scaleIn .15s ease;}
+@keyframes scaleIn{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+.stt{display:flex;gap:6px;background:#0c0e17;border-radius:9px;padding:4px;margin-bottom:13px;}
+.stt button{flex:1;padding:7px;border:none;border-radius:7px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:#4a5270;transition:.15s;}
+.stt button.active{background:linear-gradient(135deg,#f43f5e,#8b5cf6);color:#fff;}
+.si-wrap{position:relative;}
+.si-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#4a5270;pointer-events:none;}
+.search-box input{width:100%;padding:11px 14px 11px 40px;background:#0c0e17;border:1px solid rgba(255,255,255,.11);border-radius:10px;font-family:'Outfit',sans-serif;font-size:13px;color:#e8eaf2;outline:none;transition:.2s;}
+.search-box input:focus{border-color:rgba(244,63,94,.4);}
+.search-box input::placeholder{color:#3e4560;}
+#popupSuggestions{margin-top:7px;background:#0c0e17;border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden;max-height:210px;overflow-y:auto;}
+#popupSuggestions div{padding:10px 14px;font-size:13px;color:#8892aa;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:.12s;}
+#popupSuggestions div:last-child{border-bottom:none;}
+#popupSuggestions div:hover{background:rgba(244,63,94,.07);color:#e8eaf2;}
+.highlight{background:linear-gradient(135deg,rgba(245,158,11,.28),rgba(244,63,94,.18));color:#fbbf24;padding:1px 4px;border-radius:4px;font-weight:600;}
+.search-footer{display:flex;justify-content:flex-end;margin-top:13px;gap:8px;}
+.search-footer button{padding:8px 18px;border:none;border-radius:9px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;}
+.sf-cancel{background:#141828;color:#8892aa;border:1px solid rgba(255,255,255,.1);}
+.sf-search{background:linear-gradient(135deg,#f43f5e,#8b5cf6);color:#fff;}
+.search-footer button:hover{opacity:.85;transform:translateY(-1px);}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════
-     SIDEBAR — Tree Navigation
-═══════════════════════════════════════════ -->
-<nav class="sidebar" id="sidebar">
+<nav class="sidebar">
+  <div class="sidebar-logo">SP</div>
+  <div class="sidebar-nav">
 
-  <!-- Brand -->
-  <div class="sb-brand">
-    <div class="sb-logo">SP</div>
-    <div class="sb-brand-text">
-      <div class="sb-brand-name">SPMS</div>
-      <div class="sb-brand-sub">Payment Management</div>
+    <!-- Dashboard -->
+    <div class="nav-item active" data-tip="Dashboard" onclick="loadPage('dashboard.html')">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
     </div>
+
+    <!-- Search -->
+    <div class="nav-item" data-tip="Search" onclick="openSearchModal()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+    </div>
+
+    <div class="nav-sep"></div>
+
+    <!-- Subcontractors -->
+    <div id="subMenu" class="nav-item" data-tip="Subcontractors" onclick="loadPage('subcontractor.html')">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
+
+    <!-- Payments -->
+    <div id="payMenu" class="nav-item" data-tip="Payments" onclick="loadPage('payment.html')">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    </div>
+
+    <div class="nav-sep"></div>
+
+    <!-- Payment Cycles — NEW -->
+    <div id="cyclesMenu" class="nav-item" data-tip="Payment Cycles" onclick="loadPage('cycles.html')">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14" stroke-width="2.5" stroke-linecap="round"/><line x1="12" y1="14" x2="12" y2="14" stroke-width="2.5" stroke-linecap="round"/><line x1="8" y1="18" x2="8" y2="18" stroke-width="2.5" stroke-linecap="round"/></svg>
+    </div>
+
+    <!-- Reports — NEW -->
+    <div id="reportsMenu" class="nav-item" data-tip="Reports" onclick="loadPage('reports.html')">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    </div>
+
+    <div class="nav-sep"></div>
+
+    <!-- Roles & Users -->
+    <div id="rolesMenu" class="nav-item" data-tip="Roles &amp; Users" data-page="roles" onclick="loadPage('roles.html')">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M18 8l2 2-4 4" opacity=".5"/></svg>
+      <span class="role-dot"></span>
+    </div>
+
+    <div class="nav-sep"></div>
+
+    <!-- Toggle Theme -->
+    <div class="nav-item" data-tip="Toggle Theme" onclick="toggleTheme()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </div>
+
   </div>
-  <div class="sb-toggle" onclick="toggleSidebar()" title="Collapse/Expand">◀</div>
-
-  <!-- Search -->
-  <div class="sb-search">
-    <span class="sb-search-ico">🔍</span>
-    <input type="text" id="sbSearchInput" placeholder="Search…"
-           oninput="handleSbSearch(this.value)"
-           onfocus="openSearchModal()"
-           onclick="openSearchModal()">
-  </div>
-
-  <!-- Nav -->
-  <div class="sb-nav" id="sbNav">
-
-    <!-- DASHBOARD -->
-    <div class="sb-group">Dashboard</div>
-    <div class="sb-item active open" id="nav-dashboard" onclick="sbNav('dashboard','dashboard.html')">
-      <span class="ico">📊</span>
-      <span class="lbl">Dashboard</span>
-      <span class="arr">▶</span>
-      <span class="sb-tip">Dashboard</span>
-    </div>
-    <div class="sb-children open" id="ch-dashboard">
-      <div class="sb-child active" onclick="sbNav('dashboard','dashboard.html');scrollAfterLoad('kpiSection')">
-        <div class="cdot"></div>KPI Summary
-      </div>
-      <div class="sb-child" onclick="sbNav('dashboard','dashboard.html');scrollAfterLoad('statusSection')">
-        <div class="cdot"></div>Status Overview
-      </div>
-      <div class="sb-child" onclick="sbNav('dashboard','dashboard.html');scrollAfterLoad('chartsSection')">
-        <div class="cdot"></div>Charts
-      </div>
-      <div class="sb-child" onclick="sbNav('dashboard','dashboard.html');scrollAfterLoad('tableSection')">
-        <div class="cdot"></div>Payment Table
-      </div>
-      <div class="sb-child" onclick="sbNav('dashboard','dashboard.html');scrollAfterLoad('filterSection')">
-        <div class="cdot"></div>Filters
-      </div>
-    </div>
-
-    <!-- OPERATIONS -->
-    <div class="sb-group">Operations</div>
-    <div class="sb-item" id="nav-payments" onclick="sbNav('payments','payment.html')">
-      <span class="ico">💳</span>
-      <span class="lbl">Payments</span>
-      <span class="sb-badge blue" id="badgeSubmitted" style="display:none">0</span>
-      <span class="arr">▶</span>
-      <span class="sb-tip">Payments</span>
-    </div>
-    <div class="sb-children" id="ch-payments">
-      <div class="sb-child" onclick="sbNav('payments','payment.html')">
-        <div class="cdot"></div>All Payments
-      </div>
-      <div class="sb-child" onclick="sbFilterStatus('Submitted')">
-        <div class="cdot"></div>Submitted
-        <span class="csub" id="cnt-submitted">0</span>
-      </div>
-      <div class="sb-child" onclick="sbFilterStatus('Approved')">
-        <div class="cdot"></div>Approved
-        <span class="csub" id="cnt-approved">0</span>
-      </div>
-      <div class="sb-child" onclick="sbFilterStatus('Under Review')">
-        <div class="cdot"></div>Under Review
-        <span class="csub" id="cnt-review">0</span>
-      </div>
-      <div class="sb-child" onclick="sbFilterStatus('Rejected')">
-        <div class="cdot"></div>Rejected
-        <span class="csub" id="cnt-rejected">0</span>
-      </div>
-      <div class="sb-child" onclick="sbFilterStatus('Forwarded to Finance')">
-        <div class="cdot"></div>Forwarded to Finance
-      </div>
-      <div class="sb-child" onclick="sbFilterStatus('On Site')">
-        <div class="cdot"></div>On Site
-      </div>
-    </div>
-
-    <div class="sb-item" id="subMenu" onclick="sbNav('subcontractors','subcontractor.html')">
-      <span class="ico">👷</span>
-      <span class="lbl">Subcontractors</span>
-      <span class="arr">▶</span>
-      <span class="sb-tip">Subcontractors</span>
-    </div>
-    <div class="sb-children" id="ch-subcontractors">
-      <div class="sb-child" onclick="sbNav('subcontractors','subcontractor.html')">
-        <div class="cdot"></div>All Subcontractors
-      </div>
-      <div class="sb-child" onclick="sbNav('subcontractors','subcontractor.html')">
-        <div class="cdot"></div>Top Performers
-      </div>
-      <div class="sb-child" onclick="sbNav('subcontractors','subcontractor.html')">
-        <div class="cdot"></div>Retention Overview
-      </div>
-    </div>
-
-    <!-- REPORTS & ANALYSIS -->
-    <div class="sb-group">Reports &amp; Analysis</div>
-    <div class="sb-item" id="reportsMenu" onclick="sbNav('reports','reports.html')">
-      <span class="ico">📄</span>
-      <span class="lbl">Reports</span>
-      <span class="sb-tip">Reports</span>
-    </div>
-
-    <div class="sb-item" id="cyclesMenu" onclick="sbNav('cycles','cycles.html')">
-      <span class="ico">🗓</span>
-      <span class="lbl">Payment Cycles</span>
-      <span class="arr">▶</span>
-      <span class="sb-tip">Payment Cycles</span>
-    </div>
-    <div class="sb-children" id="ch-cycles">
-      <div class="sb-child" onclick="sbNav('cycles','cycles.html')">
-        <div class="cdot"></div>Monthly Summary
-      </div>
-      <div class="sb-child" onclick="sbNav('cycles','cycles.html')">
-        <div class="cdot"></div>Cycle History
-      </div>
-    </div>
-
-    <!-- ADMINISTRATION -->
-    <div class="sb-group" id="adminGroup">Administration</div>
-    <div class="sb-item" id="rolesMenu" onclick="sbNav('roles','roles.html')">
-      <span class="ico">🛡</span>
-      <span class="lbl">Roles &amp; Users</span>
-      <span class="arr">▶</span>
-      <span class="sb-tip">Roles &amp; Users</span>
-    </div>
-    <div class="sb-children" id="ch-roles">
-      <div class="sb-child" onclick="sbNav('roles','roles.html')">
-        <div class="cdot"></div>User List
-      </div>
-      <div class="sb-child" onclick="sbNav('roles','roles.html')">
-        <div class="cdot"></div>Role Permissions
-      </div>
-    </div>
-
-  </div><!-- /sb-nav -->
-
-  <!-- Bottom actions -->
-  <div class="sb-bottom">
-    <div class="sb-item" onclick="toggleTheme()">
-      <span class="ico" id="themeIco">☀️</span>
-      <span class="lbl">Toggle Theme</span>
-      <span class="sb-tip">Toggle Theme</span>
-    </div>
-    <div class="sb-item" style="color:rgba(229,115,115,.85);" onclick="logout()">
-      <span class="ico">🚪</span>
-      <span class="lbl">Logout</span>
-      <span class="sb-tip">Logout</span>
+  <div class="sidebar-bottom">
+    <div class="brand-vert">SPMS</div>
+    <div class="nav-item" data-tip="Logout" style="color:rgba(244,63,94,.6)" onclick="logout()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     </div>
   </div>
 </nav>
 
-<!-- ═══════════════════════════════════════════
-     MAIN SHELL
-═══════════════════════════════════════════ -->
-<div class="shell">
-
-  <!-- Top Bar -->
-  <div class="topbar">
-    <div class="tb-left">
-      <div class="tb-breadcrumb">
-        SPMS <i>›</i> <b id="tbPage">Dashboard</b>
-      </div>
-      <div class="active-filter-lbl" id="activeFilter">
-        <span id="activeFilterText"></span>
-        <button class="afl-x" onclick="resetDashboard()">✕</button>
-      </div>
-    </div>
-    <div class="tb-right">
-      <div class="live-pill"><span class="lpulse"></span> LIVE</div>
-      <div class="role-badge" id="roleIndicator">—</div>
-      <div class="tb-sep"></div>
-
-      <!-- Search trigger -->
-      <button class="tbtn" onclick="openSearchModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
-        Search
-      </button>
-
-      <!-- CSV / Print -->
-      <button class="tbtn" onclick="tryDownloadCSV()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        CSV
-      </button>
-      <button class="tbtn primary" onclick="tryPrint()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        Print Report
-      </button>
-      <div class="tb-sep"></div>
-
-      <!-- Notifications -->
-      <button class="tbtn icon-only notif-btn" onclick="tryNotif()" title="Notifications">
-        🔔
-        <span class="notif-badge" id="notifBadge">0</span>
-      </button>
-
-      <!-- Settings -->
-      <button class="tbtn icon-only" onclick="trySettings()" title="Settings">⚙️</button>
-
-      <!-- Theme -->
-      <button class="tbtn icon-only" onclick="toggleTheme()" title="Toggle Theme" id="themeBtn">☀️</button>
-    </div>
-  </div>
-
-  <!-- Page Content -->
-  <div class="content">
-    <div id="mainContent">
-      <div class="init-spin">
-        <div class="init-spin-ring"></div>
-        <div class="init-spin-lbl">Loading…</div>
-      </div>
+<div class="content">
+  <div id="mainContent">
+    <div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:12px;">
+      <div style="width:38px;height:38px;border:2px solid rgba(244,63,94,.3);border-top-color:#f43f5e;border-radius:50%;animation:spin .8s linear infinite;"></div>
+      <div style="font-size:11px;letter-spacing:.12em;color:#3e4560;font-family:'JetBrains Mono',monospace;">LOADING</div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     GLOBAL SEARCH MODAL
-═══════════════════════════════════════════ -->
+<!-- Search Modal -->
 <div id="searchModal" class="search-modal">
   <div class="search-box">
-    <div class="search-type-row">
-      <button id="btnCompany"       class="stt-btn active" onclick="setSearchType('company')">By Company</button>
-      <button id="btnSubcontractor" class="stt-btn"        onclick="setSearchType('subcontractor')">By Subcontractor</button>
+    <div class="stt">
+      <button id="btnCompany" class="active" onclick="setSearchType('company')">By Company</button>
+      <button id="btnSubcontractor" onclick="setSearchType('subcontractor')">By Subcontractor</button>
     </div>
     <div class="si-wrap">
-      <span class="si-ico">🔍</span>
-      <input type="text" id="popupSearchInput"
-             placeholder="Type to search…"
-             oninput="handlePopupSearch()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="popupSearchInput" placeholder="Type to search…" oninput="handlePopupSearch()">
     </div>
     <div id="popupSuggestions"></div>
     <div class="search-footer">
@@ -727,209 +158,37 @@ body.dark .sidebar { --sb-bg:#111820; --sb-hover:#1a2535; }
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     SCRIPTS
-═══════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="js/app.js"></script>
-
 <script>
-/* ============================================================
-   index.html — Shell JS
-   Handles: sidebar tree, theme, role UI, topbar actions
-   All page content is loaded into #mainContent by app.js loadPage()
-============================================================ */
-
-var _sbCollapsed = false;
-var _activeNav   = 'dashboard';
-var _pendingScroll = null;
-
-/* ── Role UI ── */
-(function applyRoleUI(){
-  var role = localStorage.getItem('role') || 'viewer';
-  var ri = document.getElementById('roleIndicator');
-  if(ri){
-    var labels = {
-      admin:'🛡 Admin', manager:'👔 Manager', finance:'💹 Finance',
-      engineer:'⚙️ Engineer', contract_department:'📋 Contracts', viewer:'👁 Viewer'
-    };
-    ri.textContent = labels[role] || role;
-    ri.className   = 'role-badge ' + role;
+(function initRoleUI(){
+  var role = localStorage.getItem("role");
+  if(role === "viewer"){
+    ["subMenu","payMenu"].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el){ el.style.opacity = "0.3"; el.style.pointerEvents = "none"; }
+    });
   }
-
-  var perms = window.ROLE_PERMISSIONS || {};
-  var allowed = (perms[role] || []);
-
-  /* Hide menu items the role can't access */
-  var menuMap = {
-    subMenu:     'subcontractor',
-    reportsMenu: 'reports',
-    cyclesMenu:  'cycles',
-    rolesMenu:   'roles',
-    adminGroup:  'roles'
-  };
-  Object.entries(menuMap).forEach(function(e){
-    var el = document.getElementById(e[0]);
-    if(!el) return;
-    if(!allowed.includes(e[1])) el.style.display = 'none';
-  });
+  var rolesMenu = document.getElementById("rolesMenu");
+  if(rolesMenu){
+    if(role === "admin") rolesMenu.classList.add("admin-visible");
+    else if(role === "viewer" || role === "engineer") rolesMenu.style.display = "none";
+  }
+  // Cycles & Reports: visible to all except viewer
+  if(role === "viewer"){
+    ["cyclesMenu","reportsMenu"].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el){ el.style.opacity = "0.3"; el.style.pointerEvents = "none"; }
+    });
+  }
 })();
-
-/* ── Sidebar collapse ── */
-function toggleSidebar(){
-  _sbCollapsed = !_sbCollapsed;
-  document.getElementById('sidebar').classList.toggle('collapsed', _sbCollapsed);
-}
-
-/* ── Sidebar nav click — wraps loadPage() ── */
-function sbNav(id, page){
-  /* Update active state */
-  document.querySelectorAll('.sb-item').forEach(function(el){ el.classList.remove('active'); });
-  var item = document.getElementById('nav-'+id) || document.getElementById(navIdMap(id));
-  if(item) item.classList.add('active');
-
-  /* Toggle tree */
-  var ch  = document.getElementById('ch-'+id);
-  var nav = item;
-  if(ch){
-    var isOpen = ch.classList.contains('open');
-    /* Close all first */
-    document.querySelectorAll('.sb-children').forEach(function(c){ c.classList.remove('open'); });
-    document.querySelectorAll('.sb-item').forEach(function(i){ i.classList.remove('open'); });
-    if(!isOpen){ ch.classList.add('open'); if(nav) nav.classList.add('open'); }
-  }
-
-  /* Breadcrumb */
-  var labels = {
-    dashboard:'Dashboard', payments:'Payments',
-    subcontractors:'Subcontractors', reports:'Reports',
-    cycles:'Payment Cycles', roles:'Roles & Users'
-  };
-  document.getElementById('tbPage').textContent = labels[id] || id;
-  _activeNav = id;
-
-  /* Load page via app.js */
-  if(typeof loadPage === 'function') loadPage(page);
-}
-
-function navIdMap(id){
-  var m = {payments:'payMenu', subcontractors:'subMenu', reports:'reportsMenu', cycles:'cyclesMenu', roles:'rolesMenu'};
-  return m[id] || ('nav-'+id);
-}
-
-/* Scroll to an element after page loads */
-function scrollAfterLoad(sectionId){
-  _pendingScroll = sectionId;
-  setTimeout(doScroll, 600);
-}
-function doScroll(){
-  if(!_pendingScroll) return;
-  var el = document.getElementById(_pendingScroll);
-  if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); }
-  _pendingScroll = null;
-}
-
-/* ── Filter by status shortcut from sidebar ── */
-function sbFilterStatus(st){
-  /* Go to dashboard first, then apply */
-  sbNav('dashboard','dashboard.html');
-  setTimeout(function(){
-    if(typeof window.applyGlobalStatusFilter === 'function'){
-      window.applyGlobalStatusFilter(st);
-    }
-  }, 800);
-}
-
-/* ── Sidebar search — just opens the modal ── */
-function handleSbSearch(v){
-  if(v.length > 0) openSearchModal();
-}
-
-/* ── Theme toggle ── */
-var _isDark = localStorage.getItem('theme') === 'dark';
-(function applyTheme(){
-  if(_isDark){ document.body.classList.add('dark'); setThemeIcons(true); }
-  else { document.body.classList.remove('dark'); setThemeIcons(false); }
-})();
-function toggleTheme(){
-  _isDark = !_isDark;
-  document.body.classList.toggle('dark', _isDark);
-  localStorage.setItem('theme', _isDark ? 'dark' : 'light');
-  setThemeIcons(_isDark);
-  /* Also call the page-level toggleTheme if available */
-  if(typeof window._pageToggleTheme === 'function') window._pageToggleTheme();
-}
-function setThemeIcons(dark){
-  var ico = dark ? '🌙' : '☀️';
-  var ti  = document.getElementById('themeIco');  if(ti)  ti.textContent = ico;
-  var tb  = document.getElementById('themeBtn');  if(tb)  tb.textContent = ico;
-}
-
-/* ── Topbar button delegators ── */
-/* These call functions exposed by whatever page is loaded */
-function tryDownloadCSV(){
-  if(typeof window.downloadExcel === 'function') window.downloadExcel();
-  else if(typeof window.downloadCSV === 'function') window.downloadCSV();
-}
-function tryPrint(){
-  if(typeof window.generatePDFPreview === 'function') window.generatePDFPreview();
-  else if(typeof window.printPDF === 'function') window.printPDF();
-  else if(typeof window._reportsPageInit === 'function') window._reportsPageInit();
-}
-function tryNotif(){
-  if(typeof window.openNotifPanel === 'function') window.openNotifPanel();
-}
-function trySettings(){
-  if(typeof window.openSettings === 'function') window.openSettings();
-}
-
-/* ── Notification badge update (called by loaded pages) ── */
-window.updateShellNotifBadge = function(count){
-  var badge = document.getElementById('notifBadge');
-  if(!badge) return;
-  badge.textContent = count > 9 ? '9+' : count;
-  badge.classList.toggle('show', count > 0);
-};
-
-/* ── Sidebar status counts (called by dashboard after data loads) ── */
-window.updateSidebarCounts = function(counts){
-  counts = counts || {};
-  ['submitted','approved','review','rejected'].forEach(function(k){
-    var el = document.getElementById('cnt-'+k);
-    if(el) el.textContent = counts[k] || 0;
-  });
-  var badge = document.getElementById('badgeSubmitted');
-  if(badge){
-    var sub = counts.submitted || 0;
-    badge.textContent = sub;
-    badge.style.display = sub ? '' : 'none';
-  }
-};
-
-/* ── Logout ── */
-function logout(){
-  localStorage.clear();
-  window.location.href = 'login.html';
-}
-
-/* Close search modal on outside click */
-document.addEventListener('click', function(e){
-  var modal = document.getElementById('searchModal');
-  var box   = document.querySelector('.search-box');
-  if(e.target.closest('[onclick*="openSearchModal"]')) return;
-  if(modal && modal.classList.contains('open') && box && !box.contains(e.target)){
-    closeSearchModal();
-  }
-});
-document.getElementById('searchModal').addEventListener('click', function(e){
-  if(e.target === this) closeSearchModal();
+document.getElementById("searchModal").addEventListener("click", function(e){
+  if(e.target.id === "searchModal") closeSearchModal();
 });
 
-/* ESC closes modal */
-document.addEventListener('keydown', function(e){
-  if(e.key === 'Escape') closeSearchModal();
-});
+
+
 </script>
 
 <script src="js/spms-theme-switcher.js"></script>
