@@ -1844,110 +1844,329 @@ function downloadCSV(){
 }
 
 /* ── PRINT REPORT ── */
+/* ================================================================
+   SPMS GROUPED REPORT — printReport() replacement
+   Replace the existing printReport() function in dashboard.html
+   (document 7) with this entire block.
+
+   Structure per group:
+     ┌─────────────────────────────────────┐
+     │  Company Header                     │
+     │  Sub-header: Subcontractor + Type   │
+     │  Summary Cards (5 KPIs)             │
+     │  Certificate Detail Table           │
+     └─────────────────────────────────────┘
+   Repeated for every Company → Subcontractor → Work Type combo.
+   A grand-total summary is printed at the very top.
+================================================================ */
+
 function printReport(){
-  var d=_filtered;
-  var titleAr=document.getElementById("rptTitleAr").value;
-  var titleEn=document.getElementById("rptTitleEn").value;
-  var company=document.getElementById("rptCompany").value;
-  var prepBy=document.getElementById("rptPrepBy").value;
-  var footL=(document.getElementById("rptFootL").value).replace(/"/g,"'");
-  var footR=(document.getElementById("rptFootR").value).replace(/"/g,"'");
-  var footNote=(document.getElementById("rptNote").value).replace(/"/g,"'");
-  var logo=document.getElementById("rptLogo").value;
-  var orient=document.getElementById("rptOrient").value;
-  var showKPIs=document.getElementById("rptShowKPIs").checked;
-  var showDate=document.getElementById("rptShowDate").checked;
-  var pageNum=document.getElementById("rptPageNum").checked;
-  var zebraRpt=document.getElementById("rptZebra").checked;
-  var now=new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
-  var effCols=_activeCols.slice();
-  if(_rowNum==="first")effCols=["__rn"].concat(effCols);
-  else if(_rowNum==="last")effCols=effCols.concat(["__rn"]);
-  var hdr=effCols.map(function(k){
-    if(k==="__rn")return"<th>#</th>";
-    return"<th>"+(ALL_COLUMNS.find(function(c){return c.key===k;})||{label:k}).label+"</th>";
-  }).join("");
-  var rowsHtml=d.map(function(r,i){
-    var tds=effCols.map(function(k){
-      if(k==="__rn")return'<td class="rn">'+(i+1)+"</td>";
-      var col=ALL_COLUMNS.find(function(c){return c.key===k;})||{};
-      var v=r[k];if(v===null||v===undefined)v="—";
-      if(col.numeric)return'<td class="num">'+(isNaN(parseFloat(v))?v:fmtFull(v))+"</td>";
-      if(k==="status")return"<td>"+escHtml(v)+"</td>";
-      if(k==="created_at"||k==="cert_date")return"<td>"+(v&&v!=="—"?new Date(v).toLocaleDateString("en-GB"):"—")+"</td>";
-      return"<td>"+escHtml(String(v))+"</td>";
-    }).join("");
-    return"<tr"+(zebraRpt&&i%2===0?' class="z"':"")+">"+tds+"</tr>";
-  }).join("");
-  var kpiHtml="";
-  if(showKPIs){
-    var kpiItems=[["Work Value",sumF(d,"work_value")],["Net Payment",sumF(d,"net_payment")],["Retention",sumF(d,"retention_amount")],["Deductions",sumF(d,"deduction")],["VAT",sumF(d,"vat_amount")],["Certs",d.length]];
-    kpiHtml='<div class="ksum">'+kpiItems.map(function(item){return'<div class="kb"><div class="kl">'+item[0]+'</div><div class="kv">'+(typeof item[1]==="number"&&item[0]!=="Certs"?fmtFull(item[1]):item[1])+"</div></div>";}).join("")+"</div>";
-  }
-  var logoHtml=logo
-    ?'<img src="'+escHtml(logo)+'" style="height:36px;object-fit:contain;flex-shrink:0" alt="Logo" onerror="this.style.display=\'none\'">'
-    :'<div class="sp">SP</div>';
-  var pageCSS="@page{"
-    +"size:A4 "+orient+";"
-    +"margin:10mm 8mm 14mm 8mm;"
-    +"@bottom-left{content:\""+footL+"\";font-family:Syne,Arial,sans-serif;font-size:7pt;color:#888;}"
-    +"@bottom-center{content:\""+footNote+(pageNum?" | Page "+"\":counter(page)+\" of \":counter(pages)+\"":"")
-    +"\";font-family:Syne,Arial,sans-serif;font-size:7pt;color:#aaa;}"
-    +"@bottom-right{content:\""+footR+"\";font-family:Syne,Arial,sans-serif;font-size:7pt;color:#888;}"
-    +"}";
-  var basePrintCSS=[
+  var d = _filtered.slice();
+  if(!d.length){ toast("No data to print","e"); return; }
+
+  /* ── Report settings from modal ── */
+  var titleAr  = (document.getElementById("rptTitleAr")  || {}).value || "تقرير الدفعات";
+  var titleEn  = (document.getElementById("rptTitleEn")  || {}).value || "SPMS Payment Report";
+  var company  = (document.getElementById("rptCompany")  || {}).value || "";
+  var prepBy   = (document.getElementById("rptPrepBy")   || {}).value || "Eng. Tanveer Ahmad";
+  var logo     = (document.getElementById("rptLogo")     || {}).value || "";
+  var orient   = (document.getElementById("rptOrient")   || {value:"landscape"}).value;
+  var footL    = ((document.getElementById("rptFootL")   || {}).value || "Report Generated from SPMS").replace(/"/g,"'");
+  var footR    = ((document.getElementById("rptFootR")   || {}).value || "Designed by: Eng. Tanveer Ahmad").replace(/"/g,"'");
+  var footNote = ((document.getElementById("rptNote")    || {}).value || "").replace(/"/g,"'");
+  var showKPIs = (document.getElementById("rptShowKPIs") || {checked:true}).checked;
+  var showDate = (document.getElementById("rptShowDate") || {checked:true}).checked;
+  var zebraRpt = (document.getElementById("rptZebra")    || {checked:true}).checked;
+  var pageNum  = (document.getElementById("rptPageNum")  || {checked:true}).checked;
+  var now      = new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
+
+  /* ── Helpers ── */
+  function f(n){ return Number(n||0).toLocaleString("en",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function sum(arr,k){ return arr.reduce(function(t,r){return t+(parseFloat(r[k])||0);},0); }
+
+  /* ── Sort: company → subcontractor → work_type → cert# ── */
+  d.sort(function(a,b){
+    return (a.company_name||"").localeCompare(b.company_name||"")
+      || (a.subcontractor_name||"").localeCompare(b.subcontractor_name||"")
+      || (a.work_type||"").localeCompare(b.work_type||"")
+      || Number(a.certificate_no) - Number(b.certificate_no);
+  });
+
+  /* ── Build groups: company → sub → work_type ── */
+  var groups = {};
+  d.forEach(function(r){
+    var c  = r.company_name      || "Unknown Company";
+    var s  = r.subcontractor_name|| "Unknown Sub";
+    var wt = r.work_type         || "Other";
+    var key = c + "|||" + s + "|||" + wt;
+    if(!groups[key]) groups[key] = {company:c, sub:s, work_type:wt, rows:[]};
+    groups[key].rows.push(r);
+  });
+
+  /* ── Grand totals ── */
+  var gtWork = sum(d,"work_value"),
+      gtNet  = sum(d,"net_payment"),
+      gtRet  = sum(d,"retention_amount"),
+      gtDed  = sum(d,"deduction"),
+      gtVat  = sum(d,"vat_amount"),
+      gtWd   = sum(d,"work_withdrawn"),
+      gtAdv  = sum(d,"advance_deduction"),
+      gtRef  = sum(d,"refund");
+
+  /* Active columns (respects user column selection) */
+  var effCols = _activeCols.slice();
+  if(_rowNum === "first") effCols = ["__rn"].concat(effCols);
+  else if(_rowNum === "last") effCols = effCols.concat(["__rn"]);
+
+  /* ── Logo HTML ── */
+  var logoHtml = logo
+    ? '<img src="'+esc(logo)+'" style="height:38px;object-fit:contain;flex-shrink:0" alt="Logo" onerror="this.style.display=\'none\'">'
+    : '<div class="sp-logo">SP</div>';
+
+  /* ── @page CSS ── */
+  var pageCSS = "@page{"
+    + "size:A4 "+orient+";"
+    + "margin:10mm 8mm 15mm 8mm;"
+    + "@bottom-left{content:\""+footL+"\";font-family:Tajawal,Arial;font-size:7pt;color:#888;}"
+    + "@bottom-center{content:\""+footNote+(pageNum?" | Page \":counter(page)+\" of \":counter(pages)+\"":"")
+    + "\";font-family:Tajawal,Arial;font-size:7pt;color:#aaa;}"
+    + "@bottom-right{content:\""+footR+"\";font-family:Tajawal,Arial;font-size:7pt;color:#888;}"
+    + "}";
+
+  /* ── Base print CSS ── */
+  var css = [
     "*{box-sizing:border-box;margin:0;padding:0;}",
-    "body{font-family:Syne,Tajawal,Arial,sans-serif;font-size:8.5pt;color:#1a1a2e;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;}",
-    ".phd{display:flex;align-items:center;justify-content:space-between;padding-bottom:6px;border-bottom:2px solid #1f4e79;margin-bottom:8px;}",
-    ".phl{display:flex;align-items:center;gap:10px;}",
-    ".sp{width:36px;height:36px;background:#1f4e79;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:12px;flex-shrink:0;}",
-    ".ten{font-size:11pt;font-weight:700;color:#1f4e79;}",
-    ".meta{font-size:7pt;color:#666;margin-top:1px;}",
-    ".tar{font-family:Tajawal,sans-serif;font-size:12pt;font-weight:700;direction:rtl;color:#1f4e79;text-align:right;}",
-    ".ksum{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0 8px;}",
-    ".kb{border:1px solid #c8d4e8;border-radius:3px;padding:4px 8px;min-width:85px;background:#f0f5ff;}",
-    ".kl{font-size:6.5pt;color:#666;text-transform:uppercase;letter-spacing:.03em;}",
-    ".kv{font-size:10pt;font-weight:700;color:#1f4e79;margin-top:1px;}",
-    "table{width:100%;border-collapse:collapse;margin-top:2px;}",
+    "body{font-family:'IBM Plex Sans',Tajawal,Arial,sans-serif;font-size:9pt;color:#1a2332;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;}",
+
+    /* Report header */
+    ".rpt-hd{display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:2px solid #1565c0;margin-bottom:10px;}",
+    ".rpt-hd-left{display:flex;align-items:center;gap:11px;}",
+    ".sp-logo{width:38px;height:38px;background:#1565c0;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;flex-shrink:0;}",
+    ".rpt-title-en{font-size:13pt;font-weight:700;color:#1565c0;}",
+    ".rpt-meta{font-size:7.5pt;color:#666;margin-top:2px;line-height:1.5;}",
+    ".rpt-title-ar{font-family:Tajawal,Arial;font-size:13pt;font-weight:700;direction:rtl;color:#1565c0;text-align:right;}",
+
+    /* Grand total bar */
+    ".grand-bar{display:flex;gap:6px;flex-wrap:wrap;background:#f0f5ff;border:1px solid #c8d8f0;border-radius:5px;padding:8px 12px;margin-bottom:12px;}",
+    ".gb-item{min-width:100px;flex:1;}",
+    ".gb-lbl{font-size:6.5pt;text-transform:uppercase;letter-spacing:.05em;color:#666;margin-bottom:2px;}",
+    ".gb-val{font-size:10pt;font-weight:700;color:#1565c0;font-variant-numeric:tabular-nums;}",
+
+    /* Group block */
+    ".grp{page-break-inside:avoid;margin-bottom:16px;border:1px solid #dde4ee;border-radius:6px;overflow:hidden;}",
+    ".grp-hd{background:#1565c0;color:#fff;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;}",
+    ".grp-company{font-size:9pt;font-weight:700;letter-spacing:.02em;}",
+    ".grp-wt{font-size:8pt;background:rgba(255,255,255,.18);border-radius:20px;padding:2px 9px;}",
+    ".grp-sub-hd{background:#e8f0fe;padding:6px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid #c5d5f0;}",
+    ".grp-sub-label{font-size:8pt;color:#1565c0;font-weight:600;}",
+    ".grp-sub-info{font-size:7.5pt;color:#5a6a80;}",
+
+    /* Summary cards inside group */
+    ".sum-cards{display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px;background:#f8faff;border-bottom:1px solid #dde4ee;}",
+    ".sc{flex:1;min-width:90px;border:1px solid #dde4ee;border-radius:4px;padding:6px 9px;background:#fff;}",
+    ".sc-lbl{font-size:6.5pt;text-transform:uppercase;letter-spacing:.05em;color:#888;margin-bottom:2px;}",
+    ".sc-val{font-size:11pt;font-weight:700;font-variant-numeric:tabular-nums;}",
+    ".sc-work .sc-val{color:#1565c0;}",
+    ".sc-net  .sc-val{color:#1b7a4a;}",
+    ".sc-ret  .sc-val{color:#6a1b9a;}",
+    ".sc-ded  .sc-val{color:#c0392b;}",
+    ".sc-vat  .sc-val{color:#b45309;}",
+    ".sc-last .sc-val{font-size:9pt;color:#1565c0;}",
+
+    /* Table */
+    "table{width:100%;border-collapse:collapse;font-size:7.5pt;}",
     "thead{display:table-header-group;}",
-    "th{background:#1f4e79;color:#fff;padding:4px 5px;font-size:7pt;text-align:left;border:none;font-weight:600;letter-spacing:.02em;}",
-    "td{border-bottom:1px solid #e4ecf5;padding:3px 5px;font-size:7.5pt;vertical-align:middle;}",
-    "td.num{text-align:right;font-variant-numeric:tabular-nums;}",
+    "th{background:#1565c0;color:#fff;padding:5px 7px;text-align:left;font-weight:600;letter-spacing:.03em;border-right:1px solid rgba(255,255,255,.15);}",
+    "th:last-child{border-right:none;}",
+    "td{border-bottom:1px solid #eef1f8;padding:4px 7px;vertical-align:middle;}",
+    "tr.z td{background:#f5f8ff;}",
+    "tr{page-break-inside:avoid;}",
+    "td.num{text-align:right;font-variant-numeric:tabular-nums;font-family:'IBM Plex Mono',monospace;}",
     "td.rn{text-align:center;color:#999;font-size:7pt;}",
-    "tr.z td{background:#f7f9fd;}",
-    "tr{page-break-inside:avoid;}"
+    "td.hi-net{color:#1b7a4a;font-weight:600;}",
+    "td.hi-work{color:#1565c0;}",
+    "td.hi-ret{color:#6a1b9a;}",
+    "td.hi-ded{color:#c0392b;}",
+
+    /* Totals row */
+    "tr.tot td{background:#e8f0fe;font-weight:700;border-top:2px solid #1565c0;font-variant-numeric:tabular-nums;}",
+
+    /* Cert date badge */
+    ".status-pill{display:inline-block;padding:1px 6px;border-radius:10px;font-size:7pt;font-weight:600;background:#e8f5ee;color:#1b7a4a;}",
+
+    /* Separator between companies */
+    ".company-sep{page-break-before:always;}",
+    ".company-sep:first-child{page-break-before:avoid;}"
   ].join("");
-  var w=window.open("","_blank");
-  if(!w){toast("Popup blocked — allow popups","e");return;}
-  var headContent="<!DOCTYPE html><html><head>"
-    +"<meta charset=\"UTF-8\">"
-    +"<title>"+escHtml(titleEn)+"</title>"
-    +"<link href=\"https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Syne:wght@400;700&display=swap\" rel=\"stylesheet\">"
-    +"<style id=\"pageRule\"></style>"
-    +"<style>"+basePrintCSS+"</style>"
-    +"</head><body>"
-    +"<div class=\"phd\">"
-      +"<div class=\"phl\">"
-        +logoHtml
-        +"<div>"
-          +"<div class=\"ten\">"+escHtml(titleEn)+"</div>"
-          +(company?"<div class=\"meta\">"+escHtml(company)+"</div>":"")
-          +(showDate?"<div class=\"meta\">Date: "+now+"</div>":"")
-          +"<div class=\"meta\">Prepared by: "+escHtml(prepBy)+" &nbsp;|&nbsp; "+d.length+" Certificates</div>"
-        +"</div>"
-      +"</div>"
-      +"<div style=\"text-align:right\"><div class=\"tar\">"+titleAr+"</div></div>"
-    +"</div>"
-    +kpiHtml
-    +"<table><thead><tr>"+hdr+"</tr></thead><tbody>"+rowsHtml+"</tbody></table>"
-    +"<script>"
-    +"document.getElementById('pageRule').textContent="+JSON.stringify(pageCSS)+";"
-    +"window.onload=function(){setTimeout(function(){window.print();},700);};"
-    +"<\/script>"
-    +"</body></html>";
-  w.document.write(headContent);
+
+  /* ── Build groups HTML ── */
+  var prevCompany = null;
+  var groupsHtml  = "";
+
+  Object.values(groups).forEach(function(g, gi){
+    var rows = g.rows;
+    var tWork = sum(rows,"work_value"),
+        tNet  = sum(rows,"net_payment"),
+        tRet  = sum(rows,"retention_amount"),
+        tDed  = sum(rows,"deduction"),
+        tVat  = sum(rows,"vat_amount"),
+        tWd   = sum(rows,"work_withdrawn"),
+        tAdv  = sum(rows,"advance_deduction"),
+        tRef  = sum(rows,"refund");
+
+    /* Last certificate date */
+    var dates = rows.map(function(r){ return r.cert_date||r.created_at||""; }).filter(Boolean).sort();
+    var lastDate = dates.length ? new Date(dates[dates.length-1]).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) : "—";
+
+    /* All contract numbers */
+    var contractNos = Array.from(new Set(rows.map(function(r){return r.contract_number||"";}).filter(Boolean))).join(" / ") || "—";
+
+    /* Company separator for page break */
+    var isNewCompany = g.company !== prevCompany;
+    var sepClass = (isNewCompany && gi > 0) ? ' company-sep' : '';
+    prevCompany = g.company;
+
+    /* Table header columns */
+    var tblHead = effCols.map(function(ck){
+      if(ck==="__rn") return "<th>#</th>";
+      var col = ALL_COLUMNS.find(function(c){return c.key===ck;}) || {label:ck};
+      return "<th>"+esc(col.label)+"</th>";
+    }).join("");
+
+    /* Table rows */
+    var tblRows = rows.map(function(r,ri){
+      var tds = effCols.map(function(ck){
+        if(ck==="__rn") return '<td class="rn">'+(ri+1)+"</td>";
+        var col = ALL_COLUMNS.find(function(c){return c.key===ck;})||{};
+        var v = r[ck]; if(v===null||v===undefined) v="—";
+        if(ck==="status") return '<td><span class="status-pill">'+esc(String(v))+"</span></td>";
+        if(col.numeric){
+          var n = parseFloat(v);
+          var cls = ck==="net_payment"  ? "num hi-net"
+                  : ck==="work_value"   ? "num hi-work"
+                  : ck==="retention_amount" ? "num hi-ret"
+                  : ck==="deduction"    ? "num hi-ded"
+                  : "num";
+          return '<td class="'+cls+'">'+(isNaN(n)?esc(String(v)):f(n))+"</td>";
+        }
+        if(ck==="created_at"||ck==="cert_date"){
+          return "<td>"+(v&&v!=="—"?new Date(v).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"2-digit"}):"—")+"</td>";
+        }
+        return "<td>"+esc(String(v))+"</td>";
+      }).join("");
+      return "<tr"+(zebraRpt&&ri%2===0?' class="z"':"")+">"+tds+"</tr>";
+    }).join("");
+
+    /* Totals row */
+    var totRow = "<tr class='tot'>"
+      + effCols.map(function(ck){
+          if(ck==="__rn")  return "<td>—</td>";
+          var col = ALL_COLUMNS.find(function(c){return c.key===ck;})||{};
+          if(col.numeric){
+            var val = sum(rows, ck);
+            var cls = ck==="net_payment"?"num hi-net":ck==="work_value"?"num hi-work":ck==="retention_amount"?"num hi-ret":ck==="deduction"?"num hi-ded":"num";
+            return '<td class="'+cls+'">'+f(val)+"</td>";
+          }
+          if(ck==="certificate_no") return "<td>TOTAL</td>";
+          if(ck==="status")         return "<td>"+rows.length+" certs</td>";
+          return "<td>—</td>";
+        }).join("")
+      + "</tr>";
+
+    groupsHtml += '<div class="grp'+sepClass+'">'
+
+      /* Group header — company + work type */
+      + '<div class="grp-hd">'
+        + '<span class="grp-company">🏢 '+esc(g.company)+'</span>'
+        + '<span class="grp-wt">'+esc(g.work_type)+'</span>'
+      + '</div>'
+
+      /* Sub-header */
+      + '<div class="grp-sub-hd">'
+        + '<span class="grp-sub-label">👷 '+esc(g.sub)+'</span>'
+        + '<span class="grp-sub-info">Contract: '+esc(contractNos)+'</span>'
+        + '<span class="grp-sub-info">Last Cert: '+lastDate+'</span>'
+        + '<span class="grp-sub-info">'+rows.length+' certificates</span>'
+      + '</div>'
+
+      /* Summary cards */
+      + '<div class="sum-cards">'
+        + '<div class="sc sc-work"><div class="sc-lbl">Work Value</div><div class="sc-val">'+f(tWork)+'</div></div>'
+        + '<div class="sc sc-net" ><div class="sc-lbl">Net Payment</div><div class="sc-val">'+f(tNet)+'</div></div>'
+        + '<div class="sc sc-ret" ><div class="sc-lbl">Retention</div><div class="sc-val">'+f(tRet)+'</div></div>'
+        + '<div class="sc sc-ded" ><div class="sc-lbl">Deductions</div><div class="sc-val">'+f(tDed)+'</div></div>'
+        + '<div class="sc sc-vat" ><div class="sc-lbl">VAT</div><div class="sc-val">'+f(tVat)+'</div></div>'
+        + '<div class="sc sc-last"><div class="sc-lbl">Last Certificate</div><div class="sc-val">'+lastDate+'</div></div>'
+      + '</div>'
+
+      /* Detail table */
+      + '<table><thead><tr>'+tblHead+'</tr></thead>'
+      + '<tbody>'+tblRows+totRow+'</tbody></table>'
+
+    + '</div>';
+  });
+
+  /* ── Grand total bar HTML ── */
+  var grandBarHtml = showKPIs ? (
+    '<div class="grand-bar">'
+    + '<div class="gb-item"><div class="gb-lbl">Total Work Value</div><div class="gb-val">'+f(gtWork)+' SAR</div></div>'
+    + '<div class="gb-item"><div class="gb-lbl">Total Net Payment</div><div class="gb-val">'+f(gtNet)+' SAR</div></div>'
+    + '<div class="gb-item"><div class="gb-lbl">Total Retention</div><div class="gb-val">'+f(gtRet)+' SAR</div></div>'
+    + '<div class="gb-item"><div class="gb-lbl">Total Deductions</div><div class="gb-val">'+f(gtDed)+' SAR</div></div>'
+    + '<div class="gb-item"><div class="gb-lbl">VAT Total</div><div class="gb-val">'+f(gtVat)+' SAR</div></div>'
+    + '<div class="gb-item"><div class="gb-lbl">Certificates</div><div class="gb-val">'+d.length+'</div></div>'
+    + '<div class="gb-item"><div class="gb-lbl">Groups</div><div class="gb-val">'+Object.keys(groups).length+'</div></div>'
+    + '</div>'
+  ) : "";
+
+  /* ── Assemble full HTML ── */
+  var html = '<!DOCTYPE html><html><head>'
+    + '<meta charset="UTF-8">'
+    + '<title>'+esc(titleEn)+'</title>'
+    + '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">'
+    + '<style id="pageRule"></style>'
+    + '<style>'+css+'</style>'
+    + '</head><body>'
+
+    /* Report header */
+    + '<div class="rpt-hd">'
+      + '<div class="rpt-hd-left">'
+        + logoHtml
+        + '<div>'
+          + '<div class="rpt-title-en">'+esc(titleEn)+'</div>'
+          + '<div class="rpt-meta">'
+            + (company ? esc(company)+' &nbsp;·&nbsp; ' : '')
+            + (showDate ? 'Date: '+now+' &nbsp;·&nbsp; ' : '')
+            + 'Prepared by: '+esc(prepBy)+' &nbsp;·&nbsp; '
+            + d.length+' Certificates &nbsp;·&nbsp; '
+            + Object.keys(groups).length+' Groups'
+          + '</div>'
+        + '</div>'
+      + '</div>'
+      + '<div class="rpt-title-ar">'+titleAr+'</div>'
+    + '</div>'
+
+    /* Grand total bar */
+    + grandBarHtml
+
+    /* All groups */
+    + groupsHtml
+
+    /* Auto-print script */
+    + '<script>'
+    + 'document.getElementById("pageRule").textContent='+JSON.stringify(pageCSS)+';'
+    + 'window.onload=function(){setTimeout(function(){window.print();},700);};'
+    + '<\/script>'
+    + '</body></html>';
+
+  /* ── Open print window ── */
+  var w = window.open("","_blank");
+  if(!w){ toast("Popup blocked — please allow popups","e"); return; }
+  w.document.open();
+  w.document.write(html);
   w.document.close();
-  toast("Print window opened","s");
+  toast("Report opened — "+Object.keys(groups).length+" groups, "+d.length+" certificates","s");
 }
 
 /* ── MODALS ── */
