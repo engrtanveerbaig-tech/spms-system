@@ -44,8 +44,8 @@
         '--amber-d':  'rgba(245,158,11,0.12)',
         '--blue-d':   'rgba(59,130,246,0.12)',
       },
-      bodyClass: '',            // no extra class — this IS the default dark
-      dashClass: '',
+      bodyClass: 'dark-mode',           
+      dashClass: 'dark',
     },
     {
       id: 'light',
@@ -79,8 +79,8 @@
         '--amber-d':  'rgba(245,158,11,0.10)',
         '--blue-d':   'rgba(59,130,246,0.10)',
       },
-      bodyClass: 'light-mode',
-      dashClass: 'light',
+      bodyClass: '',    // no extra class — this IS the default dark
+      dashClass: '',
     },
     {
       id: 'ocean',
