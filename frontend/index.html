@@ -41,28 +41,7 @@ body{display:flex;height:100vh;overflow:hidden;}
 .content{flex:1;height:100vh;overflow-y:auto;min-width:0;}
 #mainContent{min-height:100%;}
 
-/* ── SEARCH MODAL ── */
-.search-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(12px);display:none;justify-content:center;align-items:flex-start;padding-top:13vh;z-index:9999;}
-.search-box{width:540px;max-width:92vw;background:#101420;border:1px solid rgba(255,255,255,.11);border-radius:18px;padding:18px;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:scaleIn .15s ease;}
-@keyframes scaleIn{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
-.stt{display:flex;gap:6px;background:#0c0e17;border-radius:9px;padding:4px;margin-bottom:13px;}
-.stt button{flex:1;padding:7px;border:none;border-radius:7px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:#4a5270;transition:.15s;}
-.stt button.active{background:linear-gradient(135deg,#f43f5e,#8b5cf6);color:#fff;}
-.si-wrap{position:relative;}
-.si-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#4a5270;pointer-events:none;}
-.search-box input{width:100%;padding:11px 14px 11px 40px;background:#0c0e17;border:1px solid rgba(255,255,255,.11);border-radius:10px;font-family:'Outfit',sans-serif;font-size:13px;color:#e8eaf2;outline:none;transition:.2s;}
-.search-box input:focus{border-color:rgba(244,63,94,.4);}
-.search-box input::placeholder{color:#3e4560;}
-#popupSuggestions{margin-top:7px;background:#0c0e17;border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden;max-height:210px;overflow-y:auto;}
-#popupSuggestions div{padding:10px 14px;font-size:13px;color:#8892aa;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:.12s;}
-#popupSuggestions div:last-child{border-bottom:none;}
-#popupSuggestions div:hover{background:rgba(244,63,94,.07);color:#e8eaf2;}
-.highlight{background:linear-gradient(135deg,rgba(245,158,11,.28),rgba(244,63,94,.18));color:#fbbf24;padding:1px 4px;border-radius:4px;font-weight:600;}
-.search-footer{display:flex;justify-content:flex-end;margin-top:13px;gap:8px;}
-.search-footer button{padding:8px 18px;border:none;border-radius:9px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;}
-.sf-cancel{background:#141828;color:#8892aa;border:1px solid rgba(255,255,255,.1);}
-.sf-search{background:linear-gradient(135deg,#f43f5e,#8b5cf6);color:#fff;}
-.search-footer button:hover{opacity:.85;transform:translateY(-1px);}
+
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
@@ -77,10 +56,6 @@ body{display:flex;height:100vh;overflow:hidden;}
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
     </div>
 
-    <!-- Search -->
-    <div class="nav-item" data-tip="Search" onclick="openSearchModal()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
-    </div>
 
     <div class="nav-sep"></div>
 
@@ -139,24 +114,6 @@ body{display:flex;height:100vh;overflow:hidden;}
   </div>
 </div>
 
-<!-- Search Modal -->
-<div id="searchModal" class="search-modal">
-  <div class="search-box">
-    <div class="stt">
-      <button id="btnCompany" class="active" onclick="setSearchType('company')">By Company</button>
-      <button id="btnSubcontractor" onclick="setSearchType('subcontractor')">By Subcontractor</button>
-    </div>
-    <div class="si-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" id="popupSearchInput" placeholder="Type to search…" oninput="handlePopupSearch()">
-    </div>
-    <div id="popupSuggestions"></div>
-    <div class="search-footer">
-      <button class="sf-cancel" onclick="closeSearchModal()">Cancel</button>
-      <button class="sf-search" onclick="confirmSearch()">Apply Filter</button>
-    </div>
-  </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -183,11 +140,6 @@ body{display:flex;height:100vh;overflow:hidden;}
     });
   }
 })();
-document.getElementById("searchModal").addEventListener("click", function(e){
-  if(e.target.id === "searchModal") closeSearchModal();
-});
-
-
 
 </script>
 
