@@ -311,7 +311,7 @@ router.put("/update/:id", async (req, res) => {
 // ===============================
 router.patch("/:id/status", async (req, res) => {
     try {
-        const { cert_status } = req.body;
+        const cert_status = req.body.status || req.body.cert_status;
         const validStatuses = [
             "Submitted", "Under Review", "Approved",
             "Forwarded to Finance", "Released",

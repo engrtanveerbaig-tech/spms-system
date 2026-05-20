@@ -607,9 +607,12 @@ const originalData = window.originalData;
     const subcontractorId = document.getElementById("subcontractor_form")?.value;
     if (!subcontractorId) { alert("Please select subcontractor ❌"); return; }
 
-    const statusValue = editId
+    const commentVal = (document.getElementById("cert_comment")?.value || "").trim();
+const statusValue = editId
+  ? (document.getElementById("cert_status")?.value || "Submitted")
+  : (commentVal.length > 0
       ? (document.getElementById("cert_status")?.value || "Submitted")
-      : "Submitted";
+      : "Submitted");
 
     const payload = {
       subcontractor_id:  +subcontractorId,
