@@ -535,7 +535,7 @@ tbody tr{transition:.12s;cursor:pointer;}
     <!-- TOP BAR -->
     <div class="topbar">
       <div class="brand">
-        <div class="brand-eye">SPMS · Payment Management System · © Eng. Tanveer Ahmad 2026</div>
+        <div class="brand-eye">SPMS · Payment Management System · © 2026</div>
         <div class="brand-name">Financial <span>Overview</span></div>
       </div>
       <div class="topbar-right">
@@ -557,6 +557,7 @@ tbody tr{transition:.12s;cursor:pointer;}
           🔔
           <span class="notif-badge" id="notifBadge">0</span>
         </button>
+        <button class="tbtn" onclick="toggleTheme()" id="themeBtn">☀️</button>
         <div class="sep"></div>
         <div class="hero-total">
           <div class="hero-lbl">Total Net Payment</div>
@@ -1246,7 +1247,10 @@ async function init(){
     toast("Loaded in demo mode","i");
   }
 }
-
+function applyThemeImmediate(){
+  if(_styleConfig.theme==="dark"){document.body.classList.remove("light");document.getElementById("themeBtn").textContent="☀️";}
+  else{document.body.classList.add("light");document.getElementById("themeBtn").textContent="🌙";}
+}
 function showDashboard(){
   var ls=document.getElementById("loadScreen");
   ls.classList.add("hidden");
@@ -1259,6 +1263,13 @@ function showAuthError(){
   setTimeout(function(){ls.style.display="none";document.getElementById("authScreen").classList.add("show");},300);
 }
 
+/* ── THEME ── */
+function toggleTheme(){
+  var isDark=!document.body.classList.contains("light");
+  if(isDark){document.body.classList.add("light");_styleConfig.theme="light";document.getElementById("themeBtn").textContent="🌙";}
+  else{document.body.classList.remove("light");_styleConfig.theme="dark";document.getElementById("themeBtn").textContent="☀️";}
+  autoSave();setTimeout(drawCharts,100);
+}
 
 /* ── LAYOUT ── */
 function setLayout(mode){
@@ -1808,7 +1819,8 @@ function applyStyleConfig(){
   ["tblFontSzLbl","tblFontSzLbl2"].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=(sc.tblFontSz||10)+"px";});
   if(sc.customCss){var ta=document.getElementById("customCssInput");if(ta)ta.value=sc.customCss;}
   document.querySelectorAll("[data-rn]").forEach(function(el){el.classList.toggle("active",el.dataset.rn===_rowNum);});
-  
+  if(sc.theme==="dark"){document.body.classList.remove("light");document.getElementById("themeBtn").textContent="☀️";}
+  else{document.body.classList.add("light");document.getElementById("themeBtn").textContent="🌙";}
   document.querySelectorAll("[data-layout2]").forEach(function(el){el.classList.toggle("active",el.dataset.layout2===_layout);});
   document.querySelectorAll(".layout-btn").forEach(function(b){b.classList.toggle("active",b.dataset.layout===_layout);});
   var optMap={kpiStyleOpts:"ks",kpiFmtOpts:"kf",zebraOpts:"z",radiusOpts:"rd",densityOpts:"density",rowHOpts:"rh",gridOpts:"grid",fontEnOpts:"fen",fontArOpts:"far",sideKpiOpts:"sk"};
