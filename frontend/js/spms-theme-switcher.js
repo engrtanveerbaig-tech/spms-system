@@ -14,7 +14,7 @@
     {
       id: 'dark',
       name: 'Midnight',
-      desc: 'Default deep-dark theme',
+      desc: 'deep-dark theme',
       icon: '🌑',
       accent: '#f43f5e',
       vars: {
@@ -50,7 +50,7 @@
     {
       id: 'light',
       name: 'Daylight',
-      desc: 'Clean white interface',
+      desc: 'Default Clean white interface',
       icon: '☀️',
       accent: '#f43f5e',
       vars: {
