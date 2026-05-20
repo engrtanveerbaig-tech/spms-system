@@ -509,6 +509,7 @@ async function doLogin(){
     localStorage.setItem('token',data.token);
     localStorage.setItem('role',data.role);
     localStorage.setItem('username',data.username);
+    showAccessGranted(data.username||u,()=>window.location.href='index.html');
   }catch(e){alert('Server unreachable — please try again');resetBtn();}
 }
 
