@@ -36,6 +36,7 @@ body.light{
   --orange:#c05000;
   --sh:0 2px 12px rgba(0,0,0,.08);--sh2:0 6px 28px rgba(0,0,0,.13);
 }
+#adminStatusSelect option{background:var(--bg2);color:var(--t1);}
 body.light td{border-bottom:1px solid rgba(0,0,0,.06)!important;}
 body.light tbody tr:hover td{background:rgba(0,0,0,.025)!important;}
 body.light thead th{background:var(--bg3)!important;color:var(--t3)!important;}
@@ -1577,28 +1578,42 @@ function openRowDetail(id){
   var totalWork=sumF(_filtered.filter(function(x){return x.subcontractor_id===r.subcontractor_id;}), "net_payment");
   var thisNet=parseFloat(r.net_payment||0);
   var sharePct=totalWork>0?((thisNet/totalWork)*100).toFixed(1):0;
-  var isSubmitted=(r.status||"")==="Submitted";
+ var isSubmitted=(r.status||"")==="Submitted";
+var isAdmin=_ACTUAL_ROLE==="admin"||(_ACTUAL_ROLE==="admin"&&_ROLE_OVERRIDE==="admin");
+var ALL_STATUSES=["Submitted","Under Review","Approved","Rejected","Forwarded to Finance","On Site","Released","Pending"];
 
-  /* ── Decision bar: only for manager/admin, only on Submitted certs ── */
-  var actionHtml="";
-  if(canMakeDecision() && isSubmitted){
-    actionHtml='<div class="manager-decision-bar">'
-      +'<div style="display:flex;flex-direction:column;gap:2px;flex:1">'
-        +'<span class="mdb-label">📋 Manager Action Required</span>'
-        +'<span class="mdb-text">Submitted by <b>'+(r.submitted_by||"User")+"</b> — Choose a decision below</span>"
-      +"</div>"
-      +'<div id="decisionLoading" class="decision-loading">Updating…</div>'
-      +'<button class="decision-btn dbn-approve" onclick="makeDecision('+id+',\'Approved\')">✓ Approve</button>'
-      +'<button class="decision-btn dbn-reject" onclick="makeDecision('+id+',\'Rejected\')">✕ Reject</button>'
-      +'<button class="decision-btn dbn-hold" onclick="makeDecision('+id+',\'Under Review\')">⏸ Hold</button>'
-      +"</div>";
-  } else if(canMakeDecision() && !isSubmitted){
-    /* manager sees status but no action buttons if not submitted */
-    actionHtml="";
-  } else if(isReadOnly()){
-    /* read-only roles see a gentle notice */
-    actionHtml='<div class="readonly-notice"><span>🔒</span> You have view-only access. Contact your manager to take action on this certificate.</div>';
-  }
+/* ── Decision bar ── */
+var actionHtml="";
+if(isAdmin){
+  /* Admin: can change status of ANY certificate to ANY status */
+  var opts=ALL_STATUSES.map(function(s){
+    var sel=s===(r.status||"")?' selected':'';
+    return '<option value="'+s+'"'+sel+'>'+s+'</option>';
+  }).join("");
+  actionHtml='<div class="manager-decision-bar" style="flex-wrap:wrap;gap:10px;">'
+    +'<div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:160px;">'
+      +'<span class="mdb-label">🛡 Admin — Override Status</span>'
+      +'<span class="mdb-text">Current: <b>'+(r.status||"—")+'</b> · Submitted by '+(r.submitted_by||"User")+'</span>'
+    +'</div>'
+    +'<div id="decisionLoading" class="decision-loading">Updating…</div>'
+    +'<select id="adminStatusSelect" style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:5px 9px;font-family:var(--mono);font-size:9px;color:var(--t1);outline:none;">'+opts+'</select>'
+    +'<button class="decision-btn dbn-approve" onclick="makeDecision('+id+',document.getElementById(\'adminStatusSelect\').value)">✓ Apply Status</button>'
+    +'</div>';
+} else if(canMakeDecision() && isSubmitted){
+  /* Manager: only on Submitted certs */
+  actionHtml='<div class="manager-decision-bar">'
+    +'<div style="display:flex;flex-direction:column;gap:2px;flex:1">'
+      +'<span class="mdb-label">📋 Manager Action Required</span>'
+      +'<span class="mdb-text">Submitted by <b>'+(r.submitted_by||"User")+"</b> — Choose a decision below</span>"
+    +'</div>'
+    +'<div id="decisionLoading" class="decision-loading">Updating…</div>'
+    +'<button class="decision-btn dbn-approve" onclick="makeDecision('+id+',\'Approved\')">✓ Approve</button>'
+    +'<button class="decision-btn dbn-reject" onclick="makeDecision('+id+',\'Rejected\')">✕ Reject</button>'
+    +'<button class="decision-btn dbn-hold" onclick="makeDecision('+id+',\'Under Review\')">⏸ Hold</button>'
+    +'</div>';
+} else if(isReadOnly()){
+  actionHtml='<div class="readonly-notice"><span>🔒</span> You have view-only access. Contact your manager to take action on this certificate.</div>';
+}
 
   document.getElementById("spBody").innerHTML=actionHtml
     +'<div class="stat-grid">'
@@ -1620,8 +1635,14 @@ function openRowDetail(id){
 }
 
 async function makeDecision(id,newStatus){
-  /* Guard: only decision-makers can call this */
-  if(!canMakeDecision()){toast("Access denied — insufficient role","e");return;}
+  /* Admin can update any cert; manager only if Submitted */
+  var isAdmin=_ACTUAL_ROLE==="admin";
+  if(!isAdmin && !canMakeDecision()){toast("Access denied — insufficient role","e");return;}
+  if(!isAdmin){
+    var r0=_data.find(function(x){return x.id===id;});
+    if(r0&&(r0.status||"")!=="Submitted"){toast("Managers can only act on Submitted certificates","e");return;}
+  }
+  if(!newStatus||!newStatus.trim()){toast("Please select a status","e");return;}
   var decisionLoading=document.getElementById("decisionLoading");
   if(decisionLoading)decisionLoading.classList.add("show");
   document.querySelectorAll(".decision-btn").forEach(function(b){b.disabled=true;});
