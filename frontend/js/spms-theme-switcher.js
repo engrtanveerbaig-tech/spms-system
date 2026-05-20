@@ -14,7 +14,7 @@
     {
       id: 'dark',
       name: 'Midnight',
-      desc: 'deep-dark theme',
+      desc: 'Default deep-dark theme',
       icon: '🌑',
       accent: '#f43f5e',
       vars: {
@@ -44,13 +44,13 @@
         '--amber-d':  'rgba(245,158,11,0.12)',
         '--blue-d':   'rgba(59,130,246,0.12)',
       },
-      bodyClass: 'dark-mode',           
-      dashClass: 'dark',
+      bodyClass: '',            // no extra class — this IS the default dark
+      dashClass: '',
     },
     {
       id: 'light',
       name: 'Daylight',
-      desc: 'Default Clean white interface',
+      desc: 'Clean white interface',
       icon: '☀️',
       accent: '#f43f5e',
       vars: {
@@ -79,8 +79,8 @@
         '--amber-d':  'rgba(245,158,11,0.10)',
         '--blue-d':   'rgba(59,130,246,0.10)',
       },
-      bodyClass: '',    // no extra class — this IS the default dark
-      dashClass: '',
+      bodyClass: 'light-mode',
+      dashClass: 'light',
     },
     {
       id: 'ocean',
@@ -296,7 +296,7 @@
 
   /* ── STORAGE KEY ───────────────────────────────────────── */
   var STORAGE_KEY = 'spms_theme';
-  var _currentThemeId = localStorage.getItem(STORAGE_KEY) || 'dark';
+  var _currentThemeId = localStorage.getItem(STORAGE_KEY) || 'light';
   var _modalOpen = false;
 
   /* ── APPLY THEME ───────────────────────────────────────── */
