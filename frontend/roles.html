@@ -234,6 +234,21 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       </div>
       <div class="field"><label>Phone <span style="color:var(--muted);font-weight:400">(optional)</span></label><input type="text" id="r_fph" placeholder="+966 5x xxx xxxx"></div>
       <div class="field full"><label>Notes <span style="color:var(--muted);font-weight:400">(optional)</span></label><input type="text" id="r_fno" placeholder="Any extra context…"></div>
+      <div class="field full">
+    <label>Projects</label>
+
+    <div id="r_projects"
+         style="
+            max-height:180px;
+            overflow-y:auto;
+            border:1px solid var(--border);
+            border-radius:10px;
+            padding:12px;
+            background:rgba(255,255,255,.04);
+        ">
+        Loading projects...
+    </div>
+</div>
       <div class="field full" id="r_actFld" style="display:none;"><label>Status</label>
         <select id="r_fa"><option value="1">Active</option><option value="0">Inactive</option></select>
       </div>
@@ -311,10 +326,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
   var API     = BACKEND + '/api/users';
 
   /* ── STATE ── */
-  var users   = [];
-  var editId  = null;
-  var delId   = null;
-  var resetId = null;
+  var users      = [];
+var projects   = [];
+
+var editId     = null;
+var delId      = null;
+var resetId    = null;
   var pwVis   = {};
 
   /* ── HELPERS ── */
@@ -364,6 +381,48 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       return[];
     }
   }
+  async function loadProjects(){
+
+    try{
+
+        const res = await fetch(
+            BACKEND + "/api/projects",
+            {
+                headers: headers()
+            }
+        );
+
+        if(!res.ok)
+            throw new Error("Unable to load projects");
+
+        projects = await res.json();
+
+        const container = get("r_projects");
+
+        container.innerHTML = projects.map(p => `
+            <label style="
+                display:block;
+                margin-bottom:8px;
+                cursor:pointer;
+            ">
+                <input
+                    type="checkbox"
+                    value="${p.id}"
+                    class="r_project">
+                ${p.project_name}
+            </label>
+        `).join("");
+
+    }catch(err){
+
+        console.error(err);
+
+        get("r_projects").innerHTML =
+            "<span style='color:red'>Failed to load projects</span>";
+
+    }
+
+}
 
   /* ── STATS ── */
   function updateStats(){
@@ -473,7 +532,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       get('r_fp').type='password';
       get('r_fp').placeholder='Min 8 characters';
       get('r_actFld').style.display='none';
-      this.openM('r_mUser');
+
+loadProjects();
+
+this.openM('r_mUser');
     },
 
     openEdit: function(id){
