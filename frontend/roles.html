@@ -538,7 +538,7 @@ loadProjects();
 this.openM('r_mUser');
     },
 
-    openEdit: function(id){
+    openEdit: async function(id){
       var u=users.find(function(x){return x.id===id;});if(!u)return;
       editId=id;
       get('r_mttl').textContent='Edit User';
@@ -547,6 +547,30 @@ this.openM('r_mUser');
       get('r_fp').value='';get('r_fp').type='password';get('r_fp').placeholder='Leave blank to keep current';
       get('r_fph').value=u.phone||'';get('r_fno').value=u.notes||'';get('r_fr').value=u.role||'';
       get('r_fa').value=u.active==1?'1':'0';get('r_actFld').style.display='flex';
+      await loadProjects();
+      const res = await fetch(
+    BACKEND + "/api/users/" + id + "/projects",
+    {
+        headers: headers()
+    }
+);
+
+if (res.ok) {
+
+    const assignedProjects = await res.json();
+
+    assignedProjects.forEach(p => {
+
+        const checkbox = document.querySelector(
+            '.r_project[value="' + p.project_id + '"]'
+        );
+
+        if (checkbox)
+            checkbox.checked = true;
+
+    });
+
+}
       this.openM('r_mUser');
     },
 
@@ -560,7 +584,25 @@ this.openM('r_mUser');
       if(!role)return toast('Please select a role','error');
       if(!editId&&(!password||password.length<8))return toast('Password must be at least 8 characters','error');
       if(editId&&password&&password.length<8)return toast('Password must be at least 8 characters','error');
-      var body={name:name,username:username,email:email,role:role,phone:phone||null,notes:notes||null};
+      const selectedProjects = [
+    ...document.querySelectorAll(".r_project:checked")
+].map(cb => Number(cb.value));
+
+var body = {
+    name,
+    username,
+    email,
+    role,
+    phone: phone || null,
+    notes: notes || null,
+    projects: selectedProjects
+};
+
+if(password)
+    body.password = password;
+
+if(editId)
+    body.active = parseInt(active);
       if(password)body.password=password;
       if(editId)body.active=parseInt(active);
       var btn=get('r_saveBtn');
