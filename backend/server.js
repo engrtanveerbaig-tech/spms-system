@@ -6,6 +6,7 @@ const puppeteer = require("puppeteer");
 const subcontractorRoutes = require("./routes/subcontractorRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const userRoutes = require("./routes/userRoutes");              // ← NEW
+const projectRoutes = require("./routes/projectRoutes");
 
 const app = express();
 
@@ -135,7 +136,8 @@ app.post("/api/download-pdf", async (req, res) => {
 // 🔐 Protected APIs
 app.use("/api/subcontractors", verifyToken, subcontractorRoutes);
 app.use("/api/payments",       verifyToken, paymentRoutes);
-app.use("/api/users",          verifyToken, userRoutes);        // ← NEW
+app.use("/api/users",          verifyToken, userRoutes);
+app.use("/api/projects",       verifyToken, projectRoutes);
 
 // ================= ROOT =================
 app.get("/", (req, res) => {
